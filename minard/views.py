@@ -510,8 +510,12 @@ def metric():
         trig, value = expr.split('-')
         if(trig in TRIGGER_NAMES+['TOTAL']):
             if value=='Baseline':
-                values = get_timeseries(expr,start,stop,step)
-                counts = get_timeseries('baseline-count',start,stop,step)
+                values = get_timeseries(expr,start,stop,step,lambda x: float(x) if x is not None else None)
+                counts = get_timeseries('baseline-count',start,stop,step,lambda x: int(x) if x is not None else None)
+                good_data = filter(lambda (a,b): a and b,zip(values,counts))
+                avg = sum([row[0] for row in good_data])/sum([row[1] for row in good_data])
+                values = map(lambda (val,count):val-avg*count if val and count else None,zip(values,counts))
+
             else:
                 field = trig if trig=='TOTAL' else TRIGGER_NAMES.index(trig)
                 values = get_timeseries_field('trig:%s' % value,field,start,stop,step)

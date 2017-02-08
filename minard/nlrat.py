@@ -35,8 +35,7 @@ def run_time(run):
     :returns str: "" if not found
     '''
     try:
-        #        return detector_state.get_run_state(run)['timestamp'].isoformat()
-        return "the time"
+        return detector_state.get_run_state(run)['timestamp'].isoformat()
     except:
         return ""
 

@@ -709,6 +709,7 @@ function display_run_type(run_type,time_stamp) {
     5:"ECA",
     6:"Diagnostic",
     7:"Experimental",
+    8:"Supernova"
     };
     var calib_translation = {
     11:"TELLIE",

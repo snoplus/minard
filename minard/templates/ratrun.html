@@ -47,7 +47,7 @@
 {% if not error %}
     <div id = "loading" style="display: none;"> </div>
     <script type="text/javascript" src="https://root.cern/js/latest/scripts/JSRootCore.min.js?2d&io" ></script>  
-    <script type="text/javascript" src="{{ url_for('static', filename='js/nlrat.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='js/rat.js') }}"></script>
     <script type="text/javascript">
       // AssertPrequisites should wait for JSROOT to arrive, but it seems to need a longer wait
       JSROOT.AssertPrerequisites("io&&2d", function(){setTimeout(function(){displayRun({{run}});}, 200)}, "loading");

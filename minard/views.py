@@ -282,16 +282,16 @@ def snostream():
 def nhit():
   return render_template('nhit.html')
 
-@app.route('/nlrat')
-def nlrathome():
-    return render_template('nlrathome.html', runs=nlrat.available_runs())
+@app.route('/rat')
+def rathome():
+    return render_template('rathome.html', runs=nlrat.available_runs())
     
-@app.route('/nlrat')    
-@app.route('/nlrat/<int:run>')
-def nlratrun(run = 0):
-    return render_template("nlratrun.html", run=run, error= not nlrat.hists_available(run))
+@app.route('/rat')    
+@app.route('/rat/<int:run>')
+def ratrun(run = 0):
+    return render_template("ratrun.html", run=run, error= not nlrat.hists_available(run))
 
-@app.route('/nlrat/<filename>')
+@app.route('/rat/<filename>')
 def get_root_file(filename):
     return send_from_directory(nlrat.NLRAT_DIR, filename)
 

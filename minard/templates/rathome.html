@@ -16,7 +16,7 @@
 		  </thead>
       {% for run in runs %}
       <tr>
-        <th> <a href = "{{ url_for('nlratrun', run=run.id) }}"> {{run.id}} </a> </th>
+        <th> <a href = "{{ url_for('ratrun', run=run.id) }}"> {{run.id}} </a> </th>
         <th> {{run.time}} </th>
       </tr>
       {% endfor %}

@@ -17,8 +17,8 @@ function createPlotDiv(name){
 }
 
 function displayRun(runNumber){
-    var histFileName = $SCRIPT_ROOT + "/nlrat/r" + runNumber.toString() + "_nl_th1f.root";
-    var ntupFileName = $SCRIPT_ROOT + "/nlrat/r" + runNumber.toString() + "_nl_ntups.zip";
+    var histFileName = $SCRIPT_ROOT + "/rat/r" + runNumber.toString() + "_nl_th1f.root";
+    var ntupFileName = $SCRIPT_ROOT + "/rat/r" + runNumber.toString() + "_nl_ntups.zip";
     document.getElementById("histbut").onclick = function(){window.open(histFileName);};
     document.getElementById("ntupbut").onclick = function(){window.open(ntupFileName);};
 

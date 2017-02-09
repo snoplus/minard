@@ -286,7 +286,6 @@ def nhit():
 def rathome():
     return render_template('rathome.html', runs=nlrat.available_runs())
     
-@app.route('/rat')    
 @app.route('/rat/<int:run>')
 def ratrun(run = 0):
     return render_template("ratrun.html", run=run, error= not nlrat.hists_available(run))

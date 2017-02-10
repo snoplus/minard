@@ -26,8 +26,11 @@ function displayRun(runNumber){
     new JSROOT.TFile(histFileName, function(file){
             // read the keys inside
             var plotNames = [];
-            for(var k in file.fKeys){
-                var keyName = file.fKeys[k].fName;
+            var keyNames = [];
+            file.fKeys.forEach(function(key){keyNames.push(key.fName);});
+            keyNames.sort();
+            for(var k in keyNames){
+                var keyName = keyNames[k];
                 if(keyName === "StreamerInfo")
                     continue;
                 plotNames.push(keyName);

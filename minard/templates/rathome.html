@@ -1,0 +1,27 @@
+{% extends "layout.html" %}
+{% block title %} RAT {% endblock %}
+{% block head %}
+    {{ super() }}
+{% endblock %}
+{% block body %}
+{{ super() }}
+<div class="row">
+	<div class="col-md-6 col-md-offset-3">
+		<table class="table">
+		  <thead>
+			  <tr>
+			    <th>Run #</th>
+			    <th>Start time</th>
+			  </tr>
+		  </thead>
+      {% for run in runs %}
+      <tr>
+        <th> <a href = "{{ url_for('ratrun', run=run.id) }}"> {{run.id}} </a> </th>
+        <th> {{run.time}} </th>
+      </tr>
+      {% endfor %}
+		</table>
+	</div>
+</div>
+{% endblock %}
+

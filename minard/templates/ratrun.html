@@ -1,0 +1,62 @@
+{% extends "layout.html" %}
+{% block title %} RAT {% endblock %}
+{% block head %}
+    {{ super() }}
+{% endblock %}
+{% block body %}
+   {{ super() }}
+
+<!-- The Run Title and nav buttons-->
+<div class="container">
+	<div class="row">
+	  <div class="col-md-8 col-md-offset-2">
+    <center>  
+	    <ul class="pager">
+		    <li class="previous"><a href="{{ url_for('ratrun', run=run-1) }}">Prev</a></li>
+		    <li><h2 style="display:inline"> Run {{ run }} </h2></li>        
+		    <li class="next"><a href="{{ url_for('ratrun', run=run+1) }}">Next</a></li>
+	    </ul>
+    </center>
+    </div>
+  </div>
+
+    {% if error %}
+  <div class = "row">
+    <div class="col-md-8 col-md-offset-2">
+      <div class="alert alert-danger" role="alert">
+        <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
+        Data unavailable
+      </div>
+    </div>
+  </div>
+  {% else %}
+
+
+    <!-- Download buttons-->
+    <div class="row">
+	    <div class="col-md-6 col-md-offset-3">
+        <center>
+          <button id = "histbut" type="submit"> Download Histograms</button>
+          <button id = "ntupbut" type="submit"> Download Ntuple </button> 
+        </center>
+      </div>
+    </div>
+{% endif %}
+
+{% block script %}
+{% if not error %}
+    <div id = "loading" style="display: none;"> </div>
+    <script type="text/javascript" src="https://root.cern/js/latest/scripts/JSRootCore.min.js?2d&io" ></script>  
+    <script type="text/javascript" src="{{ url_for('static', filename='js/rat.js') }}"></script>
+    <script type="text/javascript">
+      // AssertPrequisites should wait for JSROOT to arrive, but it seems to need a longer wait
+      JSROOT.AssertPrerequisites("io&&2d", function(){setTimeout(function(){displayRun({{run}});}, 200)}, "loading");
+
+      // redraw on resize
+      window.addEventListener("resize", function(){ $(".plot").html(""); displayRun({{run}});});
+    </script>
+    
+{% endif %}
+{% endblock %}
+
+{% endblock %}

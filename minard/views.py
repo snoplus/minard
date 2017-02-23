@@ -1,6 +1,6 @@
 from __future__ import division, print_function
 from . import app
-from flask import render_template, jsonify, request, redirect, url_for
+from flask import render_template, jsonify, request, redirect, url_for, send_from_directory
 from itertools import product
 import time
 from redis import Redis
@@ -20,6 +20,8 @@ import random
 import detector_state
 import pcadb
 import ecadb
+import nlrat
+
 
 TRIGGER_NAMES = \
 ['100L',
@@ -285,6 +287,19 @@ def snostream():
 @app.route('/nhit')
 def nhit():
   return render_template('nhit.html')
+
+@app.route('/rat')
+def rathome():
+    return render_template('rathome.html', runs=nlrat.available_runs())
+    
+@app.route('/rat/<int:run>')
+def ratrun(run = 0):
+    return render_template("ratrun.html", run=run, error= not nlrat.hists_available(run))
+
+@app.route('/rat/<filename>')
+def get_root_file(filename):
+    return send_from_directory(nlrat.NLRAT_DIR, filename)
+
 
 @app.route('/l2_filter')
 def l2_filter():

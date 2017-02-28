@@ -6,6 +6,38 @@ engine = sqlalchemy.create_engine('postgresql://%s:%s@%s:%i/%s' %
                                   app.config['DB_HOST'], app.config['DB_PORT'],
                                   app.config['DB_NAME']))
 
+def get_nhit_monitor_thresholds(limit=100):
+    """
+    Returns a list of the latest nhit monitor records in the database.
+    """
+    conn = engine.connect()
+
+    result = conn.execute("SELECT * FROM nhit_monitor_thresholds ORDER BY timestamp DESC LIMIT %s", (limit,))
+
+    if result is None:
+        return None
+
+    keys = result.keys()
+    rows = result.fetchall()
+
+    return [dict(zip(keys,row)) for row in rows]
+
+def get_nhit_monitor(key):
+    """
+    Returns an nhit monitor record from the database.
+    """
+    conn = engine.connect()
+
+    result = conn.execute("SELECT * FROM nhit_monitor WHERE key=%s", (key,))
+
+    if result is None:
+        return None
+
+    keys = result.keys()
+    row = result.fetchone()
+
+    return dict(zip(keys,row))
+
 def get_latest_trigger_scans():
     """
     Returns a list of the latest trigger scans for each trigger type. Each item

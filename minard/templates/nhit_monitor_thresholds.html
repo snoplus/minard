@@ -1,0 +1,81 @@
+{% extends "layout.html" %}
+{% block title %}Nhit Monitor{% endblock %}
+{% block head %}
+    {{ super() }}
+{% endblock %}
+{% block body %}
+    {{ super() }}
+    <div class="container">
+	{% if error %}
+	<div class="alert alert-danger" role="alert">
+	<span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
+	Error: {{ error }}
+	</div>
+	{% else %}
+	<div class="row">
+	    <div class="col-md-12">
+		<table class="table">
+		    <thead>
+			<tr>
+			    <th>Key</th>
+			    <th>Timestamp</th>
+			    <th>Crate</th>
+			    <th>Number of Pulses</th>
+			    <th>Pulser Rate (Hz)</th>
+			    <th>NHit 100 Lo</th>
+			    <th>NHit 100 Med</th>
+			    <th>NHit 100 Hi</th>
+			    <th>NHit 20</th>
+			    <th>NHit 20 LB</th>
+			</tr>
+		    </thead>
+		    {% for row in results %}
+		    <tr>
+			<td><a href="{{ url_for('nhit_monitor', key=row['key']) }}">{{ row['key'] }}</a></td>
+			<td>{{ row['timestamp'].strftime("%Y-%m-%d %H:%M:%S") }}</td>
+			<td>{{ row['crate'] }}</td>
+			<td>{{ row['num_pulses'] }}</td>
+			<td>{{ row['pulser_rate'] }}</td>
+                        <td>
+			{% if row['nhit_100_lo'] is not none %}
+			    {{ '%.2f' % row['nhit_100_lo'] }}
+			{% else %}
+			    > {{ row['num_pulses'] }}
+			{% endif %}
+                        </td>
+                        <td>
+			{% if row['nhit_100_med'] is not none %}
+			    {{ '%.2f' % row['nhit_100_med'] }}
+			{% else %}
+			    > {{ row['num_pulses'] }}
+			{% endif %}
+                        </td>
+                        <td>
+			{% if row['nhit_100_hi'] is not none %}
+			    {{ '%.2f' % row['nhit_100_hi'] }}
+			{% else %}
+			    > {{ row['num_pulses'] }}
+			{% endif %}
+                        </td>
+                        <td>
+			{% if row['nhit_20'] is not none %}
+			    {{ '%.2f' % row['nhit_20'] }}
+			{% else %}
+			    > {{ row['num_pulses'] }}
+			{% endif %}
+                        </td>
+                        <td>
+			{% if row['nhit_20_lb'] is not none %}
+			    {{ '%.2f' % row['nhit_20_lb'] }}
+			{% else %}
+			    > {{ row['num_pulses'] }}
+			{% endif %}
+                        </td>
+		    </tr>
+		    {% endfor %}
+		</table>
+	    </div>
+	</div>
+	{% endif %}
+    </div>
+{% endblock %}

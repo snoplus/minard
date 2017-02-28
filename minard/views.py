@@ -149,6 +149,24 @@ def l2():
         return redirect(url_for('l2',step=step,height=height,_external=True))
     return render_template('l2.html',step=step,height=height)
 
+@app.route('/nhit-monitor-thresholds')
+def nhit_monitor_thresholds():
+    results = detector_state.get_nhit_monitor_thresholds()
+
+    if results is None:
+	return render_template('nhit_monitor_thresholds.html', error="No nhit monitor records.")
+
+    return render_template('nhit_monitor_thresholds.html', results=results)
+
+@app.route('/nhit-monitor/<int:key>')
+def nhit_monitor(key):
+    results = detector_state.get_nhit_monitor(key)
+
+    if results is None:
+	return render_template('nhit_monitor.html', error="No nhit monitor record with key %i." % key)
+
+    return render_template('nhit_monitor.html', results=results)
+
 @app.route('/trigger')
 def trigger():
     results = detector_state.get_latest_trigger_scans()

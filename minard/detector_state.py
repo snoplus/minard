@@ -1,17 +1,12 @@
-import sqlalchemy
-from minard import app
-
-engine = sqlalchemy.create_engine('postgresql://%s:%s@%s:%i/%s' %
-                                 (app.config['DB_USER'], app.config['DB_PASS'],
-                                  app.config['DB_HOST'], app.config['DB_PORT'],
-                                  app.config['DB_NAME']))
+from .views import app
+from .db import engine
+from .channeldb import get_nominal_settings_for_run, get_pmt_types
 
 def get_detector_state(run=0):
     """
-    Returns a dictionary of the crate settings for a given run.
+    Returns a dictionary of the crate settings for a given run. If there is no
+    row in the database for the run, returns None.
     """
-    detector_state = dict((i, None) for i in range(20))
-
     conn = engine.connect()
 
     result = conn.execute("SELECT * FROM detector_state WHERE run = %s", (run,))
@@ -20,8 +15,14 @@ def get_detector_state(run=0):
         return None
 
     keys = result.keys()
+    rows = result.fetchall()
 
-    for row in result:
+    if len(rows) == 0:
+        return None
+
+    detector_state = dict((i, None) for i in range(20))
+
+    for row in rows:
         crate = row[keys.index('crate')]
 
         if detector_state[crate] is None:
@@ -31,7 +32,146 @@ def get_detector_state(run=0):
 
         detector_state[crate][slot] = dict(zip(keys,row))
 
+    result = conn.execute("SELECT * FROM crate_state WHERE run = %s", (run,))
+
+    if result is not None:
+        keys = result.keys()
+
+        for row in result:
+            crate = row[keys.index('crate')]
+
+            if detector_state[crate] is None:
+                detector_state[crate] = dict((i, None) for i in range(16))
+
+            for i, key in enumerate(keys):
+                detector_state[crate][key] = row[i]
+
     return detector_state
+
+def get_alarms(run=0):
+    """
+    Returns a list of alarms that were active for a given run. If run is 0,
+    then return the currently active alarms. If there is no row in the database
+    for the run, returns None.
+    """
+    conn = engine.connect()
+
+    if run == 0:
+        result = conn.execute("SELECT * FROM active_alarms, alarm_descriptions "
+            "WHERE active_alarms.alarm_id = alarm_descriptions.id")
+    else:
+        # get the start and stop times of the run
+        result = conn.execute("SELECT timestamp, end_timestamp FROM run_state "
+            "WHERE run = %s", (run,))
+
+        row = result.fetchone()
+
+        if row is None:
+            return None
+
+        timestamp, end_timestamp = row
+
+        # select only alarms which were active sometime during the run
+        # to do this, we find any alarm whose initial time is before the end of
+        # the run and whose end time (cleared or acknowledged, whichever is
+        # greater) is after the start of the run.
+        result = conn.execute("SELECT * FROM alarms, alarm_descriptions "
+            "WHERE time < %s AND GREATEST(cleared, acknowledged) > %s AND "
+            "alarms.alarm_id = alarm_descriptions.id",
+            (end_timestamp, timestamp))
+
+    if result is None:
+        return None
+
+    keys = result.keys()
+    rows = result.fetchall()
+
+    return [dict(zip(keys,row)) for row in rows]
+
+def get_detector_state_check(run=0):
+    """
+    Checks the detector state for a given run to see if there are any unknown
+    settings or triggers that should/shouldn't be on. Returns a tuple
+    (messages, channels) where messages is a list of messages of problems at
+    the crate/slot level and channels is a list of tuples of the form (crate,
+    slot, channel, message) for any channels which have triggers on when they
+    shouldn't be. If there is no row in the database for the given run, returns
+    (None, None).
+    """
+    detector_state = get_detector_state(run)
+
+    if detector_state is None:
+        return None, None
+
+    nominal_settings = get_nominal_settings_for_run(run)
+
+    channels = []
+    messages = []
+
+    for crate in range(20):
+        if detector_state[crate] is None:
+            messages.append("crate %i is off" % crate)
+            continue
+
+        hv_on = detector_state[crate]['hv_a_on'] == True
+        if not hv_on:
+            messages.append("crate %i HV is off" % crate)
+
+        hv_relay_mask1 = detector_state[crate]['hv_relay_mask1']
+        hv_relay_mask2 = detector_state[crate]['hv_relay_mask2']
+
+        if hv_relay_mask1 is None or hv_relay_mask2 is None:
+            messages.append("crate %i relay settings are unknown" % crate)
+            continue
+
+        hv_relay_mask = hv_relay_mask2 << 32 | hv_relay_mask1
+        for slot in range(16):
+            if detector_state[crate][slot] is None:
+                messages.append("crate %i, slot %i is offline" % (crate, slot))
+                continue
+            for channel in range(32):
+                hv_enabled = hv_relay_mask & (1 << (slot*4 + channel//8)) and hv_on
+                if detector_state[crate][slot]['tr100_mask'] is None:
+                    messages.append("trigger settings unknown for crate %i, slot %i" % (crate, slot))
+                    continue
+                if detector_state[crate][slot]['tr20_mask'] is None:
+                    messages.append("trigger settings unknown for crate %i, slot %i" % (crate, slot))
+                    continue
+                if detector_state[crate][slot]['disable_mask'] is None:
+                    messages.append("sequencer settings unknown for crate %i, slot %i" % (crate, slot))
+                    continue
+                n100 = bool(detector_state[crate][slot]['tr100_mask'][channel])
+                n20 = bool(detector_state[crate][slot]['tr20_mask'][channel])
+                sequencer = bool(detector_state[crate][slot]['disable_mask'] & (1 << channel))
+                try:
+                    n100_nominal, n20_nominal, sequencer_nominal = nominal_settings[crate][slot][channel]
+                except KeyError:
+                    messages.append("unable to get nominal settings for %i/%i/%i" % (crate, slot, channel))
+                    continue
+
+                if not hv_enabled:
+                    if n100:
+                        if hv_on:
+                            channels.append((crate,slot,channel,"HV relay is open, but N100 trigger is on"))
+                        else:
+                            channels.append((crate,slot,channel,"HV is off, but N100 trigger is on"))
+                    if n20:
+                        if hv_on:
+                            channels.append((crate,slot,channel,"HV relay is open, but N20 trigger is on"))
+                        else:
+                            channels.append((crate,slot,channel,"HV is off, but N20 trigger is on"))
+                else:
+                    if n100_nominal != n100:
+                        channels.append((crate, slot, channel, "N100 trigger is %s, but nominal settings are %s" % \
+                            ("on" if n100 else "off", "on" if n100_nominal else "off")))
+                    if n20_nominal != n20:
+                        channels.append((crate, slot, channel, "N20 trigger is %s, but nominal settings are %s" % \
+                            ("on" if n20 else "off", "on" if n20_nominal else "off")))
+                    if sequencer_nominal != sequencer:
+                        channels.append((crate, slot, channel, "sequencer is %s, but nominal settings are %s" % \
+                            ("on" if sequencer else "off", "on" if sequencer_nominal else "off")))
+
+    return messages, channels
 
 def get_nhit_monitor_thresholds(limit=100):
     """

@@ -1,6 +1,6 @@
 from __future__ import division, print_function
 from . import app
-from flask import render_template, jsonify, request, redirect, url_for
+from flask import render_template, jsonify, request, redirect, url_for, flash
 from itertools import product
 import time
 from redis import Redis
@@ -21,7 +21,8 @@ import detector_state
 import pcadb
 import ecadb
 import nlrat
-
+from .channeldb import ChannelStatusForm, upload_channel_status, get_channels, get_channel_status, get_channel_status_form, get_channel_history, get_pmt_info, get_nominal_settings
+import re
 
 TRIGGER_NAMES = \
 ['100L',
@@ -87,6 +88,88 @@ def timefmt(timestamp):
 def status():
     return render_template('status.html', programs=PROGRAMS)
 
+def get_daq_log_warnings(run):
+    """
+    Returns a list of all the lines in the DAQ log for a given run which were
+    warnings.
+    """
+    warnings = []
+    with open(os.path.join(app.config["DAQ_LOG_DIR"], "daq_%08i.log" % run)) as f:
+        for line in f:
+            # match the log level
+            match = re.match('.+? ([.\-*#])', line)
+
+            if match and match.group(1) == '#':
+                warnings.append(line)
+    return warnings
+
+@app.route('/detector-state-check')
+@app.route('/detector-state-check/<int:run>')
+def detector_state_check(run=None):
+    if run is None:
+        run = detector_state.get_run_state(None)['run']
+
+    messages, channels = detector_state.get_detector_state_check(run)
+    alarms = detector_state.get_alarms(run)
+
+    if alarms is None:
+        flash("unable to get alarms for run %i" % run, 'danger')
+
+    try:
+        warnings = get_daq_log_warnings(run)
+    except IOError:
+        flash("unable to get daq log for run %i" % run, 'danger')
+        warnings = None
+
+    return render_template('detector_state_check.html', run=run, messages=messages, channels=channels, alarms=alarms, warnings=warnings)
+
+@app.route('/channel-database')
+def channel_database():
+    limit = request.args.get("limit", 100, type=int)
+    results = get_channels(request.args, limit)
+    return render_template('channel_database.html', results=results, limit=limit)
+
+@app.route('/channel-status')
+def channel_status():
+    crate = request.args.get("crate", 0, type=int)
+    slot = request.args.get("slot", 0, type=int)
+    channel = request.args.get("channel", 0, type=int)
+    results = get_channel_history(crate, slot, channel)
+    pmt_info = get_pmt_info(crate, slot, channel)
+    nominal_settings = get_nominal_settings(crate, slot, channel)
+    return render_template('channel_status.html', crate=crate, slot=slot, channel=channel, results=results, pmt_info=pmt_info, nominal_settings=nominal_settings)
+
+@app.route('/update-channel-status', methods=["GET", "POST"])
+def update_channel_status():
+    if request.form:
+        form = ChannelStatusForm(request.form)
+        crate = form.crate.data
+        slot = form.slot.data
+        channel = form.channel.data
+    else:
+        crate = request.args.get("crate", 0, type=int)
+        slot = request.args.get("slot", 0, type=int)
+        channel = request.args.get("channel", 0, type=int)
+        try:
+            form = get_channel_status_form(crate, slot, channel)
+            # don't add the name, reason, or info fields if they just go to the page.
+            form.name.data = None
+            form.reason.data = None
+            form.info.data = None
+        except Exception as e:
+            form = ChannelStatusForm(crate=crate, slot=slot, channel=channel)
+
+    channel_status = get_channel_status(crate, slot, channel)
+
+    if request.method == "POST" and form.validate():
+        try:
+            upload_channel_status(form)
+        except Exception as e:
+            flash(str(e), 'danger')
+            return render_template('update_channel_status.html', form=form, status=channel_status)
+        flash("Successfully submitted", 'success')
+        return redirect(url_for('channel_status', crate=form.crate.data, slot=form.slot.data, channel=form.channel.data))
+    return render_template('update_channel_status.html', form=form, status=channel_status)
 
 @app.route('/state')
 @app.route('/state/')
@@ -95,7 +178,7 @@ def state(run=None):
     try:
         run_state = detector_state.get_run_state(run)
         run = run_state['run']
-        # Have to put these in ISO foramt so flask doesn't mangle it later
+        # Have to put these in ISO format so flask doesn't mangle it later
         run_state['timestamp'] = run_state['timestamp'].isoformat()
         # end_timestamp isn't that important. If it's not there, it's ignored
         if(run_state['end_timestamp']):
@@ -137,7 +220,6 @@ def state(run=None):
                            crates_state=crates_state,
                            trigger_scan=trigger_scan,
                            err=None)
-
 
 @app.route('/l2')
 def l2():

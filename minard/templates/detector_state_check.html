@@ -1,0 +1,89 @@
+{% extends "layout.html" %}
+{% block title %}Detector State Check{% endblock %}
+{% block head %}
+    {{ super() }}
+{% endblock %}
+{% block body %}
+    {{ super() }}
+    <div class="container">
+        {% if error %}
+        <div class="alert alert-danger" role="alert">
+            <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
+            {{ error }}
+        </div>
+        {% endif %}
+        <div class="row">
+	    <div class="col-md-6 col-md-offset-3">
+		<center>
+		    <ul class="pager">
+			<li class="previous"><a href="{{ url_for('detector_state_check', run=run-1) }}">Prev</a></li>
+			<li>
+                        {% if run == 0 %}
+                            <h2 style="display:inline">Current State</h2>
+                        {% else %}
+                            <h2 style="display:inline">Run {{ run }}</h2>
+                        {% endif %}
+                        </li>
+			<li class="next"><a href="{{ url_for('detector_state_check', run=run+1) }}">Next</a></li>
+		    </ul>
+		</center>
+	    </div>
+        </div>
+        <div class="row">
+            <div class="col-md-4">
+                <a href="{{ url_for('state', run=run) }}"><h2>Detector State</h2></a>
+                {% if messages is none %}
+                {% elif messages | length == 0 %}
+                    <p>No issues!
+                {% else %}
+                    <ul>
+                    {% for message in messages %}
+                        <li>{{ message }}
+                    {% endfor %}
+                    </ul>
+                {% endif %}
+            </div>
+            <div class="col-md-4">
+                <h2>Channel Settings</h2>
+                {% if channels is none %}
+                {% elif channels | length == 0 %}
+                    <p>No issues!
+                {% else %}
+                    <ul>
+                    {% for crate, card, channel, message in channels %}
+                        <li><a href="{{ '%s?crate=%i&slot=%i&channel=%i' % (url_for('channel_status'),crate,card,channel) }}">{{ "%i/%i/%i" % (crate,card,channel) }}</a> - {{ "%s" % (message) }}
+                    {% endfor %}
+                    </ul>
+                {% endif %}
+            </div>
+            <div class="col-md-4">
+                <h2>Active Alarms</h2>
+                {% if alarms is none %}
+                {% elif alarms | length == 0 %}
+                    <p>No alarms!
+                {% else %}
+                <ul>
+                    {% for alarm in alarms %}
+                        <li>{{ alarm['description'] }}
+                    {% endfor %}
+                </ul>
+                {% endif %}
+            </div>
+        </div>
+        <div class="row">
+            {% if run != 0 %}
+                <div class="col-md-4">
+                    <h2>DAQ Log Warnings</h2>
+                    {% if warnings is none %}
+                    {% elif warnings | length == 0 %}
+                        <p>No warnings!
+                    {% else %}
+                        {% for line in warnings %}
+                            <p>{{ line }}
+                        {% endfor %}
+                    {% endif %}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}

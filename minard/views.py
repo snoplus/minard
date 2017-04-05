@@ -105,7 +105,7 @@ def get_daq_log_warnings(run):
     return warnings
 
 @app.route('/resistors')
-def resistors(run=None):
+def resistors():
     crate = request.args.get("crate", 0, type=int)
     slot = request.args.get("slot", 0, type=int)
     actual_voltage, ideal_voltage, ideal_resistors, actual_resistors, resistors = calculate_resistors(crate, slot)

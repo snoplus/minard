@@ -2,6 +2,14 @@
 {% block title %}Channel Status{% endblock %}
 {% block head %}
     {{ super() }}
+    <style>
+        .noel tbody tr:nth-child(even) {
+            background-color: #ffffff;
+        }
+        .noel tbody tr:nth-child(odd) {
+            background-color: #adffad;
+        }
+    </style>
 {% endblock %}
 {% block body %}
     {{ super() }}
@@ -98,7 +106,7 @@
         {% endmacro %}
 	    <div class="col-md-12">
                 <h3>Channel History (<a href="{{ "update-channel-status?crate=%i&slot=%i&channel=%i" % (crate,slot,channel) }}">Update</a>)</h3>
-		<table class="table table-condensed text-center">
+		<table class="table table-condensed text-center noel">
 		    <thead>
 			<tr>
 			    <th>Date</th>

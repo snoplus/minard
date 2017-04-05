@@ -2,6 +2,14 @@
 {% block title %}Resistors{% endblock %}
 {% block head %}
     {{ super() }}
+    <style>
+        .noel tbody tr:nth-child(even) {
+            background-color: #ffffff;
+        }
+        .noel tbody tr:nth-child(odd) {
+            background-color: #adffad;
+        }
+    </style>
 {% endblock %}
 {% block body %}
     {{ super() }}
@@ -55,19 +63,32 @@
                 </select>
             </div>
             <div class="col-md-12">
-		<table class="table">
+                <p> Supply Voltage: {{ resistors['hv_slot'] }} V
+                <p> R252 = {{ "%.0f" % (resistors['r252']/1000) }}k
+                <p> R151 = {{ "%.1f" % (resistors['r151']/1000) }}k
+            </div>
+            <div class="col-md-10 col-md-offset-1">
+		<table class="table table-condensed noel">
 		    <thead>
 			<tr>
 			    <th>Channel</th>
+			    <th>Resistor</th>
+			    <th>Resistance</th>
+			    <th>Ideal Resistance</th>
+			    <th>Voltage</th>
 			    <th>Ideal Voltage</th>
-			    <th>Actual Voltage</th>
+			    <th>Difference</th>
 			</tr>
 		    </thead>
 		    {% for i in range(actual_voltage|length) %}
 		    <tr>
 			<td>{{ i }}</td>
+			<td>R{{ "%i" % (i+387) }}</td>
+			<td>{{ "%i" % (actual_resistors[i]/1000) }}k</td>
+			<td>{{ "%i" % (ideal_resistors[i]/1000) }}k</td>
+			<td>{{ "%.0f" % actual_voltage[i] }}</td>
 			<td>{{ ideal_voltage[i] }}</td>
-			<td>{{ actual_voltage[i] }}</td>
+			<td>{{ "%.0f" % (ideal_voltage[i] - actual_voltage[i]) }}</td>
 		    </tr>
 		    {% endfor %}
 		</table>

@@ -28,7 +28,8 @@ def calculate_resistors(crate, slot):
     pc_2 = 1/sum(1/(resistors['r%i' % r] + R_PMT) for r in [403,404,405,406,407,408,409,410])
     pc_3 = 1/sum(1/(resistors['r%i' % r] + R_PMT) for r in [411,412,413,414,415,416,417,418])
 
-    r_tot = 1/sum([1/(pc_0 + resistors['r386']),1/(pc_1 + resistors['r419']),1/(pc_2 + resistors['r421']),1/(pc_3 + resistors['r420']),resistors['r151'], resistors['r252']])
+    r_tot = 1/sum([1/(pc_0 + resistors['r386']),1/(pc_1 + resistors['r419']),1/(pc_2 + resistors['r421']),1/(pc_3 + resistors['r420'])]) + \
+        resistors['r151'] + resistors['r252']
 
     # total current
     pmtic_i = (resistors['hv_slot'] - V_BP_DROP)/r_tot
@@ -53,4 +54,20 @@ def calculate_resistors(crate, slot):
         elif channel < 32:
             actual_voltage.append((R_PMT/(R_PMT + resistors['r%i' % (387+channel)]))*v_pc3)
 
-    return actual_voltage, ideal_voltage
+    ideal_resistors = []
+    for channel in range(32):
+        try:
+            if channel < 8:
+                ideal_resistors.append(R_PMT*(v_pc0 - ideal_voltage[channel])/ideal_voltage[channel])
+            elif channel < 16:
+                ideal_resistors.append(R_PMT*(v_pc1 - ideal_voltage[channel])/ideal_voltage[channel])
+            elif channel < 24:
+                ideal_resistors.append(R_PMT*(v_pc2 - ideal_voltage[channel])/ideal_voltage[channel])
+            elif channel < 32:
+                ideal_resistors.append(R_PMT*(v_pc3 - ideal_voltage[channel])/ideal_voltage[channel])
+        except ZeroDivisionError:
+            ideal_resistors.append(0)
+
+    actual_resistors = [resistors['r%i' % r] for r in range(387,419)]
+
+    return actual_voltage, ideal_voltage, ideal_resistors, actual_resistors, resistors

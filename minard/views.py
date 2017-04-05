@@ -108,8 +108,8 @@ def get_daq_log_warnings(run):
 def resistors(run=None):
     crate = request.args.get("crate", 0, type=int)
     slot = request.args.get("slot", 0, type=int)
-    actual_voltage, ideal_voltage = calculate_resistors(crate, slot)
-    return render_template('resistors.html', crate=crate, slot=slot, actual_voltage=actual_voltage, ideal_voltage=ideal_voltage)
+    actual_voltage, ideal_voltage, ideal_resistors, actual_resistors, resistors = calculate_resistors(crate, slot)
+    return render_template('resistors.html', crate=crate, slot=slot, actual_voltage=actual_voltage, ideal_voltage=ideal_voltage, ideal_resistors=ideal_resistors, actual_resistors=actual_resistors, resistors=resistors)
 
 @app.route('/detector-state-check')
 @app.route('/detector-state-check/<int:run>')

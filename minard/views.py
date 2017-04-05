@@ -23,6 +23,7 @@ import ecadb
 import nlrat
 from .channeldb import ChannelStatusForm, upload_channel_status, get_channels, get_channel_status, get_channel_status_form, get_channel_history, get_pmt_info, get_nominal_settings
 import re
+from .resistor import calculate_resistors
 
 TRIGGER_NAMES = \
 ['100L',
@@ -102,6 +103,13 @@ def get_daq_log_warnings(run):
             if match and match.group(1) == '#':
                 warnings.append(line)
     return warnings
+
+@app.route('/resistors')
+def resistors(run=None):
+    crate = request.args.get("crate", 0, type=int)
+    slot = request.args.get("slot", 0, type=int)
+    actual_voltage, ideal_voltage = calculate_resistors(crate, slot)
+    return render_template('resistors.html', crate=crate, slot=slot, actual_voltage=actual_voltage, ideal_voltage=ideal_voltage)
 
 @app.route('/detector-state-check')
 @app.route('/detector-state-check/<int:run>')

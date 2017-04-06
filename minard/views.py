@@ -107,7 +107,6 @@ def get_daq_log_warnings(run):
 @app.route('/update-pmtic-resistors', methods=["GET", "POST"])
 def update_pmtic_resistors():
     if request.form:
-        print("got form")
         form = ResistorValuesForm(request.form)
         crate = form.crate.data
         slot = form.slot.data
@@ -135,7 +134,7 @@ def update_pmtic_resistors():
 
 @app.route('/resistors')
 def resistors():
-    crate = request.args.get("crate", 10, type=int)
+    crate = request.args.get("crate", 0, type=int)
     slot = request.args.get("slot", 0, type=int)
     resistors = calculate_resistors(crate, slot)
     return render_template('resistors.html', crate=crate, slot=slot, resistors=resistors)

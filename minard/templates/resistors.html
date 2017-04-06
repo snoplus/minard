@@ -33,13 +33,14 @@
         </div>
         <div class="row">
             <div class="col-md-4">
-                <p> Supply Voltage: {{ "%i" % resistors['nominal_hv'] }} V
+                <p> Nominal Voltage: {{ "%i" % resistors['nominal_hv'] }} V
+                <p> Supply Voltage: {{ "%i" % resistors['supply_voltage'] }} V (Supply {{ resistors['supply'] }})
                 <p> R252 = {{ "%.0f" % (resistors['r252']/1000) }}k
                 <p> R151 = {{ "%.1f" % (resistors['r151']/1000) }}k
-                <p> PC0 = {{ "%.1f" % (resistors['pc0']/1000) }}k
-                <p> PC1 = {{ "%.1f" % (resistors['pc1']/1000) }}k
-                <p> PC2 = {{ "%.1f" % (resistors['pc2']/1000) }}k
-                <p> PC3 = {{ "%.1f" % (resistors['pc3']/1000) }}k
+                <p> PC0 = {{ "%.1f" % (resistors['pc0']/1000) }}k ({{ "%i" % resistors['v_pc0'] }} V)
+                <p> PC1 = {{ "%.1f" % (resistors['pc1']/1000) }}k ({{ "%i" % resistors['v_pc1'] }} V)
+                <p> PC2 = {{ "%.1f" % (resistors['pc2']/1000) }}k ({{ "%i" % resistors['v_pc2'] }} V)
+                <p> PC3 = {{ "%.1f" % (resistors['pc3']/1000) }}k ({{ "%i" % resistors['v_pc3'] }} V)
                 <p> Voltage to PC feed resistors = {{ "%i" % resistors['v_to_pc'] }} V
                 <p> Total Resistance = {{ "%.1f" % (resistors['r_tot']/1000) }}k
                 <p> PMTIC current = {{ "%.1f" % (resistors['pmtic_i']*1000) }}mA

@@ -1,4 +1,13 @@
 {% from "_formhelpers.html" import render_field %}
+{% macro display_resistor(value) %}
+    {% if value > 1000000 %}
+        {{ "%.2f" % (value/1000000) }}M
+    {% elif value > 1000 %}
+        {{ "%i" % (value/1000) }}k
+    {% else %}
+        {{ "%i" % value }}
+    {% endif %}
+{% endmacro %}
 {% extends "layout.html" %}
 {% block title %}Resistors{% endblock %}
 {% block head %}
@@ -35,49 +44,60 @@
             <div class="col-md-4">
                 <p> Nominal Voltage: {{ "%i" % resistors['nominal_hv'] }} V
                 <p> Supply Voltage: {{ "%i" % resistors['supply_voltage'] }} V (Supply {{ resistors['supply'] }})
-                <p> R252 = {{ "%.0f" % (resistors['r252']/1000) }}k
-                <p> R151 = {{ "%.1f" % (resistors['r151']/1000) }}k
-                <p> PC0 = {{ "%.1f" % (resistors['pc0']/1000) }}k ({{ "%i" % resistors['v_pc0'] }} V)
-                <p> PC1 = {{ "%.1f" % (resistors['pc1']/1000) }}k ({{ "%i" % resistors['v_pc1'] }} V)
-                <p> PC2 = {{ "%.1f" % (resistors['pc2']/1000) }}k ({{ "%i" % resistors['v_pc2'] }} V)
-                <p> PC3 = {{ "%.1f" % (resistors['pc3']/1000) }}k ({{ "%i" % resistors['v_pc3'] }} V)
+                <p> R252 = {{ display_resistor(resistors['r252']) }}
+                <p> R151 = {{ display_resistor(resistors['r151']) }}
+                <p> PC0 = {{ display_resistor(resistors['pc0']) }} ({{ "%i" % resistors['v_pc0'] }} V)
+                <p> PC1 = {{ display_resistor(resistors['pc1']) }} ({{ "%i" % resistors['v_pc1'] }} V)
+                <p> PC2 = {{ display_resistor(resistors['pc2']) }} ({{ "%i" % resistors['v_pc2'] }} V)
+                <p> PC3 = {{ display_resistor(resistors['pc3']) }} ({{ "%i" % resistors['v_pc3'] }} V)
                 <p> Voltage to PC feed resistors = {{ "%i" % resistors['v_to_pc'] }} V
                 <p> Total Resistance = {{ "%.1f" % (resistors['r_tot']/1000) }}k
                 <p> PMTIC current = {{ "%.1f" % (resistors['pmtic_i']*1000) }}mA
             </div>
             <div class="col-md-8">
-		<table class="table table-condensed noel">
-		    <thead>
-			<tr>
-			    <th>Channel</th>
-			    <th>Resistor</th>
-			    <th>Resistance</th>
-			    <th>Ideal Resistance</th>
-			    <th>Voltage</th>
-			    <th>Ideal Voltage</th>
-			    <th>Difference</th>
-			</tr>
-		    </thead>
-		    {% for i in range(32) %}
-		    <tr>
-			<td>{{ i }}</td>
-			<td>R{{ "%i" % (i+387) }}</td>
-                        {% if resistors['actual_resistors'][i] != 9999999999 %}
-                            <td>{{ "%i" % (resistors['actual_resistors'][i]/1000) }}k</td>
-                            <td>{{ "%i" % (resistors['ideal_resistors'][i]/1000) }}k</td>
-                            <td>{{ "%.0f" % (resistors['actual_voltages'][i]) }}</td>
-                            <td>{{ resistors['ideal_voltages'][i] }}</td>
-                            <td>{{ "%.0f" % (resistors['ideal_voltages'][i] - resistors['actual_voltages'][i]) }}</td>
-                        {% else %}
-                            <td>-</td>
-                            <td>-</td>
-                            <td>-</td>
-                            <td>{{ resistors['ideal_voltages'][i] }}</td>
-                            <td>-</td>
-                        {% endif %}
-		    </tr>
-		    {% endfor %}
-		</table>
+                {% for pc in range(4) %}
+                    {% if pc == 0 %}
+                        <p> Paddle Card 0 (R386 = {{ display_resistor(resistors['r386']) }})
+                    {% elif pc == 1 %}
+                        <p> Paddle Card 1 (R419 = {{ display_resistor(resistors['r419']) }})
+                    {% elif pc == 2 %}
+                        <p> Paddle Card 2 (R421 = {{ display_resistor(resistors['r421']) }})
+                    {% else %}
+                        <p> Paddle Card 3 (R420 = {{ display_resistor(resistors['r420']) }})
+                    {% endif %}
+                    <table class="table table-condensed noel">
+                        <thead>
+                            <tr>
+                                <th>Channel</th>
+                                <th>Resistor</th>
+                                <th>Resistance</th>
+                                <th>Ideal Resistance</th>
+                                <th>Voltage</th>
+                                <th>Ideal Voltage</th>
+                                <th>Difference</th>
+                            </tr>
+                        </thead>
+                        {% for i in range(pc*8,pc*8+8) %}
+                        <tr>
+                            <td>{{ i }}</td>
+                            <td>R{{ "%i" % (i+387) }}</td>
+                            {% if resistors['actual_resistors'][i] != 9999999999 %}
+                                <td>{{ display_resistor(resistors['actual_resistors'][i]) }}</td>
+                                <td>{{ display_resistor(resistors['ideal_resistors'][i]) }}</td>
+                                <td>{{ "%.0f" % (resistors['actual_voltages'][i]) }}</td>
+                                <td>{{ resistors['ideal_voltages'][i] }}</td>
+                                <td>{{ "%.0f" % (resistors['ideal_voltages'][i] - resistors['actual_voltages'][i]) }}</td>
+                            {% else %}
+                                <td>-</td>
+                                <td>-</td>
+                                <td>-</td>
+                                <td>{{ resistors['ideal_voltages'][i] }}</td>
+                                <td>-</td>
+                            {% endif %}
+                        </tr>
+                        {% endfor %}
+                    </table>
+                {% endfor %}
             </div>
         </div>
     </div>

@@ -137,6 +137,13 @@ def calculate_resistors(crate, slot):
 
     resistors = dict(zip(keys, row))
 
+    if crate in (3,13,18) and slot == 15:
+        result = conn.execute("SELECT nominal FROM hvparams WHERE crate = %s AND supply = %s", (16, 'B'))
+    else:
+        result = conn.execute("SELECT nominal FROM hvparams WHERE crate = %s AND supply = %s", (crate, 'A'))
+
+    nominal_hv = result.fetchone()[0]
+
     result = conn.execute("SELECT channel, hv FROM pmt_info WHERE crate = %s AND slot = %s ORDER BY channel", (crate, slot))
 
     keys = result.keys()
@@ -155,9 +162,9 @@ def calculate_resistors(crate, slot):
         resistors['r151'] + resistors['r252']
 
     # total current
-    pmtic_i = (resistors['hv_slot'] - V_BP_DROP)/r_tot
+    pmtic_i = (nominal_hv - V_BP_DROP)/r_tot
 
-    v_to_pc = resistors['hv_slot'] - V_BP_DROP - (pmtic_i*(resistors['r252'] + resistors['r151']))
+    v_to_pc = nominal_hv - V_BP_DROP - (pmtic_i*(resistors['r252'] + resistors['r151']))
 
     # voltage across each paddle card
     v_pc0 = pc_0*v_to_pc/(pc_0 + resistors['r386'])
@@ -193,4 +200,4 @@ def calculate_resistors(crate, slot):
 
     actual_resistors = [resistors['r%i' % r] for r in range(387,419)]
 
-    return actual_voltage, ideal_voltage, ideal_resistors, actual_resistors, resistors
+    return actual_voltage, ideal_voltage, ideal_resistors, actual_resistors, resistors, nominal_hv

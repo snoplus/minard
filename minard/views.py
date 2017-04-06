@@ -133,8 +133,8 @@ def update_pmtic_resistors():
 def resistors():
     crate = request.args.get("crate", 0, type=int)
     slot = request.args.get("slot", 0, type=int)
-    actual_voltage, ideal_voltage, ideal_resistors, actual_resistors, resistors = calculate_resistors(crate, slot)
-    return render_template('resistors.html', crate=crate, slot=slot, actual_voltage=actual_voltage, ideal_voltage=ideal_voltage, ideal_resistors=ideal_resistors, actual_resistors=actual_resistors, resistors=resistors)
+    actual_voltage, ideal_voltage, ideal_resistors, actual_resistors, resistors, nominal_hv = calculate_resistors(crate, slot)
+    return render_template('resistors.html', crate=crate, slot=slot, actual_voltage=actual_voltage, ideal_voltage=ideal_voltage, ideal_resistors=ideal_resistors, actual_resistors=actual_resistors, resistors=resistors, nominal_hv=nominal_hv)
 
 @app.route('/detector-state-check')
 @app.route('/detector-state-check/<int:run>')

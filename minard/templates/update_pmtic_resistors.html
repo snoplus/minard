@@ -115,7 +115,7 @@
         $("#crate").val("{{ form.crate.data }}");
         $("#slot").val("{{ form.slot.data }}");
         function update_page() {
-            window.location.replace($SCRIPT_ROOT + "/update-pmtic-resistors?" + $.param({'crate': $('#crate').val(), 'slot': $('#slot').val())}));
+            window.location.replace($SCRIPT_ROOT + "/update-pmtic-resistors?" + $.param({'crate': $('#crate').val(), 'slot': $('#slot').val()}));
         }
         $("#crate").on("change", update_page);
         $("#slot").on("change", update_page);

@@ -127,30 +127,39 @@ def get_resistor_values_form(crate, slot):
     """
     return ResistorValuesForm(**get_resistor_values(crate, slot))
 
-def calculate_resistors(crate, slot):
+def get_hv_nominal(crate, slot):
+    """
+    Returns the nominal HV for a given crate and slot. The slot is necessary
+    since the OWL slots are actually powered from the 'B' supply on crate 16.
+    """
     conn = engine.connect()
-
-    result = conn.execute("SELECT * FROM pmtic_calc WHERE crate = %s AND slot = %s", (crate, slot))
-
-    keys = result.keys()
-    row = result.fetchone()
-
-    resistors = dict(zip(keys, row))
 
     if crate in (3,13,18) and slot == 15:
         result = conn.execute("SELECT nominal FROM hvparams WHERE crate = %s AND supply = %s", (16, 'B'))
     else:
         result = conn.execute("SELECT nominal FROM hvparams WHERE crate = %s AND supply = %s", (crate, 'A'))
 
-    nominal_hv = result.fetchone()[0]
+    return result.fetchone()[0]
+
+def calculate_resistors(crate, slot):
+    """
+    Returns a dictionary containing information about the PMTIC resistors
+    including the actual and ideal resistors and voltages.
+    """
+    conn = engine.connect()
+
+    resistors = get_resistor_values(crate, slot)
+
+    nominal_hv = get_hv_nominal(crate, slot)
 
     result = conn.execute("SELECT channel, hv FROM pmt_info WHERE crate = %s AND slot = %s ORDER BY channel", (crate, slot))
 
     keys = result.keys()
     rows = result.fetchall()
 
-    # ideal voltage
-    ideal_voltage = [row[1] for row in rows]
+    # ideal voltages for each PMT. These were determined during testing by
+    # finding the voltage at which the PMT had a gain of 1e7
+    ideal_voltages = [row[1] for row in rows]
 
     # resistance of each paddle card
     pc_0 = 1/sum(1/(resistors['r%i' % r] + R_PMT) for r in [387,388,389,390,391,392,393,394])
@@ -173,31 +182,49 @@ def calculate_resistors(crate, slot):
     v_pc3 = pc_3*v_to_pc/(pc_3 + resistors['r420'])
 
     # calculate actual voltages going to each PMT
-    actual_voltage = []
+    actual_voltages = []
     for channel in range(32):
         if channel < 8:
-            actual_voltage.append((R_PMT/(R_PMT + resistors['r%i' % (387+channel)]))*v_pc0)
+            actual_voltages.append((R_PMT/(R_PMT + resistors['r%i' % (387+channel)]))*v_pc0)
         elif channel < 16:
-            actual_voltage.append((R_PMT/(R_PMT + resistors['r%i' % (387+channel)]))*v_pc1)
+            actual_voltages.append((R_PMT/(R_PMT + resistors['r%i' % (387+channel)]))*v_pc1)
         elif channel < 24:
-            actual_voltage.append((R_PMT/(R_PMT + resistors['r%i' % (387+channel)]))*v_pc2)
+            actual_voltages.append((R_PMT/(R_PMT + resistors['r%i' % (387+channel)]))*v_pc2)
         elif channel < 32:
-            actual_voltage.append((R_PMT/(R_PMT + resistors['r%i' % (387+channel)]))*v_pc3)
+            actual_voltages.append((R_PMT/(R_PMT + resistors['r%i' % (387+channel)]))*v_pc3)
 
     ideal_resistors = []
     for channel in range(32):
         try:
             if channel < 8:
-                ideal_resistors.append(R_PMT*(v_pc0 - ideal_voltage[channel])/ideal_voltage[channel])
+                ideal_resistors.append(R_PMT*(v_pc0 - ideal_voltages[channel])/ideal_voltages[channel])
             elif channel < 16:
-                ideal_resistors.append(R_PMT*(v_pc1 - ideal_voltage[channel])/ideal_voltage[channel])
+                ideal_resistors.append(R_PMT*(v_pc1 - ideal_voltages[channel])/ideal_voltages[channel])
             elif channel < 24:
-                ideal_resistors.append(R_PMT*(v_pc2 - ideal_voltage[channel])/ideal_voltage[channel])
+                ideal_resistors.append(R_PMT*(v_pc2 - ideal_voltages[channel])/ideal_voltages[channel])
             elif channel < 32:
-                ideal_resistors.append(R_PMT*(v_pc3 - ideal_voltage[channel])/ideal_voltage[channel])
+                ideal_resistors.append(R_PMT*(v_pc3 - ideal_voltages[channel])/ideal_voltages[channel])
         except ZeroDivisionError:
             ideal_resistors.append(0)
 
     actual_resistors = [resistors['r%i' % r] for r in range(387,419)]
 
-    return actual_voltage, ideal_voltage, ideal_resistors, actual_resistors, resistors, nominal_hv
+    # return a dictionary since there is a lot of info
+    resistors['pc0'] = pc_0
+    resistors['pc1'] = pc_1
+    resistors['pc2'] = pc_2
+    resistors['pc3'] = pc_3
+    resistors['v_to_pc'] = v_to_pc
+    resistors['v_pc0'] = v_pc0
+    resistors['v_pc1'] = v_pc1
+    resistors['v_pc2'] = v_pc2
+    resistors['v_pc3'] = v_pc3
+    resistors['r_tot'] = r_tot
+    resistors['pmtic_i'] = pmtic_i
+    resistors['ideal_voltages'] = ideal_voltages
+    resistors['actual_voltages'] = actual_voltages
+    resistors['ideal_resistors'] = ideal_resistors
+    resistors['actual_resistors'] = actual_resistors
+    resistors['nominal_hv'] = nominal_hv
+
+    return resistors

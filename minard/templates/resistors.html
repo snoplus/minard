@@ -1,4 +1,4 @@
-{% from "_formhelpers.html" import render_field, crate_select, card_select %}
+{% from "_formhelpers.html" import render_field %}
 {% extends "layout.html" %}
 {% block title %}Resistors{% endblock %}
 {% block head %}
@@ -16,16 +16,35 @@
     {{ super() }}
     <div class="container">
         <div class="row">
-	    <div class="col-md-10" style="margin-bottom:20px">
-                {% crate_select() %}
-                {% card_select() %}
+	    <div class="col-md-12" style="margin-bottom:20px">
+                <label for="crate">Crate</label>
+                <select id="crate">
+                    {% for i in range(19) %}
+                        <option {% if crate == i %}selected="selected" {% endif %}value="{{ i }}">{{ i }}</option>
+                    {% endfor %}
+                </select>
+                <label for="slot">Card</label>
+                <select id="slot">
+                    {% for i in range(16) %}
+                        <option {% if slot == i %}selected="selected" {% endif %}value="{{ i }}">{{ i }}</option>
+                    {% endfor %}
+                </select>
             </div>
-            <div class="col-md-12">
-                <p> Supply Voltage: {{ "%i" % nominal_hv }} V
+        </div>
+        <div class="row">
+            <div class="col-md-4">
+                <p> Supply Voltage: {{ "%i" % resistors['nominal_hv'] }} V
                 <p> R252 = {{ "%.0f" % (resistors['r252']/1000) }}k
                 <p> R151 = {{ "%.1f" % (resistors['r151']/1000) }}k
+                <p> PC0 = {{ "%.1f" % (resistors['pc0']/1000) }}k
+                <p> PC1 = {{ "%.1f" % (resistors['pc1']/1000) }}k
+                <p> PC2 = {{ "%.1f" % (resistors['pc2']/1000) }}k
+                <p> PC3 = {{ "%.1f" % (resistors['pc3']/1000) }}k
+                <p> Voltage to PC feed resistors = {{ "%i" % resistors['v_to_pc'] }} V
+                <p> Total Resistance = {{ "%.1f" % (resistors['r_tot']/1000) }}k
+                <p> PMTIC current = {{ "%.1f" % (resistors['pmtic_i']*1000) }}mA
             </div>
-            <div class="col-md-10 col-md-offset-1">
+            <div class="col-md-8">
 		<table class="table table-condensed noel">
 		    <thead>
 			<tr>
@@ -38,15 +57,15 @@
 			    <th>Difference</th>
 			</tr>
 		    </thead>
-		    {% for i in range(actual_voltage|length) %}
+		    {% for i in range(32) %}
 		    <tr>
 			<td>{{ i }}</td>
 			<td>R{{ "%i" % (i+387) }}</td>
-			<td>{{ "%i" % (actual_resistors[i]/1000) }}k</td>
-			<td>{{ "%i" % (ideal_resistors[i]/1000) }}k</td>
-			<td>{{ "%.0f" % actual_voltage[i] }}</td>
-			<td>{{ ideal_voltage[i] }}</td>
-			<td>{{ "%.0f" % (ideal_voltage[i] - actual_voltage[i]) }}</td>
+			<td>{{ "%i" % (resistors['actual_resistors'][i]/1000) }}k</td>
+			<td>{{ "%i" % (resistors['ideal_resistors'][i]/1000) }}k</td>
+			<td>{{ "%.0f" % (resistors['actual_voltages'][i]) }}</td>
+			<td>{{ resistors['ideal_voltages'][i] }}</td>
+			<td>{{ "%.0f" % (resistors['ideal_voltages'][i] - resistors['actual_voltages'][i]) }}</td>
 		    </tr>
 		    {% endfor %}
 		</table>
@@ -56,16 +75,6 @@
 {% endblock %}
 {% block script %}
     <script>
-        var setting = 0;
-        for (var key in url_params) {
-            if (url_params.hasOwnProperty(key)) {
-                if (key == 'crate') {
-                    document.getElementById("crate").value = url_params.crate;
-                } else if (key == 'slot') {
-                    document.getElementById("slot").value = url_params.slot;
-                }
-            }
-        }
         $("#crate, #slot").on("change", function() {
             var params = {};
             if (document.getElementById("crate").value != -1) {

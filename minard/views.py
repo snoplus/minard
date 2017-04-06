@@ -107,6 +107,7 @@ def get_daq_log_warnings(run):
 @app.route('/update-pmtic-resistors', methods=["GET", "POST"])
 def update_pmtic_resistors():
     if request.form:
+        print("got form")
         form = ResistorValuesForm(request.form)
         crate = form.crate.data
         slot = form.slot.data
@@ -121,20 +122,23 @@ def update_pmtic_resistors():
 
     if request.method == "POST" and form.validate():
         try:
+            print("updating resistor values")
             update_resistor_values(form)
         except Exception as e:
+            print("error: %s" % e)
             flash(str(e), 'danger')
-            return render_template('update_pmtic_resistors.html', form=form)
+            return render_template('update_pmtic_resistors.html', crate=crate, slot=slot, form=form)
+        print("success!")
         flash("Successfully submitted", 'success')
         return redirect(url_for('resistors', crate=form.crate.data, slot=form.slot.data))
-    return render_template('update_pmtic_resistors.html', form=form)
+    return render_template('update_pmtic_resistors.html', crate=crate, slot=slot, form=form)
 
 @app.route('/resistors')
 def resistors():
-    crate = request.args.get("crate", 0, type=int)
+    crate = request.args.get("crate", 10, type=int)
     slot = request.args.get("slot", 0, type=int)
-    actual_voltage, ideal_voltage, ideal_resistors, actual_resistors, resistors, nominal_hv = calculate_resistors(crate, slot)
-    return render_template('resistors.html', crate=crate, slot=slot, actual_voltage=actual_voltage, ideal_voltage=ideal_voltage, ideal_resistors=ideal_resistors, actual_resistors=actual_resistors, resistors=resistors, nominal_hv=nominal_hv)
+    resistors = calculate_resistors(crate, slot)
+    return render_template('resistors.html', crate=crate, slot=slot, resistors=resistors)
 
 @app.route('/detector-state-check')
 @app.route('/detector-state-check/<int:run>')

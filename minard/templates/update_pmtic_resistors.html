@@ -1,4 +1,4 @@
-{% from "_formhelpers.html" import render_field, crate_select, card_select %}
+{% from "_formhelpers.html" import render_field %}
 {% extends "layout.html" %}
 {% block title %}Update Channel Status{% endblock %}
 {% block head %}
@@ -11,8 +11,18 @@
             <div class="col-md-6">
                 <form action="update-pmtic-resistors" method="POST" role="form">
                     <div>
-                        {% crate_select() %}
-                        {% card_select() %}
+                        <label for="crate">Crate</label>
+                        <select id="crate" name="crate">
+                            {% for i in range(19) %}
+                                <option {% if crate == i %}selected="selected" {% endif %}value="{{ i }}">{{ i }}</option>
+                            {% endfor %}
+                        </select>
+                        <label for="slot">Card</label>
+                        <select id="slot" name="slot">
+                            {% for i in range(16) %}
+                                <option {% if slot == i %}selected="selected" {% endif %}value="{{ i }}">{{ i }}</option>
+                            {% endfor %}
+                        </select>
                     </div>
                     <dl>
                         {{ render_field(form.r252) }}
@@ -60,8 +70,6 @@
 {% endblock %}
 {% block script %}
     <script>
-        $("#crate").val("{{ form.crate.data }}");
-        $("#slot").val("{{ form.slot.data }}");
         function update_page() {
             window.location.replace($SCRIPT_ROOT + "/update-pmtic-resistors?" + $.param({'crate': $('#crate').val(), 'slot': $('#slot').val()}));
         }

@@ -1,0 +1,123 @@
+{% extends "layout.html" %}
+{% block title %}Update Channel Status{% endblock %}
+{% block head %}
+    {{ super() }}
+{% endblock %}
+{% block body %}
+    {{ super() }}
+    <div class="container">
+        <div class="row">
+            <div class="col-md-6">
+                <form action="update-pmtic-resistors" method="POST" role="form">
+                    <div class="form-group form-inline">
+                        <label for="crate">Crate</label>
+                        <select class="form-control" id="crate" name="crate">
+                            <option value="0">0</option>
+                            <option value="1">1</option>
+                            <option value="2">2</option>
+                            <option value="3">3</option>
+                            <option value="4">4</option>
+                            <option value="5">5</option>
+                            <option value="6">6</option>
+                            <option value="7">7</option>
+                            <option value="8">8</option>
+                            <option value="9">9</option>
+                            <option value="10">10</option>
+                            <option value="11">11</option>
+                            <option value="12">12</option>
+                            <option value="13">13</option>
+                            <option value="14">14</option>
+                            <option value="15">15</option>
+                            <option value="16">16</option>
+                            <option value="17">17</option>
+                            <option value="18">18</option>
+                            <option value="19">19</option>
+                        </select>
+                        <label for="slot">Card</label>
+                        <select class="form-control" id="slot" name="slot">
+                            <option value="0">0</option>
+                            <option value="1">1</option>
+                            <option value="2">2</option>
+                            <option value="3">3</option>
+                            <option value="4">4</option>
+                            <option value="5">5</option>
+                            <option value="6">6</option>
+                            <option value="7">7</option>
+                            <option value="8">8</option>
+                            <option value="9">9</option>
+                            <option value="10">10</option>
+                            <option value="11">11</option>
+                            <option value="12">12</option>
+                            <option value="13">13</option>
+                            <option value="14">14</option>
+                            <option value="15">15</option>
+                            <option value="16">16</option>
+                        </select>
+                    </div>
+{% macro render_field(field) %}
+    <dt>{{ field.label }}</dt>
+    <dd>{{ field(**kwargs)|safe }}
+    {% if field.errors %}
+        <ul class=errors>
+            {% for error in field.errors %}
+                <li>{{ error }}</li>
+            {% endfor %}
+            </ul>
+    {% endif %}
+    </dd>
+{% endmacro %}
+                    <dl>
+                        {{ render_field(form.r252) }}
+                        {{ render_field(form.r151) }}
+                        {{ render_field(form.r386) }}
+                        {{ render_field(form.r387) }}
+                        {{ render_field(form.r388) }}
+                        {{ render_field(form.r389) }}
+                        {{ render_field(form.r390) }}
+                        {{ render_field(form.r391) }}
+                        {{ render_field(form.r392) }}
+                        {{ render_field(form.r393) }}
+                        {{ render_field(form.r394) }}
+                        {{ render_field(form.r395) }}
+                        {{ render_field(form.r396) }}
+                        {{ render_field(form.r397) }}
+                        {{ render_field(form.r398) }}
+                        {{ render_field(form.r399) }}
+                        {{ render_field(form.r400) }}
+                        {{ render_field(form.r401) }}
+                        {{ render_field(form.r402) }}
+                        {{ render_field(form.r403) }}
+                        {{ render_field(form.r404) }}
+                        {{ render_field(form.r405) }}
+                        {{ render_field(form.r406) }}
+                        {{ render_field(form.r407) }}
+                        {{ render_field(form.r408) }}
+                        {{ render_field(form.r409) }}
+                        {{ render_field(form.r410) }}
+                        {{ render_field(form.r411) }}
+                        {{ render_field(form.r412) }}
+                        {{ render_field(form.r413) }}
+                        {{ render_field(form.r414) }}
+                        {{ render_field(form.r415) }}
+                        {{ render_field(form.r416) }}
+                        {{ render_field(form.r417) }}
+                        {{ render_field(form.r418) }}
+                        {{ render_field(form.password) }}
+                    </dl>
+                    <button type="submit" class="btn btn-success">Submit</button>
+                </form>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+{% block script %}
+    <script>
+        $("#crate").val("{{ form.crate.data }}");
+        $("#slot").val("{{ form.slot.data }}");
+        function update_page() {
+            window.location.replace($SCRIPT_ROOT + "/update-pmtic-resistors?" + $.param({'crate': $('#crate').val(), 'slot': $('#slot').val())}));
+        }
+        $("#crate").on("change", update_page);
+        $("#slot").on("change", update_page);
+    </script>
+{% endblock %}

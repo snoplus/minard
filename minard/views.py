@@ -23,7 +23,7 @@ import ecadb
 import nlrat
 from .channeldb import ChannelStatusForm, upload_channel_status, get_channels, get_channel_status, get_channel_status_form, get_channel_history, get_pmt_info, get_nominal_settings
 import re
-from .resistor import calculate_resistors
+from .resistor import calculate_resistors, ResistorValuesForm, get_resistor_values_form, update_resistor_values
 
 TRIGGER_NAMES = \
 ['100L',
@@ -103,6 +103,31 @@ def get_daq_log_warnings(run):
             if match and match.group(1) == '#':
                 warnings.append(line)
     return warnings
+
+@app.route('/update-pmtic-resistors', methods=["GET", "POST"])
+def update_pmtic_resistors():
+    if request.form:
+        form = ResistorValuesForm(request.form)
+        crate = form.crate.data
+        slot = form.slot.data
+    else:
+        crate = request.args.get("crate", 0, type=int)
+        slot = request.args.get("slot", 0, type=int)
+        try:
+            form = get_resistor_values_form(crate, slot)
+        except Exception as e:
+            print(e)
+            form = ResistorValuesForm(crate=crate, slot=slot)
+
+    if request.method == "POST" and form.validate():
+        try:
+            update_resistor_values(form)
+        except Exception as e:
+            flash(str(e), 'danger')
+            return render_template('update_pmtic_resistors.html', form=form)
+        flash("Successfully submitted", 'success')
+        return redirect(url_for('resistors', crate=form.crate.data, slot=form.slot.data))
+    return render_template('update_pmtic_resistors.html', form=form)
 
 @app.route('/resistors')
 def resistors():

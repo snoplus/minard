@@ -1,6 +1,9 @@
 from __future__ import print_function, division
 from .db import engine
 from wtforms import Form, DecimalField, validators, IntegerField, PasswordField
+import psycopg2
+import psycopg2.extensions
+from .views import app
 
 V_BP_DROP = 10 # voltage drop across backplane
 R_PMT = 17100000 # resistance of PMT base
@@ -11,7 +14,7 @@ class ResistorValuesForm(Form):
     """
     crate =              IntegerField('crate', [validators.NumberRange(min=0,max=19)])
     slot =               IntegerField('slot', [validators.NumberRange(min=0,max=15)])
-    r252 =               DecimalField('R252', places=2, [validators.required()])
+    r252 =               DecimalField('R252', [validators.DataRequired()], places=2)
     r151 =               IntegerField('R151', [validators.NumberRange(min=0)])
     r386 =               IntegerField('R386', [validators.NumberRange(min=0)])
     r387 =               IntegerField('R387', [validators.NumberRange(min=0)])
@@ -38,15 +41,91 @@ class ResistorValuesForm(Form):
     r408 =               IntegerField('R408', [validators.NumberRange(min=0)])
     r409 =               IntegerField('R409', [validators.NumberRange(min=0)])
     r410 =               IntegerField('R410', [validators.NumberRange(min=0)])
-    r411 =               IntegerField('R411', [validators.NumberRange(min=0)])
-    r412 =               IntegerField('R412', [validators.NumberRange(min=0)])
-    r413 =               IntegerField('R413', [validators.NumberRange(min=0)])
-    r414 =               IntegerField('R414', [validators.NumberRange(min=0)])
-    r415 =               IntegerField('R415', [validators.NumberRange(min=0)])
-    r416 =               IntegerField('R416', [validators.NumberRange(min=0)])
-    r417 =               IntegerField('R417', [validators.NumberRange(min=0)])
-    r418 =               IntegerField('R418', [validators.NumberRange(min=0)])
+    r411 =               DecimalField('R412', [validators.NumberRange(min=0)], places=2)
+    r412 =               DecimalField('R412', [validators.NumberRange(min=0)], places=2)
+    r413 =               DecimalField('R413', [validators.NumberRange(min=0)], places=2)
+    r414 =               DecimalField('R414', [validators.NumberRange(min=0)], places=2)
+    r415 =               DecimalField('R415', [validators.NumberRange(min=0)], places=2)
+    r416 =               DecimalField('R416', [validators.NumberRange(min=0)], places=2)
+    r417 =               DecimalField('R417', [validators.NumberRange(min=0)], places=2)
+    r418 =               DecimalField('R418', [validators.NumberRange(min=0)], places=2)
     password =           PasswordField('Password')
+
+def update_resistor_values(form):
+    """
+    Update the resistor values in the database.
+    """
+    conn = psycopg2.connect(dbname=app.config['DB_NAME'],
+                            user=app.config['DB_EXPERT_USER'],
+                            host=app.config['DB_HOST'],
+                            password=form.password.data)
+    conn.set_isolation_level(psycopg2.extensions.ISOLATION_LEVEL_AUTOCOMMIT)
+
+    cursor = conn.cursor()
+    cursor.execute("UPDATE pmtic_calc SET "
+        "r252 = %(r252)s, "
+        "r151 = %(r151)s, "
+        "r386 = %(r386)s, "
+        "r387 = %(r387)s, "
+        "r388 = %(r388)s, "
+        "r389 = %(r389)s, "
+        "r390 = %(r390)s, "
+        "r391 = %(r391)s, "
+        "r392 = %(r392)s, "
+        "r393 = %(r393)s, "
+        "r394 = %(r394)s, "
+        "r395 = %(r395)s, "
+        "r396 = %(r396)s, "
+        "r397 = %(r397)s, "
+        "r398 = %(r398)s, "
+        "r399 = %(r399)s, "
+        "r400 = %(r400)s, "
+        "r401 = %(r401)s, "
+        "r402 = %(r402)s, "
+        "r403 = %(r403)s, "
+        "r404 = %(r404)s, "
+        "r405 = %(r405)s, "
+        "r406 = %(r406)s, "
+        "r407 = %(r407)s, "
+        "r408 = %(r408)s, "
+        "r409 = %(r409)s, "
+        "r410 = %(r410)s, "
+        "r411 = %(r411)s, "
+        "r412 = %(r412)s, "
+        "r413 = %(r413)s, "
+        "r414 = %(r414)s, "
+        "r415 = %(r415)s, "
+        "r416 = %(r416)s, "
+        "r417 = %(r417)s, "
+        "r418 = %(r418)s "
+        "WHERE crate = %(crate)s AND slot = %(slot)s",
+        form.data)
+
+def get_resistor_values(crate, slot):
+    """
+    Returns a dictionary of the resistor values for a single card in the
+    detector.
+    """
+    conn = engine.connect()
+
+    result = conn.execute("SELECT * FROM pmtic_calc "
+        "WHERE crate = %s AND slot = %s",
+        (crate,slot))
+
+    if result is None:
+        return None
+
+    keys = result.keys()
+    row = result.fetchone()
+
+    return dict(zip(keys,row))
+
+def get_resistor_values_form(crate, slot):
+    """
+    Returns a resistor values form filled in with the current resistor values for
+    a single card in the detector.
+    """
+    return ResistorValuesForm(**get_resistor_values(crate, slot))
 
 def calculate_resistors(crate, slot):
     conn = engine.connect()

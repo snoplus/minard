@@ -62,11 +62,19 @@
 		    <tr>
 			<td>{{ i }}</td>
 			<td>R{{ "%i" % (i+387) }}</td>
-			<td>{{ "%i" % (resistors['actual_resistors'][i]/1000) }}k</td>
-			<td>{{ "%i" % (resistors['ideal_resistors'][i]/1000) }}k</td>
-			<td>{{ "%.0f" % (resistors['actual_voltages'][i]) }}</td>
-			<td>{{ resistors['ideal_voltages'][i] }}</td>
-			<td>{{ "%.0f" % (resistors['ideal_voltages'][i] - resistors['actual_voltages'][i]) }}</td>
+                        {% if resistors['actual_resistors'][i] != 9999999999 %}
+                            <td>{{ "%i" % (resistors['actual_resistors'][i]/1000) }}k</td>
+                            <td>{{ "%i" % (resistors['ideal_resistors'][i]/1000) }}k</td>
+                            <td>{{ "%.0f" % (resistors['actual_voltages'][i]) }}</td>
+                            <td>{{ resistors['ideal_voltages'][i] }}</td>
+                            <td>{{ "%.0f" % (resistors['ideal_voltages'][i] - resistors['actual_voltages'][i]) }}</td>
+                        {% else %}
+                            <td>-</td>
+                            <td>-</td>
+                            <td>-</td>
+                            <td>{{ resistors['ideal_voltages'][i] }}</td>
+                            <td>-</td>
+                        {% endif %}
 		    </tr>
 		    {% endfor %}
 		</table>
@@ -86,9 +94,9 @@
             }
 
             if (Object.keys(params).length > 0) {
-                window.location.replace($SCRIPT_ROOT + "/resistors?" + $.param(params));
+                window.location.replace($SCRIPT_ROOT + "/calculate-resistors?" + $.param(params));
             } else {
-                window.location.replace($SCRIPT_ROOT + "/resistors");
+                window.location.replace($SCRIPT_ROOT + "/calculate-resistors");
             }
         });
     </script>

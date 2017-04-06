@@ -141,7 +141,7 @@ def get_hv_nominal(crate, slot):
 
     return result.fetchone()[0]
 
-def calculate_resistors(crate, slot):
+def get_resistors(crate, slot):
     """
     Returns a dictionary containing information about the PMTIC resistors
     including the actual and ideal resistors and voltages.

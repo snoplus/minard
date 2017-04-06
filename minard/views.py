@@ -23,7 +23,7 @@ import ecadb
 import nlrat
 from .channeldb import ChannelStatusForm, upload_channel_status, get_channels, get_channel_status, get_channel_status_form, get_channel_history, get_pmt_info, get_nominal_settings
 import re
-from .resistor import calculate_resistors, ResistorValuesForm, get_resistor_values_form, update_resistor_values
+from .resistor import get_resistors, ResistorValuesForm, get_resistor_values_form, update_resistor_values
 
 TRIGGER_NAMES = \
 ['100L',
@@ -132,11 +132,11 @@ def update_pmtic_resistors():
         return redirect(url_for('resistors', crate=form.crate.data, slot=form.slot.data))
     return render_template('update_pmtic_resistors.html', crate=crate, slot=slot, form=form)
 
-@app.route('/resistors')
-def resistors():
+@app.route('/calculate-resistors')
+def calculate_resistors():
     crate = request.args.get("crate", 0, type=int)
     slot = request.args.get("slot", 0, type=int)
-    resistors = calculate_resistors(crate, slot)
+    resistors = get_resistors(crate, slot)
     return render_template('resistors.html', crate=crate, slot=slot, resistors=resistors)
 
 @app.route('/detector-state-check')

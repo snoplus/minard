@@ -1,12 +1,12 @@
 {% from "_formhelpers.html" import render_field %}
 {% macro display_resistor(value) %}
-    {% if value > 1000000 %}
+    {%- if value > 1000000 -%}
         {{ "%.2f" % (value/1000000) }}M
-    {% elif value > 1000 %}
+    {%- elif value > 1000 -%}
         {{ "%i" % (value/1000) }}k
-    {% else %}
+    {%- else -%}
         {{ "%i" % value }}
-    {% endif %}
+    {%- endif -%}
 {% endmacro %}
 {% extends "layout.html" %}
 {% block title %}Resistors{% endblock %}
@@ -57,13 +57,13 @@
             <div class="col-md-8">
                 {% for pc in range(4) %}
                     {% if pc == 0 %}
-                        <p> Paddle Card 0 (R386 = {{ display_resistor(resistors['r386']) }})
+                        <p> Paddle Card 0 (R386 = {{ display_resistor(resistors['r386']) }}) (<a href="{{ url_for("update_pmtic_resistors", crate=crate, slot=slot, pc=0) }}">Update</a>)
                     {% elif pc == 1 %}
-                        <p> Paddle Card 1 (R419 = {{ display_resistor(resistors['r419']) }})
+                        <p> Paddle Card 1 (R419 = {{ display_resistor(resistors['r419']) }}) (<a href="{{ url_for("update_pmtic_resistors", crate=crate, slot=slot, pc=1) }}">Update</a>)
                     {% elif pc == 2 %}
-                        <p> Paddle Card 2 (R421 = {{ display_resistor(resistors['r421']) }})
+                        <p> Paddle Card 2 (R421 = {{ display_resistor(resistors['r421']) }}) (<a href="{{ url_for("update_pmtic_resistors", crate=crate, slot=slot, pc=2) }}">Update</a>)
                     {% else %}
-                        <p> Paddle Card 3 (R420 = {{ display_resistor(resistors['r420']) }})
+                        <p> Paddle Card 3 (R420 = {{ display_resistor(resistors['r420']) }}) (<a href="{{ url_for("update_pmtic_resistors", crate=crate, slot=slot, pc=3) }}">Update</a>)
                     {% endif %}
                     <table class="table table-condensed noel">
                         <thead>

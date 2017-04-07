@@ -106,6 +106,7 @@ def get_daq_log_warnings(run):
 
 @app.route('/update-pmtic-resistors', methods=["GET", "POST"])
 def update_pmtic_resistors():
+    pc = request.args.get("pc", 0, type=int)
     if request.form:
         form = ResistorValuesForm(request.form)
         crate = form.crate.data
@@ -121,16 +122,13 @@ def update_pmtic_resistors():
 
     if request.method == "POST" and form.validate():
         try:
-            print("updating resistor values")
             update_resistor_values(form)
         except Exception as e:
-            print("error: %s" % e)
             flash(str(e), 'danger')
-            return render_template('update_pmtic_resistors.html', crate=crate, slot=slot, form=form)
-        print("success!")
+            return render_template('update_pmtic_resistors.html', crate=crate, slot=slot, form=form, pc=pc)
         flash("Successfully submitted", 'success')
         return redirect(url_for('resistors', crate=form.crate.data, slot=form.slot.data))
-    return render_template('update_pmtic_resistors.html', crate=crate, slot=slot, form=form)
+    return render_template('update_pmtic_resistors.html', crate=crate, slot=slot, form=form, pc=pc)
 
 @app.route('/calculate-resistors')
 def calculate_resistors():

@@ -23,6 +23,13 @@
                                 <option {% if slot == i %}selected="selected" {% endif %}value="{{ i }}">{{ i }}</option>
                             {% endfor %}
                         </select>
+                        <label for="pc">Paddle Card</label>
+                        <select id="pc">
+                            <option {% if pc == 252 %}selected="selected" {% endif %}value="252">R252</option>
+                            {% for i in range(4) %}
+                                <option {% if pc == i %}selected="selected" {% endif %}value="{{ i }}">{{ i }}</option>
+                            {% endfor %}
+                        </select>
                     </div>
                     <p> <a href="{{ url_for('static', filename='images/PMTIC.pdf') }}">Diagram</a>
                     <dl {% if pc != 252 %}hidden{% endif %}>
@@ -85,9 +92,8 @@
 {% block script %}
     <script>
         function update_page() {
-            window.location.replace($SCRIPT_ROOT + "/update-pmtic-resistors?" + $.param({'crate': $('#crate').val(), 'slot': $('#slot').val()}));
+            window.location.replace($SCRIPT_ROOT + "/update-pmtic-resistors?" + $.param({'crate': $('#crate').val(), 'slot': $('#slot').val(), 'pc': $('#pc').val()}));
         }
-        $("#crate").on("change", update_page);
-        $("#slot").on("change", update_page);
+        $("#crate, #slot, #pc").on("change", update_page);
     </script>
 {% endblock %}

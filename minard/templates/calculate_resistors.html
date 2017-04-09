@@ -44,7 +44,7 @@
             <div class="col-md-4">
                 <p> Nominal Voltage: {{ "%i" % resistors['nominal_hv'] }} V
                 <p> Supply Voltage: {{ "%i" % resistors['supply_voltage'] }} V (Supply {{ resistors['supply'] }})
-                <p> R252 = {{ display_resistor(resistors['r252']) }}
+                <p> R252 = {{ display_resistor(resistors['r252']) }} (<a href="{{ url_for("update_pmtic_resistors", crate=crate, slot=slot, pc=252) }}">Update</a>)
                 <p> R151 = {{ display_resistor(resistors['r151']) }}
                 <p> PC0 = {{ display_resistor(resistors['pc0']) }} ({{ "%i" % resistors['v_pc0'] }} V)
                 <p> PC1 = {{ display_resistor(resistors['pc1']) }} ({{ "%i" % resistors['v_pc1'] }} V)

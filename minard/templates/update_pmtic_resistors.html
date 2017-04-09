@@ -25,9 +25,11 @@
                         </select>
                     </div>
                     <p> <a href="{{ url_for('static', filename='images/PMTIC.pdf') }}">Diagram</a>
-                    <dl>
+                    <dl {% if pc != 252 %}hidden{% endif %}>
                         {{ render_field(form.r252) }}
                         {{ render_field(form.r151) }}
+                    </dl>
+                    <dl {% if pc != 0 %}hidden{% endif %}>
                         {{ render_paddle_card_feed_resistor(form.r386) }}
                         {{ render_channel_feed_resistor(form.r387) }}
                         {{ render_channel_feed_resistor(form.r388) }}
@@ -37,6 +39,8 @@
                         {{ render_channel_feed_resistor(form.r392) }}
                         {{ render_channel_feed_resistor(form.r393) }}
                         {{ render_channel_feed_resistor(form.r394) }}
+                    </dl>
+                    <dl {% if pc != 1 %}hidden{% endif %}>
                         {{ render_paddle_card_feed_resistor(form.r419) }}
                         {{ render_channel_feed_resistor(form.r395) }}
                         {{ render_channel_feed_resistor(form.r396) }}
@@ -46,6 +50,8 @@
                         {{ render_channel_feed_resistor(form.r400) }}
                         {{ render_channel_feed_resistor(form.r401) }}
                         {{ render_channel_feed_resistor(form.r402) }}
+                    </dl>
+                    <dl {% if pc != 2 %}hidden{% endif %}>
                         {{ render_paddle_card_feed_resistor(form.r421) }}
                         {{ render_channel_feed_resistor(form.r403) }}
                         {{ render_channel_feed_resistor(form.r404) }}
@@ -55,6 +61,8 @@
                         {{ render_channel_feed_resistor(form.r408) }}
                         {{ render_channel_feed_resistor(form.r409) }}
                         {{ render_channel_feed_resistor(form.r410) }}
+                    </dl>
+                    <dl {% if pc != 3 %}hidden{% endif %}>
                         {{ render_paddle_card_feed_resistor(form.r420) }}
                         {{ render_channel_feed_resistor(form.r411) }}
                         {{ render_channel_feed_resistor(form.r412) }}
@@ -64,6 +72,8 @@
                         {{ render_channel_feed_resistor(form.r416) }}
                         {{ render_channel_feed_resistor(form.r417) }}
                         {{ render_channel_feed_resistor(form.r418) }}
+                    </dl>
+                    <dl>
                         {{ render_field(form.password) }}
                     </dl>
                     <button type="submit" class="btn btn-success">Submit</button>

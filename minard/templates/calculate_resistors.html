@@ -53,6 +53,7 @@
                 <p> Voltage to PC feed resistors = {{ "%i" % resistors['v_to_pc'] }} V
                 <p> Total Resistance = {{ "%.1f" % (resistors['r_tot']/1000) }}k
                 <p> PMTIC current = {{ "%.1f" % (resistors['pmtic_i']*1000) }}mA
+                <p> <a href="{{ url_for('static', filename='images/PMTIC.pdf') }}">Diagram</a>
             </div>
             <div class="col-md-8">
                 {% for pc in range(4) %}

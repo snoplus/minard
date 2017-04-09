@@ -135,7 +135,7 @@ def calculate_resistors():
     crate = request.args.get("crate", 0, type=int)
     slot = request.args.get("slot", 0, type=int)
     resistors = get_resistors(crate, slot)
-    return render_template('resistors.html', crate=crate, slot=slot, resistors=resistors)
+    return render_template('calculate_resistors.html', crate=crate, slot=slot, resistors=resistors)
 
 @app.route('/detector-state-check')
 @app.route('/detector-state-check/<int:run>')

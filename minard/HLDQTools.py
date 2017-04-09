@@ -1,5 +1,7 @@
 import couchdb
 from minard import app
+import json
+import os
 
 def import_HLDQ_runnumbers():
     server = couchdb.Server("http://snoplus:"+app.config["COUCHDB_PASSWORD"]+"@"+app.config["COUCHDB_HOSTNAME"])
@@ -14,35 +16,23 @@ def import_HLDQ_runnumbers():
 
 #TELLIE Tools
 def import_TELLIE_runnumbers():
-    server = couchdb.Server("http://snoplus:"+app.config["COUCHDB_PASSWORD"]+"@"+app.config["COUCHDB_HOSTNAME"])
-    tellieDB = server["telliedb"]
     runNumbers = []
-    for row in tellieDB.view('_design/ratdb/_view/select_time'):
-        if row.key[0] != "TELLIE_RUN":
+    imagesDir = os.path.join(app.static_folder,"hldq/TELLIE/")
+    for folds in os.listdir(imagesDir):
+        if not "TELLIE_DQ_IMAGES" in folds:
             continue
-        runDocId = row['id']
-        #Skip TELLIE runs where TELLIE hasn't been fired.
-        if len(tellieDB.get(runDocId)["sub_run_info"]) == 0:
-            continue
-        runNum = int(row.key[1])
-        if runNum not in runNumbers:
-            runNumbers.append(runNum)
+        runNum = int(folds.split("_")[-1])
+        runNumbers.append(runNum)
     return runNumbers
-
+                            
 def import_TELLIEDQ_ratdb(runNumber):
-    server = couchdb.Server("http://snoplus:"+app.config["COUCHDB_PASSWORD"]+"@"+app.config["COUCHDB_HOSTNAME"])
-    dqDB = server["data-quality"]
-    data = None
-    for row in dqDB.view('_design/data-quality/_view/runs'):
-        if(int(row.key) == runNumber):
-            runDocId = row['id']
-            try:
-                data = dqDB.get(runDocId)["checks"]["dqtellieproc"]
-            except KeyError:
-                app.logger.warning("Code returned KeyError searching for dqtellie proc information in the couchDB. Run Number: %d" % runNumber)
-                return runNumber, -1, -1 
-    if data==None:
-        return runNumber, -1, -1 
+    imagesFolder = os.path.join(app.static_folder,"hldq/TELLIE/TELLIE_DQ_IMAGES_%d"%runNumber)
+    for fil in os.listdir(imagesFolder):
+        if "DATAQUALITY_RECORDS" in fil:
+            dqfile = os.path.join(imagesFolder,fil)
+            break
+    with open(dqfile,"r") as fil:
+        data = json.load(fil)["checks"]["dqtellieproc"]
     
     checkDict = {}
     checkDict["fibre"] = data["fibre"]

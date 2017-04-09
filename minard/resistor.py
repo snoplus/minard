@@ -15,8 +15,11 @@ class ResistorValuesForm(Form):
     crate =              IntegerField('crate', [validators.NumberRange(min=0,max=19)])
     slot =               IntegerField('slot', [validators.NumberRange(min=0,max=15)])
     r252 =               SelectField('R252', coerce=int, choices=[(20000, '20k'), (4000, '4k')])
-    r151 =               SelectField('R151', coerce=int, choices=[(3600, '3.6k'), (5100, '5.1k'), (6200, '6.2k'), (7500, '7.5k'), (12000, '12k'), (19600, '19.6k'), (21100, '21.1k'), (22200, '22.2k'), (23500, '23.5k'), (28000, '28k'), (55000, '55k')])
+    r151 =               SelectField('R151', coerce=int, choices=[(3600, '3.6k'), (5100, '5.1k'), (6200, '6.2k'), (7500, '7.5k'), (12000, '12k'), (19600, '19.6k'), (20000, '20k'), (21100, '21.1k'), (22200, '22.2k'), (23500, '23.5k'), (28000, '28k'), (55000, '55k')])
     r386 =               IntegerField('R386', [validators.NumberRange(min=0)])
+    r419 =               IntegerField('R419', [validators.NumberRange(min=0)])
+    r421 =               IntegerField('R421', [validators.NumberRange(min=0)])
+    r420 =               IntegerField('R420', [validators.NumberRange(min=0)])
     r387 =               IntegerField('R387', [validators.NumberRange(min=0)])
     r388 =               IntegerField('R388', [validators.NumberRange(min=0)])
     r389 =               IntegerField('R389', [validators.NumberRange(min=0)])
@@ -66,6 +69,9 @@ def update_resistor_values(form):
         "r252 = %(r252)s, "
         "r151 = %(r151)s, "
         "r386 = %(r386)s, "
+        "r419 = %(r419)s, "
+        "r421 = %(r421)s, "
+        "r420 = %(r420)s, "
         "r387 = %(r387)s, "
         "r388 = %(r388)s, "
         "r389 = %(r389)s, "

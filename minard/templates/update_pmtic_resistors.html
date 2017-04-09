@@ -1,4 +1,4 @@
-{% from "_formhelpers.html" import render_field %}
+{% from "_formhelpers.html" import render_field, render_channel_feed_resistor, render_paddle_card_feed_resistor %}
 {% extends "layout.html" %}
 {% block title %}Update Channel Status{% endblock %}
 {% block head %}
@@ -28,39 +28,42 @@
                     <dl>
                         {{ render_field(form.r252) }}
                         {{ render_field(form.r151) }}
-                        {{ render_field(form.r386) }}
-                        {{ render_field(form.r387) }}
-                        {{ render_field(form.r388) }}
-                        {{ render_field(form.r389) }}
-                        {{ render_field(form.r390) }}
-                        {{ render_field(form.r391) }}
-                        {{ render_field(form.r392) }}
-                        {{ render_field(form.r393) }}
-                        {{ render_field(form.r394) }}
-                        {{ render_field(form.r395) }}
-                        {{ render_field(form.r396) }}
-                        {{ render_field(form.r397) }}
-                        {{ render_field(form.r398) }}
-                        {{ render_field(form.r399) }}
-                        {{ render_field(form.r400) }}
-                        {{ render_field(form.r401) }}
-                        {{ render_field(form.r402) }}
-                        {{ render_field(form.r403) }}
-                        {{ render_field(form.r404) }}
-                        {{ render_field(form.r405) }}
-                        {{ render_field(form.r406) }}
-                        {{ render_field(form.r407) }}
-                        {{ render_field(form.r408) }}
-                        {{ render_field(form.r409) }}
-                        {{ render_field(form.r410) }}
-                        {{ render_field(form.r411) }}
-                        {{ render_field(form.r412) }}
-                        {{ render_field(form.r413) }}
-                        {{ render_field(form.r414) }}
-                        {{ render_field(form.r415) }}
-                        {{ render_field(form.r416) }}
-                        {{ render_field(form.r417) }}
-                        {{ render_field(form.r418) }}
+                        {{ render_paddle_card_feed_resistor(form.r386) }}
+                        {{ render_channel_feed_resistor(form.r387) }}
+                        {{ render_channel_feed_resistor(form.r388) }}
+                        {{ render_channel_feed_resistor(form.r389) }}
+                        {{ render_channel_feed_resistor(form.r390) }}
+                        {{ render_channel_feed_resistor(form.r391) }}
+                        {{ render_channel_feed_resistor(form.r392) }}
+                        {{ render_channel_feed_resistor(form.r393) }}
+                        {{ render_channel_feed_resistor(form.r394) }}
+                        {{ render_paddle_card_feed_resistor(form.r419) }}
+                        {{ render_channel_feed_resistor(form.r395) }}
+                        {{ render_channel_feed_resistor(form.r396) }}
+                        {{ render_channel_feed_resistor(form.r397) }}
+                        {{ render_channel_feed_resistor(form.r398) }}
+                        {{ render_channel_feed_resistor(form.r399) }}
+                        {{ render_channel_feed_resistor(form.r400) }}
+                        {{ render_channel_feed_resistor(form.r401) }}
+                        {{ render_channel_feed_resistor(form.r402) }}
+                        {{ render_paddle_card_feed_resistor(form.r421) }}
+                        {{ render_channel_feed_resistor(form.r403) }}
+                        {{ render_channel_feed_resistor(form.r404) }}
+                        {{ render_channel_feed_resistor(form.r405) }}
+                        {{ render_channel_feed_resistor(form.r406) }}
+                        {{ render_channel_feed_resistor(form.r407) }}
+                        {{ render_channel_feed_resistor(form.r408) }}
+                        {{ render_channel_feed_resistor(form.r409) }}
+                        {{ render_channel_feed_resistor(form.r410) }}
+                        {{ render_paddle_card_feed_resistor(form.r420) }}
+                        {{ render_channel_feed_resistor(form.r411) }}
+                        {{ render_channel_feed_resistor(form.r412) }}
+                        {{ render_channel_feed_resistor(form.r413) }}
+                        {{ render_channel_feed_resistor(form.r414) }}
+                        {{ render_channel_feed_resistor(form.r415) }}
+                        {{ render_channel_feed_resistor(form.r416) }}
+                        {{ render_channel_feed_resistor(form.r417) }}
+                        {{ render_channel_feed_resistor(form.r418) }}
                         {{ render_field(form.password) }}
                     </dl>
                     <button type="submit" class="btn btn-success">Submit</button>

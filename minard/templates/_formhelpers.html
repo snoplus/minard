@@ -12,6 +12,48 @@
     </dd>
 {% endmacro %}
 
+{% macro render_channel_feed_resistor(field) %}
+    {# from flask.pocoo.org/docs/0.12/patterns/wtforms/ #}
+    <dt>{{ field.label }}</dt>
+    <dd>
+        <select id="{{ field.name }}" name="{{ field.name }}">
+            <option value="{{ field.data }}">{{ field.data }}</option>
+            {% for value in [51, 100, 200, 300, 390, 510, 620, 820, 1000, 1100, 1200, 1300, 1500, 1600, 1800, 2000, 2200, 2400] %}
+                <option value={{ value*1000 }}>{{ "%ik" % value }}</option>
+            {% endfor %}
+            <option value=9999999999>9999999k</option>
+        </select>
+    {% if field.errors %}
+        <ul class=errors>
+            {% for error in field.errors %}
+                <li>{{ error }}</li>
+            {% endfor %}
+            </ul>
+    {% endif %}
+    </dd>
+{% endmacro %}
+
+{% macro render_paddle_card_feed_resistor(field) %}
+    {# from flask.pocoo.org/docs/0.12/patterns/wtforms/ #}
+    <dt>{{ field.label }}</dt>
+    <dd>
+        <select id="{{ field.name }}" name="{{ field.name }}">
+            <option value="{{ field.data }}">{{ field.data }}</option>
+            {% for value in [39, 51, 68, 82, 100, 150, 200, 300, 390, 620] %}
+                <option value={{ value*1000 }}>{{ "%ik" % value }}</option>
+            {% endfor %}
+            <option value=9999999999>9999999k</option>
+        </select>
+    {% if field.errors %}
+        <ul class=errors>
+            {% for error in field.errors %}
+                <li>{{ error }}</li>
+            {% endfor %}
+            </ul>
+    {% endif %}
+    </dd>
+{% endmacro %}
+
 {% macro crate_select() %}
 <label for="crate">Crate</label>
 <select id="crate">

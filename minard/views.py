@@ -117,7 +117,6 @@ def update_pmtic_resistors():
         try:
             form = get_resistor_values_form(crate, slot)
         except Exception as e:
-            print(e)
             form = ResistorValuesForm(crate=crate, slot=slot)
 
     if request.method == "POST" and form.validate():
@@ -127,7 +126,7 @@ def update_pmtic_resistors():
             flash(str(e), 'danger')
             return render_template('update_pmtic_resistors.html', crate=crate, slot=slot, form=form, pc=pc)
         flash("Successfully submitted", 'success')
-        return redirect(url_for('resistors', crate=form.crate.data, slot=form.slot.data))
+        return redirect(url_for('calculate_resistors', crate=form.crate.data, slot=form.slot.data))
     return render_template('update_pmtic_resistors.html', crate=crate, slot=slot, form=form, pc=pc)
 
 @app.route('/calculate-resistors')

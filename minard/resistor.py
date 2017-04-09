@@ -118,9 +118,6 @@ def get_resistor_values(crate, slot):
         "WHERE crate = %s AND slot = %s",
         (crate,slot))
 
-    if result is None:
-        return None
-
     keys = result.keys()
     row = result.fetchone()
 

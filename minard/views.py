@@ -804,3 +804,13 @@ def calibdq_tellie_subrun_number(run_number,subrun_number):
             subrun_index = i
     #Array to store the titles of the plots
     return render_template('calibdq_tellie_subrun.html',run_number=run_number,subrun_index=subrun_index, runInformation=runInfo)
+
+@app.route('/physicsdq')
+def physicsdq():
+    runNumbers = HLDQTools.import_HLDQ_runnumbers()
+    return render_template('physicsdq.html',physics_run_numbers=runNumbers)
+
+@app.route('/physicsdq/<run_number>')
+def physicsdq_run_number(run_number):
+    ratdbDict = HLDQTools.import_HLDQ_ratdb(run_number)
+    return render_template('physicsdq_run_number.html',run_number=run_number,ratdb_dict = ratdbDict)

@@ -1,0 +1,26 @@
+{% extends "layout.html" %}
+{% block title %}Physics Data Quality {% endblock %}
+{% block head %}
+{{ super() }}
+{% endblock %}
+{% block body %}
+{{ super() }}
+<div class="container">
+    <h1>Physics Data Quality</h1>
+    <div class="container">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>Run Number</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for i in range(physics_run_numbers|length) %}
+                <tr>
+                    <td><a href="{{ url_for('physicsdq_run_number',run_number=physics_run_numbers[i])}}">{{physics_run_numbers[i]}}</a></td>
+                </tr> 
+                {% endfor %}
+            </tbody>
+    </div>
+</div>
+{% endblock %}

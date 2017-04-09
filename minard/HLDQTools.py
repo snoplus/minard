@@ -1,15 +1,29 @@
 import couchdb
 from minard import app
+import os
+import json
 
+#
 def import_HLDQ_runnumbers():
-    server = couchdb.Server("http://snoplus:"+app.config["COUCHDB_PASSWORD"]+"@"+app.config["COUCHDB_HOSTNAME"])
-    dqDB = server["data-quality"]
     runNumbers = []
-    for row in tellieDB.view('_design/data-quality/_view/runs'):
-        runNum = int(row)
-        if runNum not in runNumbers:
-            runNumbers.append(runNum)
+    DQHL_DIR = os.path.join(app.static_folder,"hldq/DQHL")
+    for folds in os.listdir(DQHL_DIR):
+        runNum = int(folds.split("_")[-1])
+        runNumbers.append(runNum)
+    
     return runNumbers
+
+def import_HLDQ_ratdb(runNumber):
+    runFolder = os.path.join(app.static_folder,"hldq/DQHL")
+    runFolder = os.path.join(runFolder,"DQHL_%s" % runNumber)
+    ratdbFile = ""
+    for fil in os.listdir(runFolder):
+        if fil.endswith(".ratdb") and "DATAQUALITY_RECORDS" in fil:
+            ratdbFile = os.path.join(runFolder,fil)
+            break
+    ratDBDict = json.load(open(ratdbFile,"r"))
+    print(ratDBDict)
+    return ratDBDict
 
 
 #TELLIE Tools

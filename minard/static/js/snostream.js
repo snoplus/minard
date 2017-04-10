@@ -67,7 +67,7 @@ add_horizon(["subrun"],format_int,[],[0,100]);
 add_horizon(["heartbeat"],format_int,null,[0,4]);
 add_horizon(TRIGGER_NAMES.slice(1,11).map(function(s) {
     return s+"-Baseline";
-    }),format_rate,null,[-5,5]);
+    }),format_rate,null);
 context.on("focus", function(i) {
   d3.selectAll(".value").style("right", i === null ? null : context.size() - i + "px");
 });

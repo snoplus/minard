@@ -18,7 +18,7 @@ case "$1" in
             echo "$PIDFILE exists, process is already running or crashed"
         else
             echo "Starting Gunicorn daemon..."
-            $CMD -w 24 -b unix:/tmp/gunicorn.sock $APP -D --error-logfile=$LOGFILE --pid=$PIDFILE --user=$USER --chdir /tmp
+            $CMD -w 4 -b unix:/tmp/gunicorn.sock $APP -D --error-logfile=$LOGFILE --pid=$PIDFILE --user=$USER --chdir /tmp
         fi
         ;;
     stop)

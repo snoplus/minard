@@ -9,3 +9,4 @@ redis>=2.10
 sqlalchemy
 psycopg2
 #alabaster
+couchdb

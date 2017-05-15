@@ -1,0 +1,99 @@
+{% from "_formhelpers.html" import render_field, render_channel_feed_resistor, render_paddle_card_feed_resistor %}
+{% extends "layout.html" %}
+{% block title %}Update PMTIC Resistors{% endblock %}
+{% block head %}
+    {{ super() }}
+{% endblock %}
+{% block body %}
+    {{ super() }}
+    <div class="container">
+        <div class="row">
+            <div class="col-md-6">
+                <form action="update-pmtic-resistors" method="POST" role="form">
+                    <div>
+                        <label for="crate">Crate</label>
+                        <select id="crate" name="crate">
+                            {% for i in range(19) %}
+                                <option {% if crate == i %}selected="selected" {% endif %}value="{{ i }}">{{ i }}</option>
+                            {% endfor %}
+                        </select>
+                        <label for="slot">Card</label>
+                        <select id="slot" name="slot">
+                            {% for i in range(16) %}
+                                <option {% if slot == i %}selected="selected" {% endif %}value="{{ i }}">{{ i }}</option>
+                            {% endfor %}
+                        </select>
+                        <label for="pc">Paddle Card</label>
+                        <select id="pc">
+                            <option {% if pc == 252 %}selected="selected" {% endif %}value="252">R252</option>
+                            {% for i in range(4) %}
+                                <option {% if pc == i %}selected="selected" {% endif %}value="{{ i }}">{{ i }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <p> <a href="{{ url_for('static', filename='images/PMTIC.pdf') }}">Diagram</a>
+                    <dl {% if pc != 252 %}hidden{% endif %}>
+                        {{ render_field(form.r252) }}
+                        {{ render_field(form.r151) }}
+                    </dl>
+                    <dl {% if pc != 0 %}hidden{% endif %}>
+                        {{ render_paddle_card_feed_resistor(form.r386) }}
+                        {{ render_channel_feed_resistor(form.r387) }}
+                        {{ render_channel_feed_resistor(form.r388) }}
+                        {{ render_channel_feed_resistor(form.r389) }}
+                        {{ render_channel_feed_resistor(form.r390) }}
+                        {{ render_channel_feed_resistor(form.r391) }}
+                        {{ render_channel_feed_resistor(form.r392) }}
+                        {{ render_channel_feed_resistor(form.r393) }}
+                        {{ render_channel_feed_resistor(form.r394) }}
+                    </dl>
+                    <dl {% if pc != 1 %}hidden{% endif %}>
+                        {{ render_paddle_card_feed_resistor(form.r419) }}
+                        {{ render_channel_feed_resistor(form.r395) }}
+                        {{ render_channel_feed_resistor(form.r396) }}
+                        {{ render_channel_feed_resistor(form.r397) }}
+                        {{ render_channel_feed_resistor(form.r398) }}
+                        {{ render_channel_feed_resistor(form.r399) }}
+                        {{ render_channel_feed_resistor(form.r400) }}
+                        {{ render_channel_feed_resistor(form.r401) }}
+                        {{ render_channel_feed_resistor(form.r402) }}
+                    </dl>
+                    <dl {% if pc != 2 %}hidden{% endif %}>
+                        {{ render_paddle_card_feed_resistor(form.r421) }}
+                        {{ render_channel_feed_resistor(form.r403) }}
+                        {{ render_channel_feed_resistor(form.r404) }}
+                        {{ render_channel_feed_resistor(form.r405) }}
+                        {{ render_channel_feed_resistor(form.r406) }}
+                        {{ render_channel_feed_resistor(form.r407) }}
+                        {{ render_channel_feed_resistor(form.r408) }}
+                        {{ render_channel_feed_resistor(form.r409) }}
+                        {{ render_channel_feed_resistor(form.r410) }}
+                    </dl>
+                    <dl {% if pc != 3 %}hidden{% endif %}>
+                        {{ render_paddle_card_feed_resistor(form.r420) }}
+                        {{ render_channel_feed_resistor(form.r411) }}
+                        {{ render_channel_feed_resistor(form.r412) }}
+                        {{ render_channel_feed_resistor(form.r413) }}
+                        {{ render_channel_feed_resistor(form.r414) }}
+                        {{ render_channel_feed_resistor(form.r415) }}
+                        {{ render_channel_feed_resistor(form.r416) }}
+                        {{ render_channel_feed_resistor(form.r417) }}
+                        {{ render_channel_feed_resistor(form.r418) }}
+                    </dl>
+                    <dl>
+                        {{ render_field(form.password) }}
+                    </dl>
+                    <button type="submit" class="btn btn-success">Submit</button>
+                </form>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+{% block script %}
+    <script>
+        function update_page() {
+            window.location.replace($SCRIPT_ROOT + "/update-pmtic-resistors?" + $.param({'crate': $('#crate').val(), 'slot': $('#slot').val(), 'pc': $('#pc').val()}));
+        }
+        $("#crate, #slot, #pc").on("change", update_page);
+    </script>
+{% endblock %}

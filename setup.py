@@ -22,5 +22,6 @@ setup(name='minard',
                         'requests',
                         'sqlalchemy',
                         'psycopg2',
-                        'alabaster']
+                        'alabaster',
+                        'couchdb']
       )

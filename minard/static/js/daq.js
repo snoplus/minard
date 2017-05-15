@@ -103,7 +103,7 @@ function update_metrics(timeseries) {
 var default_thresholds = {
     cmos: [100,5e3],
     base: [10, 80],
-    occupancy: [0.001, 0.002]
+    occupancy: [0.001, 0.005]
 };
 
 function set_thresholds(lo, hi) {

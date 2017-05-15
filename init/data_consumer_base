@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# chkconfig: - 58 74
+# chkconfig: - 58 75
 # description: data consumer base
 
 . /etc/init.d/functions
@@ -11,7 +11,7 @@ MINARD_SETTINGS=/etc/minard/settings.cfg
 
 export MINARD_SETTINGS
 
-WORKERS=2
+WORKERS=8
 
 case $1 in
     start)

@@ -1,0 +1,269 @@
+{% extends "layout.html" %}
+{% block title %}Channel Status{% endblock %}
+{% block head %}
+    {{ super() }}
+    <style>
+        .noel tbody tr:nth-child(even) {
+            background-color: #ffffff;
+        }
+        .noel tbody tr:nth-child(odd) {
+            background-color: #adffad;
+        }
+    </style>
+{% endblock %}
+{% block body %}
+    {{ super() }}
+    <div class="container">
+	<div class="row">
+	    <div class="col-md-12">
+                Crate/Card/Channel
+                <select id="crate">
+                    <option value="0">0</option>
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                    <option value="5">5</option>
+                    <option value="6">6</option>
+                    <option value="7">7</option>
+                    <option value="8">8</option>
+                    <option value="9">9</option>
+                    <option value="10">10</option>
+                    <option value="11">11</option>
+                    <option value="12">12</option>
+                    <option value="13">13</option>
+                    <option value="14">14</option>
+                    <option value="15">15</option>
+                    <option value="16">16</option>
+                    <option value="17">17</option>
+                    <option value="18">18</option>
+                    <option value="19">19</option>
+                </select>
+                /
+                <select id="slot">
+                    <option value="0">0</option>
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                    <option value="5">5</option>
+                    <option value="6">6</option>
+                    <option value="7">7</option>
+                    <option value="8">8</option>
+                    <option value="9">9</option>
+                    <option value="10">10</option>
+                    <option value="11">11</option>
+                    <option value="12">12</option>
+                    <option value="13">13</option>
+                    <option value="14">14</option>
+                    <option value="15">15</option>
+                </select>
+                /
+                <select id="channel">
+                    <option value="0">0</option>
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                    <option value="5">5</option>
+                    <option value="6">6</option>
+                    <option value="7">7</option>
+                    <option value="8">8</option>
+                    <option value="9">9</option>
+                    <option value="10">10</option>
+                    <option value="11">11</option>
+                    <option value="12">12</option>
+                    <option value="13">13</option>
+                    <option value="14">14</option>
+                    <option value="15">15</option>
+                    <option value="16">16</option>
+                    <option value="17">17</option>
+                    <option value="18">18</option>
+                    <option value="19">19</option>
+                    <option value="20">20</option>
+                    <option value="21">21</option>
+                    <option value="22">22</option>
+                    <option value="23">23</option>
+                    <option value="24">24</option>
+                    <option value="25">25</option>
+                    <option value="26">26</option>
+                    <option value="27">27</option>
+                    <option value="28">28</option>
+                    <option value="29">29</option>
+                    <option value="30">30</option>
+                    <option value="31">31</option>
+                </select>
+            </div>
+        </div>
+        <div class="row">
+        {% macro status(data) %}
+            <td>
+            {% if data %}
+                <span class="glyphicon glyphicon-ok"></span>
+            {% endif %}
+            </td>
+        {% endmacro %}
+	    <div class="col-md-12">
+                <h3>Channel History (<a href="{{ "update-channel-status?crate=%i&slot=%i&channel=%i" % (crate,slot,channel) }}">Update</a>)</h3>
+		<table class="table table-condensed text-center noel">
+		    <thead>
+			<tr>
+			    <th>Date</th>
+			    <th>PMT Removed</th>
+			    <th>PMT Reinstalled</th>
+			    <th>Low Occ.</th>
+			    <th>Zero Occ.</th>
+			    <th>Screamer</th>
+			    <th>Bad Disc.</th>
+			    <th>No N100</th>
+			    <th>No N20</th>
+			    <th>No ESUM</th>
+			    <th>Cable pulled</th>
+			    <th>Bad Cable</th>
+			    <th>Resistor pulled</th>
+			    <th>Disable N100</th>
+			    <th>Disable N20</th>
+			    <th>High Dropout</th>
+			    <th>Bad Base Current</th>
+			    <th>Bad Data</th>
+			    <th>Name</th>
+			    <th>Reason</th>
+			    <th>Info</th>
+			</tr>
+		    </thead>
+		    {% for row in results %}
+		    <tr>
+			<td>{{ row['timestamp'].strftime("%Y-%m-%d") }}</td>
+			{{ status(row['pmt_removed']) }}
+			{{ status(row['pmt_reinstalled']) }}
+			{{ status(row['low_occupancy']) }}
+			{{ status(row['zero_occupancy']) }}
+			{{ status(row['screamer']) }}
+			{{ status(row['bad_discriminator']) }}
+			{{ status(row['no_n100']) }}
+			{{ status(row['no_n20']) }}
+			{{ status(row['no_esum']) }}
+			{{ status(row['cable_pulled']) }}
+			{{ status(row['bad_cable']) }}
+			{{ status(row['resistor_pulled']) }}
+			{{ status(row['disable_n100']) }}
+			{{ status(row['disable_n20']) }}
+			{{ status(row['high_dropout']) }}
+			{{ status(row['bad_base_current']) }}
+			{{ status(row['bad_data']) }}
+                        <td>{{ row['name'] }}</td>
+                        <td>{{ row['reason'] }}</td>
+                        <td>{{ row['info'] }}</td>
+		    </tr>
+		    {% endfor %}
+		</table>
+	    </div>
+	</div>
+	<div class="row">
+	    <div class="col-md-2">
+                <h3>PMT Info</h3>
+                {% if pmt_info %}
+                <table class="table table-bordered">
+                    <tr>
+                        <th>Cable</th>
+                        <td>{{ pmt_info['cable'] }}</td>
+                    </tr>
+                    <tr>
+                        <th>PMT</th>
+                        <td>{{ pmt_info['pmt'] }}</td>
+                    </tr>
+                    <tr>
+                        <th>PC</th>
+                        <td>{{ pmt_info['pc'] }}</td>
+                    </tr>
+                    <tr>
+                        <th>QCCC</th>
+                        <td>{{ pmt_info['qccc'] }}</td>
+                    </tr>
+                    <tr>
+                        <th>Bundle</th>
+                        <td>{{ pmt_info['bundle'] }}</td>
+                    </tr>
+                    <tr>
+                        <th>HV</th>
+                        <td>{{ pmt_info['hv'] }}</td>
+                    </tr>
+                    <tr>
+                        <th>Type</th>
+                        <td>{{ pmt_info['type'] | pmt_type_description }}</td>
+                    </tr>
+                    <tr>
+                        <th>Active</th>
+                        {% if pmt_info['type'] % 2 == 1 %}
+                            <td>Yes</td>
+                        {% else %}
+                            <td>No</td>
+                        {% endif %}
+                    </tr>
+                    <tr>
+                        <th>x</th>
+                        <td>{{ pmt_info['x'] }}</td>
+                    </tr>
+                    <tr>
+                        <th>y</th>
+                        <td>{{ pmt_info['y'] }}</td>
+                    </tr>
+                    <tr>
+                        <th>z</th>
+                        <td>{{ pmt_info['z'] }}</td>
+                    </tr>
+                    <tr>
+                        <th>Panel</th>
+                        <td>{{ pmt_info['panel'] }}</td>
+                    </tr>
+                </table>
+                {% endif %}
+	    </div>
+	    <div class="col-md-2">
+                <h3>Nominal Settings</h3>
+                {% if nominal_settings %}
+                <table class="table table-bordered">
+                    <tr>
+                        <th>N100</th>
+                        <td>{% if nominal_settings['n100'] %}On{% else %}Off{% endif %}</td>
+                    </tr>
+                    <tr>
+                        <th>N20</th>
+                        <td>{% if nominal_settings['n20'] %}On{% else %}Off{% endif %}</td>
+                    </tr>
+                    <tr>
+                        <th>Sequencer</th>
+                        <td>{% if nominal_settings['sequencer'] %}Enabled{% else %}Disabled{% endif %}</td>
+                    </tr>
+                </table>
+                {% endif %}
+	    </div>
+	</div>
+    </div>
+{% endblock %}
+{% block script %}
+    <script>
+        if (url_params.crate) {
+            document.getElementById("crate").value = url_params.crate;
+        }
+        if (url_params.slot) {
+            document.getElementById("slot").value = url_params.slot;
+        }
+        if (url_params.channel) {
+            document.getElementById("channel").value = url_params.channel;
+        }
+        $("#crate, #slot, #channel").on("change", function() {
+            var params = {};
+            if (document.getElementById("crate").value != -1) {
+                params['crate'] = document.getElementById("crate").value;
+            }
+            if (document.getElementById("slot").value != -1) {
+                params['slot'] = document.getElementById("slot").value;
+            }
+            if (document.getElementById("channel").value != -1) {
+                params['channel'] = document.getElementById("channel").value;
+            }
+            window.location.replace($SCRIPT_ROOT + "/channel-status?" + $.param(params));
+        });
+    </script>
+{% endblock %}

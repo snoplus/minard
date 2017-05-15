@@ -1,0 +1,68 @@
+{% extends "layout.html" %}
+{% block title %}Physics Data Quality {% endblock %}
+{% block head %}
+{{ super() }}
+{% endblock %}
+{% block body %}
+{{ super() }}
+<div class="container">
+    <h1>Physics Data Quality</h1>
+    {% if offset == 0 %}
+    <button class="btn btn-outline-primary btn-lg" disabled>Next</button>
+    <a class="btn btn-outline-primary btn-lg" href="{{ url_for("physicsdq", limit=limit, offset=offset+limit) }}">Next</a>
+    {% else %}
+    <a class="btn btn-outline-primary btn-lg" href="{{ url_for("physicsdq", limit=limit, offset=offset-limit) }}">Back</a>
+    <a class="btn btn-outline-primary btn-lg" href="{{ url_for("physicsdq", limit=limit, offset=offset+limit) }}">Next</a>
+    {% endif %}
+    <div class="container">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>Run Number</th>
+                    <th>Trigger Processor</th>
+                    <th>Time Processor</th>
+                    <th>Run Processor</th>
+                    <th>PMT Processor</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for i in range(run_info|length) %}
+                {% if run_info[i] == -1%}
+                <tr class="bg-danger" >
+                    <td>
+                        {{physics_run_numbers[i]}}
+                    </td>
+                    <td colspan="10" style="text-align:center;">
+                        <b> No DQ Present for Run. </b>
+                    </td>
+                </tr> 
+                {% else %}
+                <tr>
+                    <td><a href="{{ url_for('physicsdq_run_number',run_number=physics_run_numbers[i])}}">{{physics_run_numbers[i]}}</a></td>
+                    {% if proc_results[i]["dqtriggerproc"] == 1 %}
+                    <td>Pass</td>
+                    {% else %}
+                    <td><font color="red">Fail</font></td>
+                    {% endif %}
+                    {% if proc_results[i]["dqtimeproc"] == 1 %}
+                    <td>Pass</td>
+                    {% else %}
+                    <td><font color="red">Fail</font></td>
+                    {% endif %}
+                    {% if proc_results[i]["dqrunproc"] == 1 %}
+                    <td>Pass</td>
+                    {% else %}
+                    <td><font color="red">Fail</font></td>
+                    {% endif %}
+                    {% if proc_results[i]["dqpmtproc"] == 1 %}
+                    <td>Pass</td>
+                    {% else %}
+                    <td><font color="red">Fail</font></td>
+                    {% endif %}
+                </tr> 
+                {% endif %}
+                {% endfor %}
+            </tbody>
+    </div>
+</div>
+{% endblock %}

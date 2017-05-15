@@ -24,6 +24,16 @@ Create a configuration file called settings.conf with the following values:
     DB_NAME='detector'
     DB_PORT=5432
 
+If you are testing the detector state check page you will also need to add:
+
+    DAQ_LOG_DIR=[path to log files]
+
+And if you are testing anything that requires CouchDB access you will need to
+add:
+
+    COUCHDB_HOSTNAME=[hostname]
+    COUCHDB_PASSWORD=[password]
+
 Now, export the environment variable MINARD_SETTINGS to point to the
 configuration file:
 

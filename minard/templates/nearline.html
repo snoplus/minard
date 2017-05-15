@@ -24,6 +24,7 @@
 			<tr>
 			    <th>Status</th>
 			    <th>Name</th>
+			    <th>Log File</th>
 			</tr>
 		    </thead>
 		    {% for program, status in programs.iteritems() %}
@@ -38,12 +39,21 @@
 			<th> Debug </th>
 			{% elif status|int == 4 %}
 			<th> Not run </th>
+                        {% elif status|int == 97 %}
+                        <th class="warning"> Timed out </th>
+                        {% elif status|int == 98 %}
+                        <th class="warning"> Not executable </th>
+                        {% elif status|int == -1 %}
+                        <th class="warning"> Killed by signal </th>
 			{% elif status|int == 99 %}
 			<th> In Progress </th>
 			{% else %}
 			<th class="warning"> Unknown </th>
 			{% endif %}
 			<th> {{ program }} </th>
+                        <th>
+                            <a href="{{ "/monitoring/nearline/logs/%i/%s.log" % (run,program) }}">{{ program }}.log</a>
+                        </th>
 		    </tr>
 		    {% endfor %}
 		</table>

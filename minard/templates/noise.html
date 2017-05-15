@@ -1,0 +1,70 @@
+{% extends "layout.html" %}
+{% block title %}PMT noise{% endblock %}
+{% block head %}
+    {{ super() }}
+{% endblock %}
+{% block body %}
+{{ super() }}
+
+<div class="container">
+    <table class="table table-hover">
+      <thead>
+      <tr>
+        <th>Run Number</th>
+        <th>Run Time</th>
+        <th>Average noise (Hz)</th>
+	<th>Average QHL HHP (cap)</th>
+	<th>NHit (raw)</th>
+	<th>NHit (normal/HQE 50Hz-50kHz)</th>
+	<th>NHit (normal/HQE N20/N100 enabled)</th>
+	<th>PGT Count</th>
+	<th>Online PMTs</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for run in runs if run %}
+      {% if "n_pgt" in run and run["n_pgt"]|int() > 10000 %}
+      <tr class="info">
+      {% else %}
+      <tr>
+      {% endif %}
+	<td><a href="{{ url_for('noise_run_detail',run_number = run['run_number']) }}">{{ run["run_number"] }}</a></td>
+	<td>{{ run["run_time"]|timefmt }}</td>
+	<td>{{ "%.0f" % (run["average_noiserate"]|float) }}</td>
+	{% if "average_qhl_hhp" in run %}
+	<td>{{ "%.1f" % (run["average_qhl_hhp"]|float) }}</td>
+	{% else %}
+	<td>{{ "-" }}</td>
+	{% endif %}
+	{% if "average_nhit_raw" in run %}
+	<td>{{ "%.1f" % (run["average_nhit_raw"]|float) }}</td>
+	{% else %}
+	<td>{{ "-" }}</td>
+	{% endif %}
+	{% if "average_nhit_normal" in run %}
+        <td>{{ "%.1f" % (run["average_nhit_normal"]|float) }}</td>
+        {% else %}
+        <td>{{ "-" }}</td>
+        {% endif %}
+	{% if "average_nhit_trigenabled" in run %}
+        <td>{{ "%.1f" % (run["average_nhit_trigenabled"]|float) }}</td>
+        {% else %}
+        <td>{{ "-" }}</td>
+        {% endif %}
+	{% if "n_pgt" in run %}
+	<td>{{ "%.0f" % (run["n_pgt"]|float) }}</td>
+	{% else %}
+	<td>{{ "-" }}</td>
+	{% endif %}
+	{% if "online_pmt" in run %}
+	<td>{{ "%.0f" % (run["online_pmt"]|float) }}</td>
+	{% else %}
+	<td>{{ "-" }}</td>
+	{% endif %}
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% endblock %}

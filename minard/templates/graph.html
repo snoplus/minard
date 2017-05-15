@@ -4,6 +4,7 @@
     <!-- metrics-graphics stylesheet goes above super() because we want bootstrap's style
     (which is linked in super()) to override it. -->
     <link rel="stylesheet" type="text/css"  href="{{ url_for('static',filename='css/metricsgraphics.css') }}">
+    <link rel="stylesheet" type="text/css"  href="{{ url_for('static',filename='css/mg_line_brushing.css') }}">
     {{ super() }}
 {% endblock %}
 {% block body %}
@@ -33,6 +34,7 @@
     <script src="{{ url_for('static', filename='js/moment-timezone-with-data.min.js') }}"></script>
     <script src="{{ url_for('static', filename='js/tzscale.js') }}"></script>
     <script src="{{ url_for('static', filename='js/metricsgraphics.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/mg_line_brushing.js') }}"></script>
     <script src="{{ url_for('static', filename='js/graph.js') }}"></script>
 
     <script>

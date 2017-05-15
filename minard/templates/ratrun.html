@@ -1,0 +1,101 @@
+{% extends "layout.html" %}
+{% block title %} RAT {% endblock %}
+{% block head %}
+{{ super() }}
+
+<script type="text/javascript" src="https://root.cern/js/5.0.3/scripts/JSRootCore.min.js?2d&&io"></script>
+<link rel="stylesheet" href="{{url_for('static', filename='css/ratrun.css') }}">
+
+{% endblock %}
+
+{% block body %}
+   {{ super() }}
+<!-- The Run Title and nav buttons-->
+<div class="container">
+  <div class="row">
+    <div class="col-md-10 col-md-offset-1">
+    <center>
+      <ul class="pager">
+        <li class="previous"><a href="{{ url_for('ratrun', run=run.id-1) }}">Prev</a></li>
+        <li><h2 style="display:inline"> Run {{ run.id }} </h2></li>
+        <li class="next"><a href="{{ url_for('ratrun', run=run.id + 1) }}">Next</a></li>
+      </ul>
+      <h4> {{run.type}} </h4>
+      <h4> {{run.time}} </h4>
+    </center>
+    </div>
+  </div>
+
+    {% if error %}
+  <div class = "row">
+    <div class="col-md-10 col-md-offset-1">
+      <div class="alert alert-danger" role="alert">
+        <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
+        Data unavailable
+      </div>
+    </div>
+  </div>
+  {% else %}
+
+  <!-- Download buttons-->
+  <div class="row">
+    <div class="col-md-10 col-md-offset-1">
+      <center>
+        <button id = "histbut" type="submit"> Download Histograms</button>
+        <button id = "ntupbut" type="submit"> Download Ntuple </button>
+      </center>
+    </div>
+  </div>
+
+
+
+  <div class="row" style="margin-top : 70px;">
+  </div>
+
+  <!-- Sidebar and plot area-->
+  <div class="row">
+    <div class="col-md-2">
+      <div class="sidebar-nav">
+        <div class="navbar navbar-default" role="navigation">
+          <div class="navbar-header">
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".sidebar-navbar-collapse">
+              <span class="sr-only">Toggle navigation</span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+            </button>
+            <span class="visible-xs navbar-brand">Branches</span>
+          </div>
+          <div class="navbar-collapse collapse sidebar-navbar-collapse">
+            <ul class="nav navbar-nav" id="sidebarlist">
+              <li> <a class = "active" id="summary-button"href="javascript:void(0)"> Summary  </a> </li>
+            </ul>
+          </div><!--/.nav-collapse -->
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-10" id="plotarea">
+    </div>
+  </div>
+</div>
+<!-- Container end -->
+{% endif %}
+{% endblock %}
+
+{% block script %}
+{% if not error %}
+
+    <div id="loading" style="display: none;"> </div> <!-- JSROOT wants to dump loading messages somewhere-->
+    <script type="text/javascript">
+
+      $(document).ready(
+            function(){
+                JSROOT.AssertPrerequisites("io;2d;user:{{ url_for('static', filename='js/rat.js') }}", function(){
+                    createPage({{ run.id }}, "plotarea");
+            }, "loading");
+      });
+    </script>
+
+{% endif %}
+{% endblock %}

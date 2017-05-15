@@ -30,11 +30,35 @@
 		    <tr>
 			<td>{{ row['timestamp'].strftime("%Y-%m-%d %H:%M:%S") }}</td>
 			<td>{{ row['name'] }}</td>
-			<td>{{ row['crate'] }}</td>
-			<td>{{ "0x%04x" % row['slot_mask'] }}</td>
-			<td>{{ "0x%08x" % row['channel_mask'] }}</td>
+			<td>
+			{% if row['crate'] %}
+			    {{ row['crate'] }}
+			{% else %}
+			    -
+			{% endif %}
+			</td>
+			<td>
+			{% if row['slot_mask'] %}
+			    {{ "0x%04x" % row['slot_mask'] }}
+			{% else %}
+			    -
+			{% endif %}
+			</td>
+			<td>
+			{% if row['channel_mask'] %}
+			    {{ "0x%08x" % row['channel_mask'] }}
+			{% else %}
+			    -
+			{% endif %}
+			</td>
 			<td>{{ "%.2f" % row['baseline'] }}</td>
-			<td>{{ "%.2f" % row['adc_per_nhit'] }}</td>
+			<td>
+			{% if row['adc_per_nhit'] %}
+			    {{ "%.2f" % row['adc_per_nhit'] }}
+			{% else %}
+			    -
+			{% endif %}
+			</td>
 		    </tr>
 		    {% endfor %}
 		</table>

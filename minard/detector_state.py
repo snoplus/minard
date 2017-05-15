@@ -1,10 +1,259 @@
-import sqlalchemy
-from minard import app
+from __future__ import print_function, division
+from .views import app
+from .db import engine
+from .channeldb import get_nominal_settings_for_run, get_pmt_types
+from collections import defaultdict
 
-engine = sqlalchemy.create_engine('postgresql://%s:%s@%s:%i/%s' %
-                                 (app.config['DB_USER'], app.config['DB_PASS'],
-                                  app.config['DB_HOST'], app.config['DB_PORT'],
-                                  app.config['DB_NAME']))
+def get_detector_state(run=0):
+    """
+    Returns a dictionary of the crate settings for a given run. If there is no
+    row in the database for the run, returns None.
+    """
+    conn = engine.connect()
+
+    result = conn.execute("SELECT * FROM detector_state WHERE run = %s", (run,))
+
+    if result is None:
+        return None
+
+    keys = result.keys()
+    rows = result.fetchall()
+
+    if len(rows) == 0:
+        return None
+
+    detector_state = dict((i, None) for i in range(20))
+
+    for row in rows:
+        crate = row[keys.index('crate')]
+
+        if detector_state[crate] is None:
+            detector_state[crate] = dict((i, None) for i in range(16))
+
+        slot = row[keys.index('slot')]
+
+        detector_state[crate][slot] = dict(zip(keys,row))
+
+    result = conn.execute("SELECT * FROM crate_state WHERE run = %s", (run,))
+
+    if result is not None:
+        keys = result.keys()
+
+        for row in result:
+            crate = row[keys.index('crate')]
+
+            if detector_state[crate] is None:
+                detector_state[crate] = dict((i, None) for i in range(16))
+
+            for i, key in enumerate(keys):
+                detector_state[crate][key] = row[i]
+
+    return detector_state
+
+def get_alarms(run=0):
+    """
+    Returns a list of alarms that were active for a given run. If run is 0,
+    then return the currently active alarms. If there is no row in the database
+    for the run, returns None.
+    """
+    conn = engine.connect()
+
+    if run == 0:
+        result = conn.execute("SELECT * FROM active_alarms, alarm_descriptions "
+            "WHERE active_alarms.alarm_id = alarm_descriptions.id")
+    else:
+        # get the start and stop times of the run
+        result = conn.execute("SELECT timestamp, end_timestamp FROM run_state "
+            "WHERE run = %s", (run,))
+
+        row = result.fetchone()
+
+        if row is None:
+            return None
+
+        timestamp, end_timestamp = row
+
+        # select only alarms which were active sometime during the run
+        # to do this, we find any alarm whose initial time is before the end of
+        # the run and whose end time (cleared or acknowledged, whichever is
+        # greater) is after the start of the run.
+        result = conn.execute("SELECT * FROM alarms, alarm_descriptions "
+            "WHERE time < %s AND GREATEST(cleared, acknowledged) > %s AND "
+            "alarms.alarm_id = alarm_descriptions.id",
+            (end_timestamp, timestamp))
+
+    if result is None:
+        return None
+
+    keys = result.keys()
+    rows = result.fetchall()
+
+    return [dict(zip(keys,row)) for row in rows]
+
+def get_detector_state_check(run=0):
+    """
+    Checks the detector state for a given run to see if there are any unknown
+    settings or triggers that should/shouldn't be on. Returns a tuple
+    (messages, channels) where messages is a list of messages of problems at
+    the crate/slot level and channels is a list of tuples of the form (crate,
+    slot, channel, message) for any channels which have triggers on when they
+    shouldn't be. If there is no row in the database for the given run, returns
+    (None, None).
+    """
+    detector_state = get_detector_state(run)
+
+    if detector_state is None:
+        return None, None
+
+    nominal_settings = get_nominal_settings_for_run(run)
+
+    channels = []
+    messages = []
+
+    mtc = get_mtc_state(0)
+    tubii = get_tubii_state(0)
+
+    if mtc is None:
+        messages.append("mtc state unknown")
+    else:
+        gt_crate_mask = mtc['gt_crate_mask']
+        if gt_crate_mask is None:
+            messages.append("GT crate mask unknown")
+        elif not (gt_crate_mask & (1<<23)):
+            messages.append("TUBII is not in the GT crate mask")
+
+        relay_mask = mtc['mtca_relays']
+        if relay_mask is None:
+            messages.append("MTCA/+ relay mask unknown")
+        else:
+            mtca_names = ['N100', 'N20', 'ESUMLO', 'ESUMHI', 'OWLEHI', 'OWLELO', 'OWLN']
+            for i, (relay, mtca) in enumerate(zip(relay_mask,mtca_names)):
+               crates = []
+               potential_crates = range(19) if i<4 else [3,13,18]
+               for crate in potential_crates:
+                   if not (relay & (1<<crate)):
+                       crates.append(crate)
+               if len(crates) > 0:
+                   messages.append("Crates %s are out of %s MTCA+ relay mask" % (str(crates)[1:-1], mtca))
+
+
+    if tubii is None:
+        messages.append("tubii state unknown")
+    else:
+        control_reg = tubii['control_reg']
+        if control_reg is not None and (control_reg & (1<<2)):
+            messages.append("TUBII ECAL bit set")
+
+    for crate in range(19):
+        if detector_state[crate] is None:
+            messages.append("crate %i is off" % crate)
+            continue
+
+        if gt_crate_mask is not None and mtc is not None and not (gt_crate_mask & (1<<crate)):
+            messages.append("crate %i is not in the GT crate mask" % crate)
+
+        xl3_mode = detector_state[crate]['xl3_mode']
+        if xl3_mode == 1:
+            messages.append("crate %i is in init mode" % crate)
+
+        hv_on = detector_state[crate]['hv_a_on'] == True
+        if not hv_on:
+            messages.append("crate %i HV is off" % crate)
+
+        hv_relay_mask1 = detector_state[crate]['hv_relay_mask1']
+        hv_relay_mask2 = detector_state[crate]['hv_relay_mask2']
+
+        readout_mask = detector_state[crate]['xl3_readout_mask']
+        if readout_mask is None:
+            messages.append("crate %i readout mask is unknown" % crate)
+
+        if hv_relay_mask1 is None or hv_relay_mask2 is None:
+            messages.append("crate %i relay settings are unknown" % crate)
+            continue
+
+        hv_relay_mask = hv_relay_mask2 << 32 | hv_relay_mask1
+        for slot in range(16):
+            if detector_state[crate][slot] is None:
+                messages.append("crate %i, slot %i is offline" % (crate, slot))
+                continue
+            if readout_mask is not None and not (readout_mask & (1<<slot)):
+                messages.append("crate %i, slot %i is out of the xl3 readout mask" % (crate, slot))
+                continue
+            for channel in range(32):
+                hv_enabled = hv_relay_mask & (1 << (slot*4 + (3-channel//8))) and hv_on
+                if detector_state[crate][slot]['tr100_mask'] is None:
+                    messages.append("trigger settings unknown for crate %i, slot %i" % (crate, slot))
+                    continue
+                if detector_state[crate][slot]['tr20_mask'] is None:
+                    messages.append("trigger settings unknown for crate %i, slot %i" % (crate, slot))
+                    continue
+                if detector_state[crate][slot]['disable_mask'] is None:
+                    messages.append("sequencer settings unknown for crate %i, slot %i" % (crate, slot))
+                    continue
+                n100 = bool(detector_state[crate][slot]['tr100_mask'][channel])
+                n20 = bool(detector_state[crate][slot]['tr20_mask'][channel])
+                sequencer = bool(~detector_state[crate][slot]['disable_mask'] & (1 << channel))
+                try:
+                    n100_nominal, n20_nominal, sequencer_nominal = nominal_settings[crate][slot][channel]
+                except KeyError:
+                    messages.append("unable to get nominal settings for %i/%i/%i" % (crate, slot, channel))
+                    continue
+
+                if not hv_enabled:
+                    if n100:
+                        if hv_on:
+                            channels.append((crate,slot,channel,"HV relay is open, but N100 trigger is on"))
+                        else:
+                            channels.append((crate,slot,channel,"HV is off, but N100 trigger is on"))
+                    if n20:
+                        if hv_on:
+                            channels.append((crate,slot,channel,"HV relay is open, but N20 trigger is on"))
+                        else:
+                            channels.append((crate,slot,channel,"HV is off, but N20 trigger is on"))
+                else:
+                    if n100_nominal != n100:
+                        channels.append((crate, slot, channel, "N100 trigger is %s, but nominal setting is %s" % \
+                            ("on" if n100 else "off", "on" if n100_nominal else "off")))
+                    if n20_nominal != n20:
+                        channels.append((crate, slot, channel, "N20 trigger is %s, but nominal setting is %s" % \
+                            ("on" if n20 else "off", "on" if n20_nominal else "off")))
+                    if sequencer_nominal != sequencer:
+                        channels.append((crate, slot, channel, "sequencer is %s, but nominal setting is %s" % \
+                            ("on" if sequencer else "off", "on" if sequencer_nominal else "off")))
+
+    return messages, channels
+
+def get_nhit_monitor_thresholds(limit=100):
+    """
+    Returns a list of the latest nhit monitor records in the database.
+    """
+    conn = engine.connect()
+
+    result = conn.execute("SELECT * FROM nhit_monitor_thresholds ORDER BY timestamp DESC LIMIT %s", (limit,))
+
+    if result is None:
+        return None
+
+    keys = result.keys()
+    rows = result.fetchall()
+
+    return [dict(zip(keys,row)) for row in rows]
+
+def get_nhit_monitor(key):
+    """
+    Returns an nhit monitor record from the database.
+    """
+    conn = engine.connect()
+
+    result = conn.execute("SELECT * FROM nhit_monitor WHERE key=%s", (key,))
+
+    if result is None:
+        return None
+
+    keys = result.keys()
+    row = result.fetchone()
+
+    return dict(zip(keys,row))
 
 def get_latest_trigger_scans():
     """
@@ -26,6 +275,34 @@ def get_latest_trigger_scans():
 
     return [dict(zip(keys,row)) for row in rows]
 
+def get_trigger_scan_for_run(run):
+    """
+    Returns a dictionary with the trigger scan records for a given run. The
+    keys of the dictionary are the trigger type names and the values are a
+    dictionary with keys from the columns of the bable and values from the
+    rows. For example,
+
+        >>> get_trigger_scan_for_run(1000)
+        {'N100MED': {'name':'N100MED', 'crate': 17, 'baseline': 4078, 'adc_per_nhit': -2.33}, ...}
+    """
+    names = ['N100HI','N100LO','N100MED','N20LB','N20']
+
+    conn = engine.connect()
+
+    if run == 0:
+        # get the latest trigger scan
+        result = conn.execute("SELECT DISTINCT ON (name) * FROM trigger_scan "
+            "ORDER BY name, key DESC", (run,))
+    else:
+        result = conn.execute("SELECT DISTINCT ON (name) * FROM trigger_scan "
+            "WHERE timestamp < (SELECT timestamp FROM run_state WHERE run = %s) "
+            "ORDER BY name, key DESC", (run,))
+
+    keys = result.keys()
+    rows = result.fetchall()
+
+    return dict((row['name'], dict(zip(keys,row))) for row in rows if row['name'] in names)
+
 def fetch_from_table_with_key(table_name, key, key_name='key'):
     if key is None:
         key = "(SELECT max(%s) FROM %s)" % (key_name, table_name)
@@ -41,24 +318,8 @@ def fetch_from_table_with_key(table_name, key, key_name='key'):
         # Chances are this failed b/c the SELECT command didn't find anything
         raise ValueError("%s %s is not valid...probably" % (key_name, key))
 
-
     return dict(values)
 
-def get_trigger_scan_for_run(run):
-    # These names were taken from the trigger_scan source code in daq/utils/trigger_scan
-    # Should those names ever change, these names will need to be updated as well.
-    names = ['n100hi','n100lo','n100med','n20LB','n20']
-    results = []
-    for name in names:
-        key = "(SELECT key from trigger_scan where timestamp = "\
-                "(SELECT max(timestamp) FROM trigger_scan WHERE "\
-                "(timestamp < (SELECT timestamp FROM run_state WHERE run = %i)"\
-                " AND name='%s')))" % (run,name)
-        try:
-            results.append(fetch_from_table_with_key("trigger_scan",key))
-        except ValueError:
-            results.append(False)
-    return dict(zip(names,results))
 def get_detector_control_state(key):
     return fetch_from_table_with_key('detector_control',key)
 
@@ -84,6 +345,20 @@ def get_fec_state(key):
 
 def get_run_state(run):
     return fetch_from_table_with_key('run_state',run,key_name='run')
+
+def get_hv_nominals():
+    conn = engine.connect()
+    command = "SELECT crate,supply,nominal FROM hvparams ORDER BY crate ASC"
+    res =  conn.execute(command)
+    if res is None:
+        return None
+    ret = {}
+    for crate, supply, nominal in res.fetchall():
+        if crate == 16 and supply == "B":
+            ret["OWL"] = nominal
+        else:
+            ret[crate] = nominal
+    return ret
 
 def translate_trigger_mask(maskVal):
     trigger_bit_to_string = [
@@ -117,16 +392,9 @@ def translate_trigger_mask(maskVal):
     triggers =  filter(lambda x: ((maskVal & 1<<x[0]) > 0),trigger_bit_to_string)
     return map(lambda x: x[1],triggers)
 
-def translate_ped_delay(coarseDelay_mask,fineDelay_mask):
-    MIN_GT_DELAY = 18.35; #Taken from daq/src/mtc.c
-    AddelSlope = 0.1; #Taken from daq/src/mtc.c
-    coarseDelay = ((~coarseDelay_mask & 0xFF))*10;
-    fine_delay = (fineDelay_mask & 0xFF) * AddelSlope;
-    return coarseDelay + fine_delay;
-
-def translate_lockout_width(lockout_mask):
-    lockout = (~lockout_mask) & 0xFF;
-    return lockout*20
+def translate_ped_delay(coarse_delay, fine_delay):
+    MIN_GT_DELAY = 18.35; # Taken from daq/src/mtc.c
+    return MIN_GT_DELAY + coarse_delay + fine_delay/1000.0;
 
 def translate_control_reg(control_reg):
     bit_to_string = [
@@ -154,9 +422,6 @@ def translate_control_reg(control_reg):
 def translate_crate_mask(mask):
     return map(lambda x: (mask & 1<<x) > 0,range(0,20))
 
-def translate_prescale(prescale):
-    return (~prescale & 0xFFFF)+1
-
 def translate_mtca_dacs(dacs):
     ret = {}
     ret["N100 LO"] = dacs[0]
@@ -178,9 +443,9 @@ def mtc_human_readable_filter(mtc):
     try:
         ret['gt_words'] = translate_trigger_mask(mtc['gt_mask'])
         ret['ped_delay'] = translate_ped_delay(mtc['coarse_delay'],mtc['fine_delay'])
-        ret['lockout_width'] = translate_lockout_width(mtc['lockout_width'])
+        ret['lockout_width'] = mtc['lockout_width']
         ret['control_reg'] = translate_control_reg(mtc['control_register'])
-        ret['prescale'] = translate_prescale(mtc['prescale'])
+        ret['prescale'] = mtc['prescale']
         ret['gt_crates'] = translate_crate_mask(mtc['gt_crate_mask'])
         ret['ped_crates'] = translate_crate_mask(mtc['pedestal_mask'])
         ret['N100_crates'] = translate_crate_mask(mtc['mtca_relays'][0])
@@ -260,12 +525,12 @@ def caen_human_readable_filter(caen):
         # So a number of runs don't have channel_offset info.
         # Therefore it's afforded special treatment
         try:
-            ret['channel_offsets'] = [x/2**16-1.0 for x in caen['channel_dacs']]
+            ret['channel_offsets'] = [x/0xffff-1.0 for x in caen['channel_dacs']]
         except TypeError:
             ret['channel_offsets'] = 0
 
     except Exception as e:
-        print "CAEN translation error: %s" % e
+        print("CAEN translation error: %s" % e)
         return False
     return ret
 
@@ -287,21 +552,29 @@ def tubii_human_readable_filter(tubii):
         ret['dgt_reg'] = 2*tubii['dgt_reg']
         ret['dac_reg'] = (10/4096)*tubii['dac_reg'] -5
     except Exception as e:
-        print "TUBii translation error: %s" % e
+        print("TUBii translation error: %s" % e)
         return False
     return ret
 
 @app.template_filter('all_crates_human_readable')
-def all_crates_human_readable(crates):
-    if crates is None:
+def all_crates_human_readable(detector_state):
+    if detector_state is None:
         return False
+    crates = []
     ret = {}
-    crates =  map(crate_human_readable_filter,crates)
+    try:
+        for i in range(20):
+            crates.append(crate_human_readable_filter(detector_state[i]))
+    except Exception as e:
+        print("Crate translation error: %s" % e)
+        return False
     ret['crates'] = crates
     available_crates = filter(None,crates)
     ret['num_n100_triggers'] = sum(map(lambda x:x['num_n100_triggers'],available_crates))
     ret['num_n20_triggers'] = sum(map(lambda x:x['num_n20_triggers'],available_crates))
     ret['num_sequencers'] = sum(map(lambda x:x['num_sequencers'],available_crates))
+    ret['num_relays'] = sum(map(lambda x:x['num_relays'],available_crates))
+
     return ret
 
 @app.template_filter('crate_human_readable')
@@ -310,17 +583,33 @@ def crate_human_readable_filter(crate):
         return False
     fecs = []
     ret = {}
+    relay_mask1 = crate["hv_relay_mask1"]
+    relay_mask2 = crate["hv_relay_mask2"]
+
+    if relay_mask2 is None or relay_mask1 is None:
+        relay_mask = None
+    else:
+        relay_mask = relay_mask1 | relay_mask2 << 32
     try:
-        for i in range(0,16):
-            fecs.append(fec_human_readable_filter(crate[i]))
+        for card in range(0,16):
+            fecs.append(fec_human_readable_filter(crate[card]))
+            fecs[card]["relays"] = [None]*4
+            if relay_mask is not None:
+                for PC in range(4):
+                    fecs[card]["relays"][PC] = (relay_mask & 1<<(card*4+(3-PC)) ) > 0
     except Exception as e:
-        print "Crate translation error: %s" % e
+        print("FEC translation error: %s" % e)
         return False
     ret['fecs'] = fecs
+    ret['hv_a_on'] = crate['hv_a_on']
+    ret['hv_b_on'] = crate['hv_b_on']
+    ret['hv_dac_a'] = crate['hv_dac_a']
+    ret['hv_dac_b'] = crate['hv_dac_b']
     available_fecs = filter(None,fecs)
     ret['num_n100_triggers'] = sum(map(lambda x:x['num_n100_triggers'],available_fecs))
     ret['num_n20_triggers'] = sum(map(lambda x:x['num_n20_triggers'],available_fecs))
     ret['num_sequencers'] = sum(map(lambda x:x['num_sequencers'],available_fecs))
+    ret['num_relays'] = sum( [ sum(fec['relays']) if any(fec['relays']) else 0 for fec in available_fecs])
     return ret
 
 def translate_fec_disable_mask(mask):
@@ -328,9 +617,7 @@ def translate_fec_disable_mask(mask):
 
 @app.template_filter('fec_human_readable')
 def fec_human_readable_filter(fec):
-    if fec is None:
-        return False
-    ret = {}
+    ret = defaultdict(bool)
     try:
         ret['n20_triggers'] = fec['tr20_mask']
         ret['n100_triggers'] = fec['tr100_mask']
@@ -344,19 +631,28 @@ def fec_human_readable_filter(fec):
         ret['vbal_0'] = fec['vbal_0']
         ret['vbal_1'] = fec['vbal_1']
     except Exception as e:
-        print "FEC translation error : %s" % e
-        return False
+        pass
     return ret
 
-# The trigger scan names aren't exactly the same as the MTCA names I used here.
-# By happy coincidence the only difference is I use upper case and have a ' '
-# between the n100/n20 and the gain. Should ESUM ever be added this will break
 def trigger_scan_string_translate(name):
-    index = name.rfind('0')
-    if(index <0):
-        return name
-    return (name[:index+1]+" "+name[index+1:]).upper()
+    if name == 'N100LO':
+        return 'N100 LO'
+    elif name == 'N100MED':
+        return 'N100 MED'
+    elif name == 'N100HI':
+        return 'N100 HI'
+    elif name == 'N20LB':
+        return 'N20 LB'
+    elif name == 'ESUMHI':
+        return 'ESUM HI'
+    elif name == 'ESUMLO':
+        return 'ESUM LO'
+    elif name == 'OWLEHI':
+        return 'OWLE HI'
+    elif name == 'OWLELO':
+        return 'OWLE LO'
 
+    return name
 
 @app.template_filter('trigger_scan_human_readable')
 def trigger_scan_human_readable(trigger_scan):
@@ -371,6 +667,6 @@ def trigger_scan_human_readable(trigger_scan):
                 vals = (obj['baseline'], obj['adc_per_nhit'])
             res[name] = vals
     except Exception as e:
-        print "trigger scan translation error: %s" % e
+        print("trigger scan translation error: %s" % e)
         return False
     return res

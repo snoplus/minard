@@ -19,7 +19,7 @@
             </thead>
             <tbody>
                 {% for run in runs if run %}
-		    {% if run['run_status']|int > 0 %}
+		    {% if run["parsed_run_status"] == "Fail" %}
 			<tr class="danger">
 		    {% else %}
 			<tr class="success">
@@ -30,11 +30,7 @@
                     <td>{{ run["analyze_time"]|timefmt }}</td>
                     <td>{{ run["run_type"] }}</td>
                     <td><a href= "{{url_for('eca_status_detail', run_type=run["run_type"],run_number=run["run_number"]) }}">
-		    {% if run['run_status']|int > 0 %}
-			Fail
-		    {% else %}
-			Pass
-		    {% endif %}
+		    {{ run["parsed_run_status"] }}
 		    </a></td>
                 </tr>
                 {% endfor %}

@@ -1,0 +1,166 @@
+{% extends "layout.html" %}
+{% block title %}Noise Detail{% endblock %}
+{% block head %}
+    {{ super() }}
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/pca.css') }}" media="screen">
+{% endblock %}
+{% block body %}
+    {{ super() }}
+
+<div class="container">
+<h2>Run {{ run_number }} details</h2>
+
+<table class="table">
+  <thead>
+    <tr>
+      <th>Run Time</th>
+      <th>Average noise (Hz)</th>
+      <th>Average QHL HHP (cap)</th>
+      <th>NHit (raw)</th>
+      <th>NHit (normal/HQE 50Hz-50kHz)</th>
+      <th>NHit (normal/HQE N20/N100 enabled)</th>
+      <th>PGT Count</th>
+      <th>Online PMTs</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% if run %}
+    {% if "n_pgt" in run and run["n_pgt"]|int() > 10000 %}
+    <tr class="info">
+      {% else %}
+    <tr>
+      {% endif %}
+      <td>{{ run["run_time"]|timefmt }}</td>
+      <td>{{ "%.0f" % (run["average_noiserate"]|float) }}</td>
+      {% if "average_qhl_hhp" in run %}
+      <td>{{ "%.1f" % (run["average_qhl_hhp"]|float) }}</td>
+      {% else %}
+      <td>{{ "-" }}</td>
+      {% endif %}
+      {% if "average_nhit_raw" in run %}
+      <td>{{ "%.1f" % (run["average_nhit_raw"]|float) }}</td>
+      {% else %}
+      <td>{{ "-" }}</td>
+      {% endif %}
+      {% if "average_nhit_normal" in run %}
+      <td>{{ "%.1f" % (run["average_nhit_normal"]|float) }}</td>
+      {% else %}
+      <td>{{ "-" }}</td>
+      {% endif %}
+      {% if "average_nhit_trigenabled" in run %}
+      <td>{{ "%.1f" % (run["average_nhit_trigenabled"]|float) }}</td>
+      {% else %}
+      <td>{{ "-" }}</td>
+      {% endif %}
+      {% if "n_pgt" in run %}
+      <td>{{ "%.0f" % (run["n_pgt"]|float) }}</td>
+      {% else %}
+      <td>{{ "-" }}</td>
+      {% endif %}
+      {% if "online_pmt" in run %}
+      <td>{{ "%.0f" % (run["online_pmt"]|float) }}</td>
+      {% else %}
+      <td>{{ "-" }}</td>
+      {% endif %}
+    </tr>
+    {% else %}
+    <td>{{ "Run not in redis db." }}</td>
+    {% endif %}
+  </tbody>
+</table>
+
+<div class="well well-sm">
+  <div class="row">
+    <div class="col-sm-3">
+      <a type="button" class="btn btn-default btn-xs" href="{{ url_for('static', filename='pmtnoise/run'+run_number+'/noise_rate_'+run_number+'.ratdb') }}">
+	Download noise table</a>
+    </div>
+    <div class="col-sm-3">
+      <a type="button" class="btn btn-default btn-xs" href="{{ url_for('static', filename='pmtnoise/run'+run_number+'/noise_rate_monitoring_'+run_number+'.ratdb') }}">
+	Download monitoring table</a>
+    </div>
+    <div class="col-sm-3">
+      <a type="button" class="btn btn-default btn-xs" href="{{ url_for('static', filename='pmtnoise/run'+run_number+'/rat.noiserate_'+run_number+'.log') }}">
+	Processor log file</a>
+    </div>
+    <div class="col-sm-3">
+      <a type="button" class="btn btn-default btn-xs" href="{{ url_for('static', filename='pmtnoise/run'+run_number+'/rat.noiserate_upload_'+run_number+'.log') }}">
+	Ratdb upload log file</a>
+    </div>
+  </div>
+</div>
+
+<div class="panel-group">        
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <h3 class="panel-title">
+	      <a data-toggle="collapse" href="#noiserate">Noise rate</a>
+	    </h3>
+        </div>
+	
+        <div id="noiserate" class="panel-collapse collapse in">
+	  <div class="panel-body">
+	    <img src="{{ url_for('static', filename='pmtnoise/run'+run_number+'/noise_rate_hist_zoom.png') }}"
+                 alt="Noise rate histogram (zoom)" class="img-responsive col-md-6">
+	    <img src="{{ url_for('static', filename='pmtnoise/run'+run_number+'/noise_rate_hist_crate.png') }}"
+		 alt="Noise rate crate view" class="img-responsive col-md-6">
+            <img src="{{ url_for('static', filename='pmtnoise/run'+run_number+'/noise_rate_hist.png') }}"
+		 alt="Noise rate histogram" class="img-responsive col-md-6">
+          </div>
+	</div>
+    </div>
+</div>
+
+<div class="panel-group">
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <h3 class="panel-title">
+	      <a data-toggle="collapse" href="#qhl">QHL</a>
+	    </h3>
+        </div>
+        <div id="qhl" class="panel-collapse collapse in">
+	  <div class="panel-body">
+            <img src="{{ url_for('static', filename='pmtnoise/run'+run_number+'/noise_qhl_thresh.png') }}"
+                 alt="QHL threshold" class="img-responsive col-md-6">
+            <img src="{{ url_for('static', filename='pmtnoise/run'+run_number+'/noise_qhl_thresh_crate.png') }}"
+                 alt="QHL threshold crate view" class="img-responsive col-md-6">
+	    <img src="{{ url_for('static', filename='pmtnoise/run'+run_number+'/noise_qhl_peak.png') }}"
+                 alt="QHL peak" class="img-responsive col-md-6">
+	    <img src="{{ url_for('static', filename='pmtnoise/run'+run_number+'/noise_qhl_peak_crate.png') }}"
+                 alt="QHL peak crate view" class="img-responsive col-md-6">
+	    <img src="{{ url_for('static', filename='pmtnoise/run'+run_number+'/noise_qhl_hhp.png') }}"
+                 alt="QHL HHP" class="img-responsive col-md-6">
+	    <img src="{{ url_for('static', filename='pmtnoise/run'+run_number+'/noise_qhl_hhp_crate.png') }}"
+                 alt="QHL HHP crate view" class="img-responsive col-md-6">
+          </div>
+	</div>
+    </div>
+</div>
+
+<div class="panel-group">
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <h3 class="panel-title">
+	      <a data-toggle="collapse" href="#qhs">QHS</a>
+	    </h3>
+        </div>
+	<div id="qhs" class="panel-collapse collapse in">
+          <div class="panel-body">
+            <img src="{{ url_for('static', filename='pmtnoise/run'+run_number+'/noise_qhs_thresh.png') }}"
+                 alt="QHS threshold" class="img-responsive col-md-6">
+            <img src="{{ url_for('static', filename='pmtnoise/run'+run_number+'/noise_qhs_thresh_crate.png') }}"
+                 alt="QHS threshold crate view" class="img-responsive col-md-6">
+            <img src="{{ url_for('static', filename='pmtnoise/run'+run_number+'/noise_qhs_peak.png') }}"
+                 alt="QHS peak" class="img-responsive col-md-6">
+            <img src="{{ url_for('static', filename='pmtnoise/run'+run_number+'/noise_qhs_peak_crate.png') }}"
+                 alt="QHS peak crate view" class="img-responsive col-md-6">
+            <img src="{{ url_for('static', filename='pmtnoise/run'+run_number+'/noise_qhs_hhp.png') }}"
+                 alt="QHS HHP" class="img-responsive col-md-6">
+            <img src="{{ url_for('static', filename='pmtnoise/run'+run_number+'/noise_qhs_hhp_crate.png') }}"
+                 alt="QHS HHP crate view" class="img-responsive col-md-6">
+          </div>
+	</div>
+    </div>
+</div>
+
+{% endblock %}

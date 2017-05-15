@@ -1,0 +1,115 @@
+{% extends "layout.html" %}
+{% block title %}TELLIE Data Quality for run {{run_number}} subrun {{runInformation["subrun_numbers"][subrun_index]}}{% endblock %}
+{% block head %}
+{{ super() }}
+{% endblock %}
+{% block body %}
+{{ super() }}
+<div class="container">
+    <div class="panel panel-default">
+        <div class="panel panel-heading">
+
+            <h3 class="panel-title">Run information for run {{run_number}} subrun {{runInformation["subrun_numbers"][subrun_index]}}</h3>
+        </div>
+        <div class="panel panel-body">
+            <table class="table table-hover"> 
+                <thead>
+                    <tr>
+                        <th>
+                            Parameter
+                        </th>
+                        <th>
+                            Value
+                        </th>
+                    </tr>
+                </thead> 
+
+
+                <tbody>
+                    <tr>
+                        <td>Expected Number of TELLIE events </td> <td>{{runInformation["expected_tellie_events"][subrun_index]}}</td>
+                    </tr>
+                    <tr>
+                        <td>Actual Number of TELLIE events </td> <td>{{runInformation["actual_tellie_events"][subrun_index]}}</td>
+                    </tr>
+
+                    <tr>
+                        <td>Average NHit</td> <td>{{runInformation["average_nhit"][subrun_index]}}</td>
+                    </tr>
+
+                    <tr>
+                        <td>Greater Than 1000 Nhit Events </td> <td>{{runInformation["greaterThanMaxNHitEvents"][subrun_index]}}</td>
+                    </tr>
+
+                    <tr>
+                        <td>Fibre Firing</td> <td>{{runInformation["fibre_firing"][subrun_index]}}</td>
+                    </tr>
+
+                    <tr>
+                        <td>Calculated Fibre Firing</td> <td>{{runInformation["fibre_firing_guess"][subrun_index]}}</td>
+                    </tr>
+
+                    <tr>
+                        <td>Number of TAC peaks (Should be 3)</td> <td>{{runInformation["peak_number"][subrun_index]}}</td>
+                    </tr>
+
+                    <tr>
+                        <td>Pre peak TAC count </td> <td>{{runInformation["pre_peak_adc_count"][subrun_index]}}</td>
+                    </tr>
+
+                    <tr>
+                        <td>Prompt peak TAC count </td> <td>{{runInformation["prompt_peak_adc_count"][subrun_index]}}</td>
+                    </tr>
+
+                    <tr>
+                        <td>Late peak TAC count </td> <td>{{runInformation["late_peak_adc_count"][subrun_index]}}</td>
+                    </tr>
+
+                    <tr>
+                        <td>Run Time</td> <td>{{runInformation["subrun_run_times"][subrun_index]}}</td>
+                    </tr>
+
+                    <tr>
+                        <td>Proportion of TELLIE events with correct pulse delay seperation </td> <td>{{runInformation["pulse_delay_correct_proportion"][subrun_index]}}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="container">
+        <h1>TELLIE Data Quality Plots for run {{run_number}} subrun {{runInformation["subrun_numbers"][subrun_index]}}</h1>
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3 class="panel-title">PSUP Hit Map</h3>
+            </div>
+            <div class="panel-body">
+                <img src="{{ url_for('static', filename="/hldq/TELLIE/TELLIE_DQ_IMAGES_"+run_number | string+"/psup_projection_run_"+run_number | string+"_subrun_"+runInformation["subrun_numbers"][subrun_index] | string+".png") }}" class="img-responsive center-block">
+            </div>
+        </div>
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3 class="panel-title">NHit Distribution</h3>
+            </div>
+            <div class="panel-body">
+                <img src="{{ url_for('static', filename="/hldq/TELLIE/TELLIE_DQ_IMAGES_"+run_number|string+"/nhits_run_"+run_number|string+"_subrun_"+runInformation["subrun_numbers"][subrun_index]|string+".png") }}" class="img-responsive center-block">
+            </div>
+        </div>
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3 class="panel-title">Calibrated Hit Time Distribution</h3>
+            </div>
+            <div class="panel-body">
+                <img src="{{ url_for('static', filename="/hldq/TELLIE/TELLIE_DQ_IMAGES_"+run_number|string+"/calibrated_time_run_"+run_number|string+"_subrun_"+runInformation["subrun_numbers"][subrun_index]|string)+".png" }}" class="img-responsive center-block">
+            </div>
+        </div>
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3 class="panel-title">TAC Count Distribution</h3>
+            </div>
+            <div class="panel-body">
+                <img src="{{ url_for('static', filename="/hldq/TELLIE/TELLIE_DQ_IMAGES_"+run_number|string+"/tac_count_run_"+run_number|string+"_subrun_"+runInformation["subrun_numbers"][subrun_index]|string+".png") }}" class="img-responsive center-block">
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

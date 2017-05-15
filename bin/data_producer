@@ -3,6 +3,7 @@ from __future__ import print_function
 from minard.data import data_producer
 import socket
 import time
+import zmq
 
 if __name__ == '__main__':
     import argparse
@@ -16,6 +17,6 @@ if __name__ == '__main__':
     while True:
 	try:
 	    data_producer(args.host,args.port)
-	except socket.error as e:
+	except (socket.error, zmq.error.ZMQError) as e:
 	    print('failed to connect to data: %s' % str(e), file=sys.stderr)
 	    time.sleep(60)

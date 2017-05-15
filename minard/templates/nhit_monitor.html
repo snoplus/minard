@@ -1,0 +1,143 @@
+{% extends "layout.html" %}
+{% block title %}Nhit Monitor{% endblock %}
+{% block head %}
+    <!-- metrics-graphics stylesheet goes above super() because we want bootstrap's style
+    (which is linked in super()) to override it. -->
+    <link rel="stylesheet" type="text/css"  href="{{ url_for('static',filename='css/metricsgraphics.css') }}">
+    <link rel="stylesheet" type="text/css"  href="{{ url_for('static',filename='css/mg_line_brushing.css') }}">
+    {{ super() }}
+{% endblock %}
+{% block body %}
+    {{ super() }}
+    <div class="container">
+	{% if error %}
+	<div class="alert alert-danger" role="alert">
+	<span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
+	Error: {{ error }}
+	</div>
+	{% else %}
+	<div class="row">
+	    <div class="col-md-12" id='nhit-100-lo'></div>
+        </div>
+	<div class="row">
+	    <div class="col-md-12" id='nhit-100-med'></div>
+        </div>
+	<div class="row">
+	    <div class="col-md-12" id='nhit-100-hi'></div>
+        </div>
+	<div class="row">
+	    <div class="col-md-12" id='nhit-20'></div>
+        </div>
+	<div class="row">
+	    <div class="col-md-12" id='nhit-20-lb'></div>
+        </div>
+	{% endif %}
+    </div>
+{% endblock %}
+{% block script %}
+    <script src="{{ url_for('static', filename='js/d3.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/metricsgraphics.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/mg_line_brushing.js') }}"></script>
+
+    <script>
+        var nhit_100_lo = {{ results['nhit_100_lo'] | tojson }};
+        var nhit_100_med = {{ results['nhit_100_med'] | tojson }};
+        var nhit_100_hi = {{ results['nhit_100_hi'] | tojson }};
+        var nhit_20 = {{ results['nhit_20'] | tojson }};
+        var nhit_20_lb = {{ results['nhit_20_lb'] | tojson }};
+
+        var num_pulses = {{ results['num_pulses'] | tojson }};
+
+        var nhit_100_lo_data = new Array();
+        for (var i=0; i < nhit_100_lo.length; i++) {
+            nhit_100_lo_data.push({'x': i, 'y': nhit_100_lo[i]/num_pulses});
+        }
+        var nhit_100_med_data = new Array();
+        for (var i=0; i < nhit_100_med.length; i++) {
+            nhit_100_med_data.push({'x': i, 'y': nhit_100_med[i]/num_pulses});
+        }
+        var nhit_100_hi_data = new Array();
+        for (var i=0; i < nhit_100_hi.length; i++) {
+            nhit_100_hi_data.push({'x': i, 'y': nhit_100_hi[i]/num_pulses});
+        }
+        var nhit_20_data = new Array();
+        for (var i=0; i < nhit_20.length; i++) {
+            nhit_20_data.push({'x': i, 'y': nhit_20[i]/num_pulses});
+        }
+        var nhit_20_lb_data = new Array();
+        for (var i=0; i < nhit_20_lb.length; i++) {
+            nhit_20_lb_data.push({'x': i, 'y': nhit_20_lb[i]/num_pulses});
+        }
+
+        MG.data_graphic({
+            title: "Nhit 100 Lo",
+            description: "Nhit 100 Lo trigger efficiency curve",
+            data: nhit_100_lo_data,
+            chart_type: 'point',
+            width: $('#nhit-100-lo').width(),
+            height: 250,
+            left: 100,
+            target: '#nhit-100-lo',
+            x_accessor: 'x',
+            y_accessor: 'y',
+            x_label: 'nhit',
+            y_label: 'trigger efficiency'
+        });
+        MG.data_graphic({
+            title: "Nhit 100 Med",
+            description: "Nhit 100 Med trigger efficiency curve",
+            data: nhit_100_med_data,
+            chart_type: 'point',
+            width: $('#nhit-100-med').width(),
+            height: 250,
+            left: 100,
+            target: '#nhit-100-med',
+            x_accessor: 'x',
+            y_accessor: 'y',
+            x_label: 'nhit',
+            y_label: 'trigger efficiency'
+        });
+        MG.data_graphic({
+            title: "Nhit 100 Hi",
+            description: "Nhit 100 Hi trigger efficiency curve",
+            data: nhit_100_hi_data,
+            chart_type: 'point',
+            width: $('#nhit-100-hi').width(),
+            height: 250,
+            left: 100,
+            target: '#nhit-100-hi',
+            x_accessor: 'x',
+            y_accessor: 'y',
+            x_label: 'nhit',
+            y_label: 'trigger efficiency'
+        });
+        MG.data_graphic({
+            title: "Nhit 20",
+            description: "Nhit 20 trigger efficiency curve",
+            data: nhit_20_data,
+            chart_type: 'point',
+            width: $('#nhit-20').width(),
+            height: 250,
+            left: 100,
+            target: '#nhit-20',
+            x_accessor: 'x',
+            y_accessor: 'y',
+            x_label: 'nhit',
+            y_label: 'trigger efficiency'
+        });
+        MG.data_graphic({
+            title: "Nhit 20 LB",
+            description: "Nhit 20 LB trigger efficiency curve",
+            data: nhit_20_lb_data,
+            chart_type: 'point',
+            width: $('#nhit-20-lb').width(),
+            height: 250,
+            left: 100,
+            target: '#nhit-20-lb',
+            x_accessor: 'x',
+            y_accessor: 'y',
+            x_label: 'nhit',
+            y_label: 'trigger efficiency'
+        });
+    </script>
+{% endblock %}

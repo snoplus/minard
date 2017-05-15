@@ -8,14 +8,14 @@ function linspace(min, max, N) {
     }
     return a;
 }
-function display_binary_crate_view(key,crates_data,sizeinfo,node)
+function display_binary_crate_view(key,crates_data,sizeinfo,node) //has the crate, channel, card info. in crates_datat
 {
     var coloringFunc = function(data) {
         return function(k,i) {
         var v = data[k];
         if (v === null || typeof v === 'undefined')
             return 'unknown';
-        else if (v===0) {
+        else if (v===0 || !v) {
             return 'off';
         }
         else
@@ -25,13 +25,15 @@ function display_binary_crate_view(key,crates_data,sizeinfo,node)
     hover_text_func = function(data) {
     return function(d,i) {
         v = data[d];
+        d= d % 32; //ex: 511 (fills crate) % 32 = 31 and 9727 (fills all on/off crates/trig) % 32 = 31
         if(v == null){
             return "Unknown/Crate Off";
         }
         else if(v ==0){
-            return "off";
+            return String(i+" / "+d+" off"); //format of crate, card, channel reading (crate 0 card 1 channel 1: 0/1/1)
         }
-        return "on";
+        return String(i+" / "+d+" on");
+
     }};
 
     display_crate_view(key,crates_data,sizeinfo,node,
@@ -160,7 +162,10 @@ function display_crate_view(key,crates_data,sizeinfo,node,styling,hover_text)
     var d = crates_data.map(function(crate,i) {
     if(crate) {
             MBs =  crate.fecs.map(function(mb,i) {
-                if(mb) {
+                if(typeof(key) == 'function') {
+                        return key(mb);
+                }
+                else if (typeof(mb[key]) != 'undefined'){
                     return mb[key];
                 }
                 else {
@@ -176,8 +181,8 @@ function display_crate_view(key,crates_data,sizeinfo,node,styling,hover_text)
     d = flattenArray(d)
     var crate = crate_view()
         .caption(true)
-        .height(height)
-        .width(width);
+        .height(sizeinfo.height)
+        .width(sizeinfo.width);
     if(hover_text){
     crate.hover_text(hover_text);
     }
@@ -194,8 +199,8 @@ function display_crate_view(key,crates_data,sizeinfo,node,styling,hover_text)
 
     var g = node.append('div')
             .attr('id','crate')
-            .attr('width',width)
-            .attr('height',height)
+            .attr('width',sizeinfo.width)
+            .attr('height',sizeinfo.height)
             .attr('class',"col-md-10 col-md-offset-1");
     g.datum(d).call(crate);
 }
@@ -356,7 +361,7 @@ function display_caen(node,caen_info) {
             .enter()
             .append('li')
             .text(function(d,i) {
-                return "Channel "+i+" = "+d+"V";});
+                return "Channel " + i + " = " + d.toFixed(2) + "V";}); //what is d(-1V)? what is i (channel)?
     }
 };
 
@@ -395,11 +400,11 @@ function display_tubii(tubii_info) {
         .attr("x",xpos_func)
         .attr("y",ypos_func)
         .attr("width",radius)
-	.attr("height",radius)
+    .attr("height",radius)
         .attr("fill",function(d) { return d[1]==1 ? 'green' : 'red'; })
         .attr("class",function(d) { return d[1]==1 ? 'on' : 'off'; })
-	.append("svg:title")
-	.text(function(d){return d[2];});
+    .append("svg:title")
+    .text(function(d){return d[2];});
     svg.selectAll('text')
         .data(arr)
         .enter()
@@ -569,7 +574,7 @@ function display_mtc(node,mtc_data){
     display_triggers(node,mtc_data.gt_words);
 
     enabled_dacs = get_enabled_dacs(mtc_data.MTCA_DACs,mtc_data.gt_words);
-    display_mtca_thresholds(node,mtc_data.MTCA_DACs,trigger_scan,enabled_dacs);
+    display_mtca_thresholds(node,mtc_data.MTCA_DACs,trigger_scan,enabled_dacs, true);
 
     display_lockout_width(node,mtc_data.lockout_width);
     display_control_reg(node,mtc_data.control_reg);
@@ -608,7 +613,7 @@ function display_mtc(node,mtc_data){
     display_bit_mask(mtc_data.OWLN_crates,node,"OWLN",size_info,mtca_relay_text_factory("OWLN"));
 }
 
-function display_mtca_thresholds(node,dacs,trigger_scan,enabled_dacs){
+function display_mtca_thresholds(node, dacs, trigger_scan, enabled_dacs, add_colors){
     function dac_to_volts(value) { return (10.0/4096)*value - 5.0; }
     volt_dict = {}
 
@@ -626,7 +631,7 @@ function display_mtca_thresholds(node,dacs,trigger_scan,enabled_dacs){
         .enter()
         .append('tr')
         .attr('class',function(key) {
-            if(enabled_dacs && enabled_dacs[key])
+            if(enabled_dacs && enabled_dacs[key] && add_colors)
             { return 'success'; }
             return '';
         })
@@ -643,9 +648,9 @@ function display_mtca_thresholds(node,dacs,trigger_scan,enabled_dacs){
             if(trigger_scan[key])
             {
                 baseline = trigger_scan[key][0];
-                adc_to_nhit = trigger_scan[key][1];
-                nHit = (dac_count - baseline)*adc_to_nhit;
-                nHit = nHit.toFixed(0)
+                adc_per_nhit = trigger_scan[key][1];
+                nHit = (dac_count - baseline)/adc_per_nhit;
+                nHit = nHit.toFixed(2)
             }
             return [key,volts,nHit];
         })
@@ -705,6 +710,7 @@ function display_run_type(run_type,time_stamp) {
     5:"ECA",
     6:"Diagnostic",
     7:"Experimental",
+    8:"Supernova"
     };
     var calib_translation = {
     11:"TELLIE",
@@ -765,6 +771,59 @@ function display_run_type(run_type,time_stamp) {
     str = date.format("ddd, MMM Do YYYY - HH:mm:ss z");
     appendToTitle('p',str);
 };
+function display_hv_status(hv_node, hv_data) {
+        var width = hv_node.node().parentElement.parentElement.clientWidth;
+        var height = 75;
+        var step_size = width/(1+hv_data.length);
+        radius = step_size/3;
+        var svg = hv_node.append("svg")
+            .attr("width",width)
+            .attr("height",height)
+            .attr("viewBox","0 0 "+width.toString()+" "+height.toString());
+            nodes = hv_node.append('g').selectAll('circle')
+            .data(hv_data)
+            .enter();
+        nodes = svg.append('g').selectAll('circle')
+            .data(hv_data)
+            .enter()
+            .append('g')
+            .attr("transform",function(d,i){
+                x = step_size*(i+1);
+                y = height/2;
+                return "translate(" + x+","+y+")";
+            });
+
+    nodes.append('text')
+        .text(function(d, i){ return d.title; })
+        .attr("text-anchor","middle")
+        .attr("font-size","16px")
+        .attr("fill","black")
+        .attr("y",function(d,i) { return radius*2;});
+
+        nodes.append("g")
+            .append('circle')
+            .attr("r",radius)
+            .attr("class",function(d) { return d.on ? 'on' : 'off'; });
+        g = nodes.append("g");
+        g.append('clipPath')
+            .attr("id",function(d,i) {return "g-clip"+i.toString();})
+            .append('rect')
+            .attr("id","g-clip-rect")
+            .attr("y",-radius*2)
+            .attr('height', function(d,i) {
+                if(d.on) { return radius*3 - (d.hv/d.nominal)*radius*2; }
+                return radius*3;
+            })
+            .attr("x",-radius*2)
+            .attr('width', radius*4);
+
+        g.append("circle")
+            .attr("clip-path",function(d,i) { return "url(#g-clip"+i.toString()+")";})
+            .attr('r',radius*0.90)
+            .attr("fill","#fff");
+
+
+}
 function crate() {
     var width = 780;
     var height = 80;

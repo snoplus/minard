@@ -1,0 +1,115 @@
+{% extends "layout.html" %}
+{% block title %}TELLIE Data Quality {% endblock %}
+{% block head %}
+{{ super() }}
+{% endblock %}
+{% block body %}
+{{ super() }}
+<div class="container">
+    <h1>TELLIE Data Quality</h1>
+    {% if offset == 0 %}
+    <button class="btn btn-outline-primary btn-lg" disabled>Back</button>
+    <a class="btn btn-outline-primary btn-lg" href="{{ url_for("calibdq_tellie", limit=limit, offset=offset+limit) }}">Next</a>
+    {% else %}
+    <a class="btn btn-outline-primary btn-lg" href="{{ url_for("calibdq_tellie", limit=limit, offset=offset-limit) }}">Back</a>
+    <a class="btn btn-outline-primary btn-lg" href="{{ url_for("calibdq_tellie", limit=limit, offset=offset+limit) }}">Next</a>
+    {% endif %}
+    <div class="container">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>Run Number</th>
+                    <th>Correct Fibre</th>
+                    <th>Correct Number of Peaks</th>
+                    <th>Correct Peak Ratio</th>
+                    <th>Correct Prompt Peak Time</th>
+                    <th>Correct Peak Time Spacing</th>
+                    <th>Trigger Check</th>
+                    <th>Correct Run Length</th>
+                    <th>Correct Pulse Delay</th>
+                    <th>Correct Average NHit</th>
+                    <th>Correct Max NHit</th>
+
+
+                </tr>
+            </thead>
+            <tbody>
+                {% for i in range(run_info|length) %}
+                {% if run_info[i] == -1 %}
+                <tr class="bg-danger" >
+                    <td>
+                        {{run_numbers[i]}}
+                    </td>
+                    <td colspan="10" style="text-align:center;">
+                        <b> No DQ Present for Run. </b>
+                    </td>
+                </tr> 
+                {% else %}
+                    <tr>
+                        <td><a href="{{ url_for('calibdq_tellie_run_number',run_number=run_numbers[i])}}">{{run_numbers[i]}}</a></td>
+
+                        {% if run_info[i]["fibre"] == 1 %} 
+                        <td>Pass</td>
+                        {% else %}
+                        <td><font color="red">Fail</font></td>
+                        {% endif %}
+
+                        {% if run_info[i]["peak_number"] == 1 %} 
+                        <td>Pass</td>
+                        {% else %}
+                        <td><font color="red">Fail</font></td>
+                        {% endif %}
+                        
+                        {% if run_info[i]["peak_amplitude"] == 1 %} 
+                        <td>Pass</td>
+                        {% else %}
+                        <td><font color="red">Fail</font></td>
+                        {% endif %}
+
+                        {% if run_info[i]["prompt_time"]== 1 %} 
+                        <td>Pass</td>
+                        {% else %}
+                        <td><font color="red">Fail</font></td>
+                        {% endif %}
+
+                        {% if run_info[i]["peak_time"] == 1 %} 
+                        <td>Pass</td>
+                        {% else %}
+                        <td><font color="red">Fail</font></td>
+                        {% endif %}
+
+                        {% if run_info[i]["trigger"] == 1 %} 
+                        <td>Pass</td>
+                        {% else %}
+                        <td><font color="red">Fail</font></td>
+                        {% endif %}
+                        
+                        {% if run_info[i]["run_length"] == 1 %} 
+                        <td>Pass</td>
+                        {% else %}
+                        <td><font color="red">Fail</font></td>
+                        {% endif %}
+                        
+                        {% if run_info[i]["pulse_delay"] == 1 %} 
+                        <td>Pass</td>
+                        {% else %}
+                        <td><font color="red">Fail</font></td>
+                        {% endif %}
+
+                        {% if run_info[i]["avg_nhit"] == 1 %} 
+                        <td>Pass</td>
+                        {% else %}
+                        <td><font color="red">Fail</font></td>
+                        {% endif %}
+                        {% if run_info[i]["max_nhit"] == 1 %} 
+                        <td>Pass</td>
+                        {% else %}
+                        <td><font color="red">Fail</font></td>
+                        {% endif %}
+                    </tr> 
+                    {% endif %}
+                {% endfor %}
+            </tbody>
+    </div>
+</div>
+{% endblock %}

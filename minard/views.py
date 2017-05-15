@@ -1,19 +1,30 @@
 from __future__ import division, print_function
 from . import app
-from flask import render_template, jsonify, request, redirect, url_for
+from flask import render_template, jsonify, request, redirect, url_for, flash
 from itertools import product
 import time
 from redis import Redis
 from os.path import join
 import json
+import tools
+import HLDQTools
+import requests
 from .tools import parseiso
 from collections import deque, namedtuple
 from .timeseries import get_timeseries, get_interval, get_hash_timeseries
 from .timeseries import get_timeseries_field, get_hash_interval
 from math import isnan
+import os
+import sys
+import random
 import detector_state
 import pcadb
 import ecadb
+import nlrat
+import noisedb
+from .channeldb import ChannelStatusForm, upload_channel_status, get_channels, get_channel_status, get_channel_status_form, get_channel_history, get_pmt_info, get_nominal_settings
+import re
+from .resistor import get_resistors, ResistorValuesForm, get_resistor_values_form, update_resistor_values
 
 TRIGGER_NAMES = \
 ['100L',
@@ -56,15 +67,11 @@ class Program(object):
 
 redis = Redis()
 
-PROGRAMS = [Program('builder','builder1', description="event builder"),
+PROGRAMS = [#Program('builder','builder1', description="event builder"),
             Program('L2-client','buffer1', description="L2 processor"),
             Program('L2-convert','buffer1',
                     description="zdab -> ROOT conversion"),
             Program('L1-delete','buffer1', description="delete L1 files"),
-            Program('builder_copy', 'buffer1',
-                    description="builder -> buffer transfer"),
-            Program('buffer_copy', 'buffer1',
-                    description="buffer -> grid transfer"),
             Program('mtc','sbc', description="mtc server",
 		    display_log=False),
             Program('data','buffer1', description="data stream server",
@@ -72,6 +79,12 @@ PROGRAMS = [Program('builder','builder1', description="event builder"),
             Program('xl3','buffer1', description="xl3 server",
 		    display_log=False),
             Program('log','minard', description="log server",
+		    display_log=False),
+            Program('DetectorControl','minard', description="detector control server",
+		    display_log=False),
+            Program('estop-monitor','sbc', description="estop server",
+		    display_log=False),
+            Program('tubii','tubii', description="tubii server",
 		    display_log=False)
 ]
 
@@ -83,6 +96,120 @@ def timefmt(timestamp):
 def status():
     return render_template('status.html', programs=PROGRAMS)
 
+def get_daq_log_warnings(run):
+    """
+    Returns a list of all the lines in the DAQ log for a given run which were
+    warnings.
+    """
+    warnings = []
+    with open(os.path.join(app.config["DAQ_LOG_DIR"], "daq_%08i.log" % run)) as f:
+        for line in f:
+            # match the log level
+            match = re.match('.+? ([.\-*#])', line)
+
+            if match and match.group(1) == '#':
+                warnings.append(line)
+    return warnings
+
+@app.route('/update-pmtic-resistors', methods=["GET", "POST"])
+def update_pmtic_resistors():
+    pc = request.args.get("pc", 0, type=int)
+    if request.form:
+        form = ResistorValuesForm(request.form)
+        crate = form.crate.data
+        slot = form.slot.data
+    else:
+        crate = request.args.get("crate", 0, type=int)
+        slot = request.args.get("slot", 0, type=int)
+        try:
+            form = get_resistor_values_form(crate, slot)
+        except Exception as e:
+            form = ResistorValuesForm(crate=crate, slot=slot)
+
+    if request.method == "POST" and form.validate():
+        try:
+            update_resistor_values(form)
+        except Exception as e:
+            flash(str(e), 'danger')
+            return render_template('update_pmtic_resistors.html', crate=crate, slot=slot, form=form, pc=pc)
+        flash("Successfully submitted", 'success')
+        return redirect(url_for('calculate_resistors', crate=form.crate.data, slot=form.slot.data))
+    return render_template('update_pmtic_resistors.html', crate=crate, slot=slot, form=form, pc=pc)
+
+@app.route('/calculate-resistors')
+def calculate_resistors():
+    crate = request.args.get("crate", 0, type=int)
+    slot = request.args.get("slot", 0, type=int)
+    resistors = get_resistors(crate, slot)
+    return render_template('calculate_resistors.html', crate=crate, slot=slot, resistors=resistors)
+
+@app.route('/detector-state-check')
+@app.route('/detector-state-check/<int:run>')
+def detector_state_check(run=None):
+    if run is None:
+        run = detector_state.get_run_state(None)['run']
+
+    messages, channels = detector_state.get_detector_state_check(run)
+    alarms = detector_state.get_alarms(run)
+
+    if alarms is None:
+        flash("unable to get alarms for run %i" % run, 'danger')
+
+    try:
+        warnings = get_daq_log_warnings(run)
+    except IOError:
+        flash("unable to get daq log for run %i" % run, 'danger')
+        warnings = None
+
+    return render_template('detector_state_check.html', run=run, messages=messages, channels=channels, alarms=alarms, warnings=warnings)
+
+@app.route('/channel-database')
+def channel_database():
+    limit = request.args.get("limit", 100, type=int)
+    results = get_channels(request.args, limit)
+    return render_template('channel_database.html', results=results, limit=limit)
+
+@app.route('/channel-status')
+def channel_status():
+    crate = request.args.get("crate", 0, type=int)
+    slot = request.args.get("slot", 0, type=int)
+    channel = request.args.get("channel", 0, type=int)
+    results = get_channel_history(crate, slot, channel)
+    pmt_info = get_pmt_info(crate, slot, channel)
+    nominal_settings = get_nominal_settings(crate, slot, channel)
+    return render_template('channel_status.html', crate=crate, slot=slot, channel=channel, results=results, pmt_info=pmt_info, nominal_settings=nominal_settings)
+
+@app.route('/update-channel-status', methods=["GET", "POST"])
+def update_channel_status():
+    if request.form:
+        form = ChannelStatusForm(request.form)
+        crate = form.crate.data
+        slot = form.slot.data
+        channel = form.channel.data
+    else:
+        crate = request.args.get("crate", 0, type=int)
+        slot = request.args.get("slot", 0, type=int)
+        channel = request.args.get("channel", 0, type=int)
+        try:
+            form = get_channel_status_form(crate, slot, channel)
+            # don't add the name, reason, or info fields if they just go to the page.
+            form.name.data = None
+            form.reason.data = None
+            form.info.data = None
+        except Exception as e:
+            form = ChannelStatusForm(crate=crate, slot=slot, channel=channel)
+
+    channel_status = get_channel_status(crate, slot, channel)
+
+    if request.method == "POST" and form.validate():
+        try:
+            upload_channel_status(form)
+        except Exception as e:
+            flash(str(e), 'danger')
+            return render_template('update_channel_status.html', form=form, status=channel_status)
+        flash("Successfully submitted", 'success')
+        return redirect(url_for('channel_status', crate=form.crate.data, slot=form.slot.data, channel=form.channel.data))
+    return render_template('update_channel_status.html', form=form, status=channel_status)
 
 @app.route('/state')
 @app.route('/state/')
@@ -91,7 +218,7 @@ def state(run=None):
     try:
         run_state = detector_state.get_run_state(run)
         run = run_state['run']
-        # Have to put these in ISO foramt so flask doesn't mangle it later
+        # Have to put these in ISO format so flask doesn't mangle it later
         run_state['timestamp'] = run_state['timestamp'].isoformat()
         # end_timestamp isn't that important. If it's not there, it's ignored
         if(run_state['end_timestamp']):
@@ -115,16 +242,16 @@ def state(run=None):
     if run_state['tubii'] is not None:
         tubii_state = detector_state.get_tubii_state(run_state['tubii'])
 
-    crates_state = [None]*20
-    for iCrate in range(20):
-        if run_state['crate'+str(iCrate)] is not None:
-            crates_state[iCrate] = detector_state.get_crate_state(run_state['crate'+str(iCrate)])
+    crates_state = detector_state.get_detector_state(run)
 
-    if not any(crates_state):
+    if not any(crates_state.values()):
         crates_state = None
+
     trigger_scan = None
     if run_state['timestamp'] is not None:
         trigger_scan = detector_state.get_trigger_scan_for_run(run)
+
+    hv_params = detector_state.get_hv_nominals()
 
     return render_template('state.html', run=run,
                            run_state=run_state,
@@ -134,8 +261,8 @@ def state(run=None):
                            tubii_state=tubii_state,
                            crates_state=crates_state,
                            trigger_scan=trigger_scan,
+                           hv_params=hv_params,
                            err=None)
-
 
 @app.route('/l2')
 def l2():
@@ -144,6 +271,24 @@ def l2():
     if not request.args.get('step') or not request.args.get('height'):
         return redirect(url_for('l2',step=step,height=height,_external=True))
     return render_template('l2.html',step=step,height=height)
+
+@app.route('/nhit-monitor-thresholds')
+def nhit_monitor_thresholds():
+    results = detector_state.get_nhit_monitor_thresholds()
+
+    if results is None:
+	return render_template('nhit_monitor_thresholds.html', error="No nhit monitor records.")
+
+    return render_template('nhit_monitor_thresholds.html', results=results)
+
+@app.route('/nhit-monitor/<int:key>')
+def nhit_monitor(key):
+    results = detector_state.get_nhit_monitor(key)
+
+    if results is None:
+	return render_template('nhit_monitor.html', error="No nhit monitor record with key %i." % key)
+
+    return render_template('nhit_monitor.html', results=results)
 
 @app.route('/trigger')
 def trigger():
@@ -283,6 +428,14 @@ def snostream():
 @app.route('/nhit')
 def nhit():
   return render_template('nhit.html')
+
+@app.route('/rat')
+def rathome():
+    return render_template('rathome.html', runs=nlrat.available_runs())
+    
+@app.route('/rat/<int:run>')
+def ratrun(run = 0):
+    return render_template("ratrun.html", run=nlrat.Run(run), error= not nlrat.hists_available(run))
 
 @app.route('/l2_filter')
 def l2_filter():
@@ -622,5 +775,101 @@ def pca_run_detail(run_number):
     
     return render_template('pca_run_detail.html',
                             run_number=run_number)      
-   
+  
 
+@app.route('/calibdq')
+def calibdq():
+        return render_template('calibdq.html')
+   
+@app.route('/calibdq_tellie')
+def calibdq_tellie():
+    run_dict = {}
+    limit = request.args.get("limit", 10, type=int)
+    offset = request.args.get("offset", 0, type=int)
+    run_numbers = HLDQTools.import_TELLIE_runnumbers(limit=limit, offset=offset)
+    for num in run_numbers:
+            run_num, check_params, runInformation =  HLDQTools.import_TELLIEDQ_ratdb(num)
+            run_dict[num] = check_params
+    run_numbers_sorted = sorted(run_dict.keys(),reverse=True)
+    run_vals_sorted = []
+    for runNum in run_numbers_sorted:
+        run_vals_sorted.append(run_dict[runNum])
+    return render_template('calibdq_tellie.html',run_numbers=run_numbers_sorted,run_info=run_vals_sorted,limit=limit,offset=offset)
+
+@app.route('/calibdq_tellie/<run_number>/')
+def calibdq_tellie_run_number(run_number):
+    run_num, check_params, runInfo=  HLDQTools.import_TELLIEDQ_ratdb(int(run_number))
+    return render_template('calibdq_tellie_run.html',run_number=run_number, runInformation=runInfo)
+
+
+@app.route('/calibdq_tellie/<run_number>/<subrun_number>')
+def calibdq_tellie_subrun_number(run_number,subrun_number):
+    run_num = 0
+    subrun_index = -999
+    root_dir = os.path.join(app.static_folder,"images/DQ/TELLIE/TELLIE_DQ_IMAGES_"+str(run_number))
+    run_num, check_params, runInfo=  HLDQTools.import_TELLIEDQ_ratdb(int(run_number))
+    #Find the index
+    for i in range(len(runInfo["subrun_numbers"])):
+        if int(runInfo["subrun_numbers"][i]) == int(subrun_number):
+            subrun_index = i
+    return render_template('calibdq_tellie_subrun.html',run_number=run_number,subrun_index=subrun_index, runInformation=runInfo)
+
+
+@app.route('/noise')
+def noise():
+    runs = noisedb.runs_after_run(0)
+    return render_template('noise.html', runs=runs)
+
+@app.route('/noise_run_detail/<run_number>')
+def noise_run_detail(run_number):
+    run = noisedb.get_run_by_number(run_number)
+    if run!=[]:
+        return render_template('noise_run_detail.html', run=run[0], run_number=run_number)
+    else:
+        return render_template('noise_run_detail.html', run=0, run_number=run_number)
+
+@app.route('/physicsdq')
+def physicsdq():
+    limit = request.args.get("limit", 10, type=int)
+    offset = request.args.get("offset", 0, type=int)
+    runNumbers = HLDQTools.import_HLDQ_runnumbers(limit=limit,offset=offset)
+    run_info = []
+    proc_results = []
+    for i in range(len(runNumbers)):
+        run_info.append(HLDQTools.import_HLDQ_ratdb(int(runNumbers[i])))
+        if run_info[i] == -1:
+            proc_results.append(-1)
+        else:
+            proc_results.append(HLDQTools.generateHLDQProcStatus(run_info[i]))
+    return render_template('physicsdq.html',physics_run_numbers=runNumbers, proc_results=proc_results, run_info=run_info, limit=limit,offset=offset)
+
+@app.route('/physicsdq/<run_number>')
+def physicsdq_run_number(run_number):
+    ratdb_dict = HLDQTools.import_HLDQ_ratdb(int(run_number))
+    return render_template('physicsdq_run_number.html',run_number=run_number,ratdb_dict=ratdb_dict)
+
+@app.route('/calibdq_smellie')
+def calibdq_smellie():
+    limit = request.args.get("limit", 10, type=int)
+    offset = request.args.get("offset", 0, type=int)
+    run_numbers = HLDQTools.import_SMELLIE_runnumbers(limit=limit,offset=offset)
+    run_dict = {}
+    for num in run_numbers:
+            run_num, check_params, runInfo = HLDQTools.import_SMELLIEDQ_ratdb(num)
+            #If we cant find DQ info skip
+            if check_params == -1 or runInfo== -1:
+                continue
+            print(check_params)
+            run_dict[num]  = check_params
+    return render_template('calibdq_smellie.html',run_numbers=run_dict.keys(),run_info=run_dict, limit=limit,offset=offset)
+
+@app.route('/calibdq_smellie/<run_number>')
+def calibdq_smellie_run_number(run_number):
+    run_num, check_dict, runInfo=  HLDQTools.import_SMELLIEDQ_ratdb(int(run_number))
+    return render_template('calibdq_smellie_run.html',run_number=run_number,runInfo=runInfo)
+
+
+@app.route('/calibdq_smellie/<run_number>/<subrun_number>')
+def calibdq_smellie_subrun_number(run_number,subrun_number):
+    run_num, check_dict, runInfo=  HLDQTools.import_SMELLIEDQ_ratdb(int(run_number))
+    return render_template('calibdq_smellie_subrun.html',run_number=run_number,subrun_number=subrun_number,runInformation=runInfo)

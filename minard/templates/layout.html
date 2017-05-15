@@ -19,7 +19,7 @@
     <body>
         {% block body %}
         {% macro nav_link(endpoint, name) -%}
-            {% if request.endpoint.endswith(endpoint) %}
+            {% if request.endpoint == endpoint %}
                 <li class="active"><a href="{{ url_for(endpoint) }}">{{ name }}</a></li>
             {% else %}
                 <li><a href="{{ url_for(endpoint) }}">{{ name }}</a></li>
@@ -40,20 +40,47 @@
                         {{ nav_link('status', 'Status') }}
                         {{ nav_link('l2', 'L2') }}
                         {{ nav_link('snostream', 'Stream') }}
-                        {{ nav_link('nhit', 'NHit') }}
-                        {{ nav_link('detector', 'Detector') }}
-                        {{ nav_link('daq', 'DAQ') }}
+                        <!-- Dropdown Detector -->
+                        <li class='dropdown'>
+			<a href='#' class='dropdown-toggle' data-toggle='dropdown'>Detector <b class='caret'></b></a>
+                            <ul class='dropdown-menu'>
+                                {{ nav_link('detector', 'Occupancy') }}
+                                {{ nav_link('nhit', 'Nhit Distribution') }}
+                                {{ nav_link('daq', 'DAQ') }}
+                                {{ nav_link('nhit_monitor_thresholds', 'Nhit Monitor') }}
+                                {{ nav_link('trigger', 'Trigger Scans') }}
+                                {{ nav_link('state', 'Detector State') }}
+                                {{ nav_link('detector_state_check', 'Detector State Check') }}
+                            </ul>
+                        <!-- Dropdown Channel -->
+                        <li class='dropdown'>
+			<a href='#' class='dropdown-toggle' data-toggle='dropdown'>Channel DB <b class='caret'></b></a>
+                            <ul class='dropdown-menu'>
+                                {{ nav_link('channel_database', 'Channel Database') }}
+                                {{ nav_link('channel_status', 'Channel Status') }}
+                                {{ nav_link('update_channel_status', 'Update Channel Status') }}
+                                {{ nav_link('calculate_resistors', 'Calculate Resistors') }}
+                                {{ nav_link('update_pmtic_resistors', 'Update PMTIC Resistors') }}
+                            </ul>
                         {{ nav_link('nearline', 'Nearline') }}
-                        {{ nav_link('trigger', 'Trigger Scans') }}
+                        {{ nav_link('rathome', 'RAT') }}
                         <!-- Dropdown PMTcal -->
                         <li class='dropdown'>
 			<a href='#' class='dropdown-toggle' data-toggle='dropdown'>PMTcal <b class='caret'></b></a>
                             <ul class='dropdown-menu'>
                                 {{ nav_link('eca', 'ECA') }}
                                 {{ nav_link('pcatellie', 'PCA Tellie') }}
+				{{ nav_link('noise', 'PMT Noise') }}
+                            </ul>
+                        <!-- Dropdown Data Quality -->
+                        <li class='dropdown'>
+                            <a href='#' class='dropdown-toggle' data-toggle='dropdown'>Data Quality <b class='caret'></b></a>
+                            <ul class='dropdown-menu'>
+                                {{ nav_link('physicsdq', 'Physics Data Quality') }}
+                                {{ nav_link('calibdq_tellie', 'TELLIE  DQ') }}
+                                {{ nav_link('calibdq_smellie', 'SMELLIE DQ') }}
                             </ul>
                         {{ nav_link('alarms', 'Alarms') }}
-                        {{ nav_link('state', 'Detector State') }}
                     </ul>
                     <ul class="nav navbar-nav navbar-right">
                         <li><a href="{{ url_for('docs') }}">Docs</a></li>
@@ -61,6 +88,18 @@
                 </div><!--/.navbar-collapse -->
             </div>
         </div>
+        {% with messages = get_flashed_messages(with_categories=True) %}
+            {% if messages %}
+                <div class="container">
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }} alert-dismissable" role="alert">
+                        <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                        {{ message }}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
         {% endblock %}
         <script src="{{ url_for('static', filename='js/jquery.min.js') }}"></script>
         <script src="{{ url_for('static', filename='js/toastr.min.js') }}"></script>

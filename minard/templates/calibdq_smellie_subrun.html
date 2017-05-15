@@ -1,0 +1,156 @@
+{% extends "layout.html" %}
+{% block title %}SMELLIE Data Quality for run {{run_number}} subrun {{subrun_number}}{% endblock %}
+{% block head %}
+{{ super() }}
+{% endblock %}
+{% block body %}
+{{ super() }}
+<div class="container">
+    <div class="panel panel-default">
+        <div class="panel panel-heading">
+
+            <h3 class="panel-title">Run information for run {{run_number}} subrun {{subrun_number}}</h3>
+        </div>
+        <div class="panel panel-body">
+            <table class="table table-hover"> 
+                <thead>
+                    <tr>
+                        <th>
+                            Parameter
+                        </th>
+                        <th>
+                            Value
+                        </th>
+                    </tr>
+                </thead> 
+
+                <tbody>
+                    <tr>
+                        <td>Expected Number of SMELLIE events </td> <td>{{runInformation["expected_smellie_events"][subrun_number|int]}}</td>
+                    </tr>
+                    <tr>
+                        <td>Actual Number of SMELLIE events </td> <td>{{runInformation["actual_smellie_events"][subrun_number|int]}}</td>
+                    </tr>
+                    <tr>
+                        <td>Expected SMELLIE Fibre</td> <td>{{runInformation["smellie_actual_fibre"][subrun_number|int]}}</td>
+                    </tr>
+                    <tr>
+                        <td>Calculated SMELLIE Fibre</td> <td>{{runInformation["smellie_calculated_fibre"][subrun_number|int]}}</td>
+                    </tr>
+                    <tr>
+                        <td>Expected SMELLIE Frequency</td> <td>{{runInformation["frequency_expected_subrun"][subrun_number|int]}}</td>
+                    </tr>
+                    <tr>
+                        <td>Actual SMELLIE Frequency</td> <td>{{runInformation["frequency_actual_subrun"][subrun_number|int]}}</td>
+                    </tr>
+                    <tr>
+                        <td>SMELLIE Laser Type</td> <td>{{runInformation["frequency_actual_subrun"][subrun_number|int]}}</td>
+                    </tr>
+                    <tr>
+                        <td>SMELLIE Laser Intensity</td> <td>{{runInformation["smellie_laser_intensity"][subrun_number|int]}}</td>
+                    </tr>
+                    <tr>
+                        <td>SMELLIE Laser Wavelength</td> <td>{{runInformation["smellie_laser_wavelength"][subrun_number|int]}}</td>
+                    </tr>
+                    <tr>
+                        <td>Mean NHit of SMELLIE Triggered Events</td> <td>{{runInformation["mean_nhit_smellie_events"][subrun_number|int]}}</td>
+                    </tr>
+                    <tr>
+                        <td>NHit Events with no adjacent trigger</td> <td>{{runInformation["nhit_event_no_adjacent_trigger"][subrun_number|int]}}</td>
+                    </tr>
+                    <tr>
+                        <td>SMELLIE Trigger Events with no adjacent NHit event</td> <td>{{runInformation["trigger_event_no_adjacent_nhit"][subrun_number|int]}}</td>
+                    </tr>
+                    <tr>
+                        <td>SMELLIE Trigger Events with adjacent NHit event</td> <td>{{runInformation["nhit_event_next_to_trigger_event"][subrun_number|int]}}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="container">
+        <h1>SMELLIE Data Quality Plots for run {{run_number}} subrun {{subrun_number}}</h1>
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3 class="panel-title">Hit maps for all events</h3>
+            </div>
+            <div class="panel-body">
+                <img src="{{ url_for('static', filename="hldq/SMELLIE/SMELLIE_DQ_IMAGES_"+run_number | string+"/SMELLIEDQ_Check1_hitMaps_allEvents_subrun"+subrun_number |string+".png") }}" class="img-responsive center-block">
+            </div>
+        </div>
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3 class="panel-title">Hit Maps for events passing the trigger cut</h3>
+            </div>
+            <div class="panel-body">
+                <img src="{{ url_for('static', filename="hldq/SMELLIE/SMELLIE_DQ_IMAGES_"+run_number | string+"/SMELLIEDQ_Check1_hitMaps_trigCutPassed_subrun"+subrun_number |string+".png") }}" class="img-responsive center-block">
+            </div>
+        </div>
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3 class="panel-title">Hit Maps for events failing the trigger cut</h3>
+            </div>
+            <div class="panel-body">
+                <img src="{{ url_for('static', filename="hldq/SMELLIE/SMELLIE_DQ_IMAGES_"+run_number | string+"/SMELLIEDQ_Check1_hitMaps_trigCutFailed_subrun"+subrun_number |string+".png") }}" class="img-responsive center-block">
+            </div>
+        </div>
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3 class="panel-title">NHit distributions for all Events</h3>
+            </div>
+            <div class="panel-body">
+                <img src="{{ url_for('static', filename="hldq/SMELLIE/SMELLIE_DQ_IMAGES_"+run_number | string+"/SMELLIEDQ_Check1_nhitsPlotsCanvas_subrun"+subrun_number |string+".png") }}" class="img-responsive center-block">
+            </div>
+        </div>
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3 class="panel-title">NHit vs Trigger Type</h3>
+            </div>
+            <div class="panel-body">
+                <img src="{{ url_for('static', filename="hldq/SMELLIE/SMELLIE_DQ_IMAGES_"+run_number | string+"/SMELLIEDQ_Check2_nhitsVsTriggerPlot_subrun"+subrun_number |string+".png") }}" class="img-responsive center-block">
+            </div>
+        </div>
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3 class="panel-title">NHit vs Time Between events</h3>
+            </div>
+            <div class="panel-body">
+                <img src="{{ url_for('static', filename="hldq/SMELLIE/SMELLIE_DQ_IMAGES_"+run_number | string+"/SMELLIEDQ_Check3_nhitsVsDeltaTimePlot_subrun"+subrun_number |string+".png") }}" class="img-responsive center-block">
+            </div>
+        </div>
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3 class="panel-title">Time Between SMELLIE events</h3>
+            </div>
+            <div class="panel-body">
+                <img src="{{ url_for('static', filename="hldq/SMELLIE/SMELLIE_DQ_IMAGES_"+run_number | string+"/SMELLIEDQ_Check3_deltaTimePlot_subrun"+subrun_number |string+".png") }}" class="img-responsive center-block">
+            </div>
+        </div>
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3 class="panel-title">SMELLIE First light peak distribution</h3>
+            </div>
+            <div class="panel-body">
+                <img src="{{ url_for('static', filename="hldq/SMELLIE/SMELLIE_DQ_IMAGES_"+run_number | string+"/SMELLIEDQ_Check4_firstPeakCanvas_subrun"+subrun_number |string+".png") }}" class="img-responsive center-block">
+            </div>
+        </div>
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3 class="panel-title">SMELLIE Second light peak distribution</h3>
+            </div>
+            <div class="panel-body">
+                <img src="{{ url_for('static', filename="hldq/SMELLIE/SMELLIE_DQ_IMAGES_"+run_number | string+"/SMELLIEDQ_Check4_secondPeakCanvas_subrun"+subrun_number |string+".png") }}" class="img-responsive center-block">
+            </div>
+        </div>
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3 class="panel-title">Distribution of the 100th CAEN Trace Point</h3>
+            </div>
+            <div class="panel-body">
+                <img src="{{ url_for('static', filename="hldq/SMELLIE/SMELLIE_DQ_IMAGES_"+run_number | string+"/SMELLIEDQ_Check6_singleSampleNumberPlot_subrun"+subrun_number |string+".png") }}" class="img-responsive center-block">
+            </div>
+        </div>
+    </div>
+    </div>
+</div>
+    {% endblock %}

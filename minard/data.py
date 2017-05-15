@@ -75,7 +75,7 @@ def cmos_consumer(port):
 
     cmos_rates = {}
 
-    then = int(time.time())
+    then = None
     while True:
         now = int(time.time())
 
@@ -88,7 +88,7 @@ def cmos_consumer(port):
         if now > then and len(cmos_rates) > 0:
             # flush results to database once a second
             flush_to_redis(cmos_rates, 'cmos', then)
-            then = now
+            then = None
             cmos_rates.clear()
 
         if id is None:
@@ -97,6 +97,9 @@ def cmos_consumer(port):
 
         if id != 'CMOS':
             raise ValueError('Expected CMOS record, got record %i' % id)
+
+        if then is None:
+            then = now
 
         crate, slotmask, channelmask, error_flags, counts, timestamp = \
             parse_cmos(rec)
@@ -139,7 +142,7 @@ def base_consumer(port):
 
     base_currents = {}
 
-    then = int(time.time())
+    then = None
     while True:
         now = int(time.time())
         try:
@@ -150,7 +153,7 @@ def base_consumer(port):
 
         if now > then and len(base_currents) > 0:
             flush_to_redis(base_currents, 'base', then)
-            then = now
+            then = None
             base_currents.clear()
 
         if id is None:
@@ -160,11 +163,14 @@ def base_consumer(port):
         if id != 'BASE':
             raise ValueError("Expected base current record got id %i" % id)
 
+        if then is None:
+            then = now
+
         crate, slotmask, channelmask, error_flags, counts, busy, timestamp = \
             parse_base(rec)
 
         for i, slot in enumerate(i for i in range(16) if (slotmask >> i) & 1):
-            for j, value in enumerate(map(int,counts[i])):
+            for j, value in enumerate(map(int,counts[slot])):
                 if not channelmask[slot] & (1 << j) or value >> 31:
                     continue
 

@@ -33,6 +33,18 @@ function add_graph(name, start, stop, step)
 
                 var valid = values.filter(isNumber);
 
+		var time_fmt = 'MMM Do YYYY';
+
+		if (step < 1) {
+		    time_fmt = 'ddd MMM Do YYYY, h:mm:ss.SSS a';
+		} else if (step < 60) {
+		    time_fmt = 'ddd MMM Do YYYY, h:mm:ss a';
+		} else if (step < 3600) {
+		    time_fmt = 'ddd MMM Do YYYY, h:mm a';
+		} else if (step < 24*3600) {
+		    time_fmt = 'ddd MMM Do YYYY, h a';
+		}
+
                 MG.data_graphic({
                     title: name,
                     chart_type: valid.length ? 'line' : 'missing-data',
@@ -50,6 +62,9 @@ function add_graph(name, start, stop, step)
                     x_accessor:'date',
                     y_accessor:'value',
 		    min_y_from_data: true,
+		    x_mouseover: function(d, i) {
+			return moment.tz(d['date'], 'America/Toronto').format(time_fmt) + '  ';
+		    },
                 });
 
                 var width = $('#hist').width();

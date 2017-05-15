@@ -521,6 +521,22 @@ def query():
 
         return jsonify(values=values)
 
+    if name == 'n16pos':
+        values = redis.lrange('n16pos', 0, -1)
+        return jsonify(values=values)
+	
+    if name == 'n16':
+        values = redis.lrange('n16', 0, -1)
+        return jsonify(values=values)	
+
+    if name == 'n16stat':
+        n16data = redis.lrange('n16', 0, -1)	
+        sum = 0
+        for data in n16data:
+            sum += float(data)
+        values = sum / len(n16data)
+        return jsonify(values=values)
+
 @app.route('/get_alarm')
 def get_alarm():
     try:
@@ -873,3 +889,7 @@ def calibdq_smellie_run_number(run_number):
 def calibdq_smellie_subrun_number(run_number,subrun_number):
     run_num, check_dict, runInfo=  HLDQTools.import_SMELLIEDQ_ratdb(int(run_number))
     return render_template('calibdq_smellie_subrun.html',run_number=run_number,subrun_number=subrun_number,runInformation=runInfo)
+
+@app.route('/n16')
+def n16():
+  return render_template('n16.html')

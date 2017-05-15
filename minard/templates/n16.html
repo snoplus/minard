@@ -1,0 +1,34 @@
+{% extends "layout.html" %}
+{% block title %}N16{% endblock %}
+{% block head %}
+    {{ super() }}
+{% endblock %}
+{% block body %}
+    {{ super() }}
+    <div class="container">
+        <div class="row">
+	    <h3 id="n16pos">N16 Source Position &emsp; X: &emsp; Y: &emsp; Z: &emsp;</h3>
+	    <h3 id="n16mean">Simulation Mean NHit: </h3>
+            <div class="col-md-6" id="mc_nhit">
+                <h2>Simulated NHit Distribution</h2>
+            </div>
+            <div class="col-md-6" id="nhit60">
+                <h2>Detected NHit (60 seconds)</h2>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block script %}
+    <script src="{{ url_for('static', filename='js/d3.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/histogram.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/n16.js') }}"></script>
+
+    <script>
+        n16_pos('n16pos');
+		n16_stat('n16mean');
+        n16_nhit('#mc_nhit');
+        update_chart('#nhit60', 60, 10);
+    </script>
+
+{% endblock %}

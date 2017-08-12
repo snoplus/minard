@@ -122,11 +122,14 @@ div.tooltip {
                 <option value="30">30</option>
                 <option value="31">31</option>
             </select>
-            <button type=button onclick="history();">Update Plot</button>
+            <h4> Yaxis Scale: </h4>
             <select id="yscale">
                 <option value="Linear">Linear</option>
                 <option value="Log">Log</option>
             </select>
+            <h4> Starting Run: </h4>
+            <input type="text" id="starting_run" value=103214 style="width:80px;">
+            <button type=button onclick="history();">Update Plot</button>
         </div>
     </div>
     <h1> </h1>
@@ -175,6 +178,10 @@ div.tooltip {
         if (url_params.yscale) {
             document.getElementById("yscale").value = url_params.yscale;
         }
+        if (url_params.starting_run) {
+            document.getElementById("starting_run").value = url_params.starting_run;
+        }
+
         draw_scatter_plot();
     </script>
 {% endblock %}

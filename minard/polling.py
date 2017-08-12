@@ -23,7 +23,7 @@ def polling_runs():
 
     return cmos_runs, base_runs
 
-def polling_history(crate, slot, channel):
+def polling_history(crate, slot, channel, min_run):
     """
     Return a list of form [[run number, cmos rate]] for all runs with cmos data
     polling. Also returns a list which included statistics on the cmos data.
@@ -31,8 +31,8 @@ def polling_history(crate, slot, channel):
     conn = engine.connect()
 
     result = conn.execute("SELECT run, cmos_rate FROM cmos WHERE crate = %s "
-                          "AND slot = %s AND channel = %s ORDER BY run DESC",
-                           (crate, slot, channel))
+                          "AND slot = %s AND channel = %s AND run > %s ORDER BY run DESC",
+                           (crate, slot, channel, min_run))
 
     if result is None:
         return None, None

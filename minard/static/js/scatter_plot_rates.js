@@ -19,6 +19,7 @@ function history() {
     catch (e) {
         params['yscale'] = 'Linear';
     }
+    params['starting_run'] = document.getElementById("starting_run").value;
     window.location.replace($SCRIPT_ROOT + "/check_rates_history?" + $.param(params));
 }
 
@@ -26,14 +27,7 @@ function draw_scatter_plot(){
     var data = window.data;
     var yscale = document.getElementById("yscale").value;
     if( data != undefined && data != "" ){
-        var data_length = data.length;
-        var last_run = data[0][0];
-        var first_run = data[data_length-1][0]
-        var len = Math.floor((last_run - first_run)/data.length);
-        var run_offset = 0;
-        var start_offset = 103214;
-        var start = start_offset - run_offset;
-        var end = d3.max(data, function(d) { return d[0]; }) + 1 - run_offset;
+        var end = d3.max(data, function(d) { return d[0]; }) + 1;
 
         var margin = {top: 10, right: 80, bottom: 80, left: 120}
             ,width = $("#main").width() - margin.left - margin.right
@@ -71,7 +65,7 @@ function draw_scatter_plot(){
             .attr('class', 'chart');
 
         var valueline = d3.svg.line()
-            .x(function(d) { return x(d[0]- run_offset); })
+            .x(function(d) { return x(d[0]); })
             .y(function(d) { return y(d[1]+tolerance); });
 
         var main = chart.append('g')
@@ -96,7 +90,7 @@ function draw_scatter_plot(){
             .attr('class', 'main axis date')
             .call(xAxis)
             .selectAll("text")
-              .attr("x", len)
+              .attr("x", 6)
               .attr("dy", "1.2em");
 
         // draw the y axis
@@ -124,14 +118,14 @@ function draw_scatter_plot(){
         g.selectAll("scatter-dots")
             .data(data)
             .enter().append("svg:circle")
-                .attr("cx", function (d,i) { return x(d[0] - run_offset); } )
+                .attr("cx", function (d,i) { return x(d[0]); } )
                 .attr("cy", function (d) { return y(d[1]+tolerance); } )
                 .attr("r", 8)
                 .on("mouseover", function(d) {      
                     div.transition()        
                         .duration(200) 
                         .style("opacity", .9);      
-                    div .html("(" + (d[0]-run_offset) + ","  + my_si_format(d[1]) + ")")  
+                    div .html("(" + (d[0]) + ","  + my_si_format(d[1]) + ")")  
                         .style("left", (d3.event.pageX) + "px")
                         .style("top", (d3.event.pageY - 28) + "px");
                     })                  

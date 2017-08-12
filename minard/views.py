@@ -474,8 +474,10 @@ def check_rates_history():
     crate = request.args.get('crate',0,type=int)
     slot = request.args.get('slot',0,type=int)
     channel = request.args.get('channel',0,type=int)
+    # Run when we started keeping polling data
+    starting_run = request.args.get('starting_run',100314,type=int)
 
-    data, stats = polling_history(crate, slot, channel)
+    data, stats = polling_history(crate, slot, channel, starting_run)
     discriminator_threshold = get_discriminator_threshold(crate, slot, channel)
     return render_template('check_rates_history.html', crate=crate, slot=slot, channel=channel, data=data, stats=stats, discriminator_threshold=discriminator_threshold)
 

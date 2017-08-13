@@ -110,8 +110,7 @@
             nhit_20_width.push({'date': date, 'value': results[i]['nhit_20_width']});
         }
 
-        var data = [nhit_100_lo_width, nhit_100_med_width, nhit_100_hi_width,
-                    nhit_20_lb_width, nhit_20_width];
+        var data = [nhit_100_med_width, nhit_100_hi_width, nhit_20_lb_width, nhit_20_width];
 
         console.log(data);
 
@@ -128,7 +127,8 @@
             y_accessor: 'value',
             x_label: 'Date',
             y_label: 'Trigger efficiency width',
-            legend: ['N100L', 'N100M', 'N100H', 'N20L', 'N20']
+            legend: ['N100M', 'N100H', 'N20L', 'N20'],
+            interpolate: 'linear'
         });
     </script>
 {% endblock %}

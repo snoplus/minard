@@ -1,6 +1,10 @@
 {% extends "layout.html" %}
 {% block title %}Nhit Monitor{% endblock %}
 {% block head %}
+    <!-- metrics-graphics stylesheet goes above super() because we want bootstrap's style
+    (which is linked in super()) to override it. -->
+    <link rel="stylesheet" type="text/css"  href="{{ url_for('static',filename='css/metricsgraphics.css') }}">
+    <link rel="stylesheet" type="text/css"  href="{{ url_for('static',filename='css/mg_line_brushing.css') }}">
     {{ super() }}
 {% endblock %}
 {% block body %}
@@ -12,6 +16,9 @@
 	Error: {{ error }}
 	</div>
 	{% else %}
+	<div class="row">
+	    <div class="col-md-12" id='trigger-efficiency-width'></div>
+        </div>
 	<div class="row">
 	    <div class="col-md-12">
 		<table class="table">
@@ -78,4 +85,50 @@
 	</div>
 	{% endif %}
     </div>
+{% endblock %}
+{% block script %}
+    <script src="{{ url_for('static', filename='js/d3.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/moment.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/moment-timezone-with-data.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/metricsgraphics.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/mg_line_brushing.js') }}"></script>
+    <script>
+        var results = {{ results | tojson }};
+
+        var nhit_100_lo_width = new Array();
+        var nhit_100_med_width = new Array();
+        var nhit_100_hi_width = new Array();
+        var nhit_20_width = new Array();
+        var nhit_20_lb_width = new Array();
+        for (var i=0; i < results.length; i++) {
+            //var date = moment(results[i]['timestamp']);
+            var date = new Date(results[i]['timestamp']);
+            nhit_100_lo_width.push({'date': date, 'value': results[i]['nhit_100_lo_width']});
+            nhit_100_med_width.push({'date': date, 'value': results[i]['nhit_100_med_width']});
+            nhit_100_hi_width.push({'date': date, 'value': results[i]['nhit_100_hi_width']});
+            nhit_20_lb_width.push({'date': date, 'value': results[i]['nhit_20_lb_width']});
+            nhit_20_width.push({'date': date, 'value': results[i]['nhit_20_width']});
+        }
+
+        var data = [nhit_100_lo_width, nhit_100_med_width, nhit_100_hi_width,
+                    nhit_20_lb_width, nhit_20_width];
+
+        console.log(data);
+
+        MG.data_graphic({
+            title: "Trigger Efficiency Width",
+            description: "Trigger efficiency width as a function of time",
+            data: data,
+            //chart_type: 'point',
+            width: $('#trigger-efficiency-width').width(),
+            height: 250,
+            left: 100,
+            target: '#trigger-efficiency-width',
+            x_accessor: 'date',
+            y_accessor: 'value',
+            x_label: 'Date',
+            y_label: 'Trigger efficiency width',
+            legend: ['N100L', 'N100M', 'N100H', 'N20L', 'N20']
+        });
+    </script>
 {% endblock %}

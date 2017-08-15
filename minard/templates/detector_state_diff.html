@@ -14,6 +14,58 @@
         {% endif %}
         <div class="row">
 	    <div class="col-md-6">
+                <h2>MTC Settings</h2>
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <td> Name </td>
+                            <td> Run {{ run1 }} </td>
+                            <td> Run {{ run2 }} </td>
+                        </tr>
+                    </thead>
+                    {% for key in mtc_state1 if key not in ('timestamp', 'key') %}
+                    {% if mtc_state1[key] != mtc_state2[key] %}
+                        <tr>
+                            <td> {{ ' '.join(key.split('_')) }} </td>
+                            {% if 'mask' in key %}
+                            <td> {{ "0x%08x" % mtc_state1[key] }} </td>
+                            <td> {{ "0x%08x" % mtc_state2[key] }} </td>
+                            {% else %}
+                            <td> {{ mtc_state1[key] }} </td>
+                            <td> {{ mtc_state2[key] }} </td>
+                            {% endif %}
+                        </tr>
+                    {% endif %}
+                    {% endfor %}
+                </table>
+            </div>
+	    <div class="col-md-6">
+                <h2>CAEN Settings</h2>
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <td> Name </td>
+                            <td> Run {{ run1 }} </td>
+                            <td> Run {{ run2 }} </td>
+                        </tr>
+                    </thead>
+                    {% for key in caen_state1 if key not in ('timestamp', 'key') %}
+                    {% if caen_state1[key] != caen_state2[key] %}
+                        <tr>
+                            <td> {{ ' '.join(key.split('_')) }} </td>
+                            {% if 'mask' in key %}
+                            <td> {{ "0x%08x" % caen_state1[key] }} </td>
+                            <td> {{ "0x%08x" % caen_state2[key] }} </td>
+                            {% else %}
+                            <td> {{ caen_state1[key] }} </td>
+                            <td> {{ caen_state2[key] }} </td>
+                            {% endif %}
+                        </tr>
+                    {% endif %}
+                    {% endfor %}
+                </table>
+            </div>
+	    <div class="col-md-6">
                 <h2>Crate Settings</h2>
                 <table class="table">
                     <thead>

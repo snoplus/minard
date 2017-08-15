@@ -1,0 +1,127 @@
+{% extends "layout.html" %}
+{% block title %}Detector State Diff{% endblock %}
+{% block head %}
+    {{ super() }}
+{% endblock %}
+{% block body %}
+    {{ super() }}
+    <div class="container">
+        {% if error %}
+        <div class="alert alert-danger" role="alert">
+            <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
+            {{ error }}
+        </div>
+        {% endif %}
+        <div class="row">
+	    <div class="col-md-6">
+                <h2>Crate Settings</h2>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <td> Crate </td>
+                            <td> Name </td>
+                            <td> Run {{ run1 }} </td>
+                            <td> Run {{ run2 }} </td>
+                        </tr>
+                    </thead>
+                    {% for crate in range(20) %}
+                        {% for key in ['ctc_delay', 'hv_relay_mask1', 'hv_relay_mask2', 'hv_a_on', 'hv_b_on', 'hv_dac_a', 'hv_dac_b', 'xl3_readout_mask', 'xl3_mode'] %}
+                            {% if detector_state1[crate][key] != detector_state2[crate][key] %}
+                                <tr>
+                                    <td> {{ crate }} </td>
+                                    <td> {{ ' '.join(key.split('_')) }} </td>
+                                    {% if 'mask' in key %}
+                                    <td> {{ "0x%08x" % detector_state1[crate][key] }} </td>
+                                    <td> {{ "0x%08x" % detector_state2[crate][key] }} </td>
+                                    {% else %}
+                                    <td> {{ detector_state1[crate][key] }} </td>
+                                    <td> {{ detector_state2[crate][key] }} </td>
+                                    {% endif %}
+                                </tr>
+                            {% endif %}
+                        {% endfor %}
+                    {% endfor %}
+                </table>
+            </div>
+	    <div class="col-md-6">
+                <h2>Channel Thresholds</h2>
+                <table class="table table-condensed">
+                    <thead>
+                        <tr>
+                            <td> Crate </td>
+                            <td> Card </td>
+                            <td> Channel </td>
+                            <td> Run {{ run1 }} </td>
+                            <td> Run {{ run2 }} </td>
+                        </tr>
+                    </thead>
+                    {% for crate in range(20) if detector_state1[crate] is not none and detector_state2[crate] is not none %}
+                    {% for card in range(16) if detector_state1[crate][card] is not none and detector_state2[crate][card] is not none %}
+                    {% for channel in range(32) %}
+                    {% if detector_state1[crate][card]['vthr'][channel] != detector_state2[crate][card]['vthr'][channel] %}
+                        <tr>
+                            <td> {{ crate }} </td>
+                            <td> {{ card }} </td>
+                            <td> {{ channel }} </td>
+                            <td> {{ detector_state1[crate][card]['vthr'][channel] }} </td>
+                            <td> {{ detector_state2[crate][card]['vthr'][channel] }} </td>
+                        </tr>
+                    {% endif %}
+                    {% endfor %}
+                    {% endfor %}
+                    {% endfor %}
+                </table>
+            </div>
+	    <div class="col-md-6">
+                <h2>Channel Triggers</h2>
+                <table class="table table-condensed">
+                    <thead>
+                        <tr>
+                            <td> </td>
+                            <td> </td>
+                            <td> </td>
+                            <td colspan="2"> Run {{ run1 }} </td>
+                            <td colspan="2"> Run {{ run2 }} </td>
+                        </tr>
+                        <tr>
+                            <td> Crate </td>
+                            <td> Card </td>
+                            <td> Channel </td>
+                            <td> N100 </td>
+                            <td> N20 </td>
+                            <td> N100 </td>
+                            <td> N20 </td>
+                        </tr>
+                    </thead>
+                    {% for crate in range(20) if detector_state1[crate] is not none and detector_state2[crate] is not none %}
+                    {% for card in range(16) if detector_state1[crate][card] is not none and detector_state2[crate][card] is not none %}
+                    {% for channel in range(32) %}
+                    {% if detector_state1[crate][card]['tr100_mask'][channel] != detector_state2[crate][card]['tr100_mask'][channel] or detector_state1[crate][card]['tr20_mask'][channel] != detector_state2[crate][card]['tr20_mask'][channel] %}
+                        <tr>
+                            <td> {{ crate }} </td>
+                            <td> {{ card }} </td>
+                            <td> {{ channel }} </td>
+                            <td> {{ detector_state1[crate][card]['tr100_mask'][channel] }} </td>
+                            <td> {{ detector_state1[crate][card]['tr20_mask'][channel] }} </td>
+                            <td> {{ detector_state2[crate][card]['tr100_mask'][channel] }} </td>
+                            <td> {{ detector_state2[crate][card]['tr20_mask'][channel] }} </td>
+                        </tr>
+                    {% endif %}
+                    {% endfor %}
+                    {% endfor %}
+                    {% endfor %}
+                </table>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+{% block script %}
+    <script>
+        $("#run_number").keydown(function (e) {
+            if (e.keyCode == 13) {
+                // Pressed Enter
+                document.location.href = "{{ url_for("detector_state_check") }}/" + $("#run_number").val();
+            }
+        });
+    </script>
+{% endblock %}

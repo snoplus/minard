@@ -215,6 +215,16 @@ def update_channel_status():
         return redirect(url_for('channel_status', crate=form.crate.data, slot=form.slot.data, channel=form.channel.data))
     return render_template('update_channel_status.html', form=form, status=channel_status)
 
+@app.route('/detector-state-diff')
+def detector_state_diff():
+    run1 = request.args.get("run1", 100000, type=int)
+    run2 = request.args.get("run2", 0, type=int)
+
+    detector_state1 = detector_state.get_detector_state(run1)
+    detector_state2 = detector_state.get_detector_state(run2)
+
+    return render_template('detector_state_diff.html', run1=run1, run2=run2, detector_state1=detector_state1, detector_state2=detector_state2)
+
 @app.route('/state')
 @app.route('/state/<int:run>')
 def state(run=None):

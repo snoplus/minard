@@ -64,8 +64,7 @@
                             <td> {{ display_run(run2) }} </td>
                         </tr>
                     </thead>
-                    {% for key in mtc_state1 if key not in ('timestamp', 'key') %}
-                    {% if mtc_state1[key] != mtc_state2[key] %}
+                    {% for key in mtc_state1 if key not in ('timestamp', 'key') and mtc_state1[key] != mtc_state2[key] %}
                         <tr>
                             <td> {{ ' '.join(key.split('_')) }} </td>
                             {% if 'mask' in key %}
@@ -76,7 +75,10 @@
                             <td> {{ mtc_state2[key] }} </td>
                             {% endif %}
                         </tr>
-                    {% endif %}
+                    {% else %}
+                        <tr>
+                            <td colspan="3">All settings are the same!<td>
+                        </tr>
                     {% endfor %}
                 </table>
             </div>
@@ -90,8 +92,7 @@
                             <td> {{ display_run(run2) }} </td>
                         </tr>
                     </thead>
-                    {% for key in tubii_state1 if key not in ('timestamp', 'key') %}
-                    {% if tubii_state1[key] != tubii_state2[key] %}
+                    {% for key in tubii_state1 if key not in ('timestamp', 'key') and tubii_state1[key] != tubii_state2[key] %}
                         <tr>
                             <td> {{ ' '.join(key.split('_')) }} </td>
                             {% if 'mask' in key %}
@@ -102,7 +103,10 @@
                             <td> {{ tubii_state2[key] }} </td>
                             {% endif %}
                         </tr>
-                    {% endif %}
+                    {% else %}
+                        <tr>
+                            <td colspan="3">All settings are the same!<td>
+                        </tr>
                     {% endfor %}
                 </table>
             </div>
@@ -116,8 +120,7 @@
                             <td> {{ display_run(run2) }} </td>
                         </tr>
                     </thead>
-                    {% for key in caen_state1 if key not in ('timestamp', 'key') %}
-                    {% if caen_state1[key] != caen_state2[key] %}
+                    {% for key in caen_state1 if key not in ('timestamp', 'key') and caen_state1[key] != caen_state2[key] %}
                         <tr>
                             <td> {{ ' '.join(key.split('_')) }} </td>
                             {% if 'mask' in key %}
@@ -128,7 +131,10 @@
                             <td> {{ caen_state2[key] }} </td>
                             {% endif %}
                         </tr>
-                    {% endif %}
+                    {% else %}
+                        <tr>
+                            <td colspan="3">All settings are the same!<td>
+                        </tr>
                     {% endfor %}
                 </table>
             </div>

@@ -1,3 +1,7 @@
+{% macro display_run(run) -%}
+    {% if run == 0 %} Current State {% else %} Run {{ run }} {% endif %}
+{%- endmacro %}
+    
 {% extends "layout.html" %}
 {% block title %}Detector State Diff{% endblock %}
 {% block head %}
@@ -37,8 +41,8 @@
                     <thead>
                         <tr>
                             <td> Name </td>
-                            <td> Run {{ run1 }} </td>
-                            <td> Run {{ run2 }} </td>
+                            <td> {{ display_run(run1) }} </td>
+                            <td> {{ display_run(run2) }} </td>
                         </tr>
                     </thead>
                     {% for key in mtc_state1 if key not in ('timestamp', 'key') %}
@@ -63,8 +67,8 @@
                     <thead>
                         <tr>
                             <td> Name </td>
-                            <td> Run {{ run1 }} </td>
-                            <td> Run {{ run2 }} </td>
+                            <td> {{ display_run(run1) }} </td>
+                            <td> {{ display_run(run2) }} </td>
                         </tr>
                     </thead>
                     {% for key in caen_state1 if key not in ('timestamp', 'key') %}
@@ -90,8 +94,8 @@
                         <tr>
                             <td> Crate </td>
                             <td> Name </td>
-                            <td> Run {{ run1 }} </td>
-                            <td> Run {{ run2 }} </td>
+                            <td> {{ display_run(run1) }} </td>
+                            <td> {{ display_run(run2) }} </td>
                         </tr>
                     </thead>
                     {% for crate in range(20) %}
@@ -121,8 +125,8 @@
                             <td> Crate </td>
                             <td> Card </td>
                             <td> Channel </td>
-                            <td> Run {{ run1 }} </td>
-                            <td> Run {{ run2 }} </td>
+                            <td> {{ display_run(run1) }} </td>
+                            <td> {{ display_run(run2) }} </td>
                         </tr>
                     </thead>
                     {% for crate in range(20) if detector_state1[crate] is not none and detector_state2[crate] is not none %}
@@ -150,8 +154,8 @@
                             <td> </td>
                             <td> </td>
                             <td> </td>
-                            <td colspan="2"> Run {{ run1 }} </td>
-                            <td colspan="2"> Run {{ run2 }} </td>
+                            <td colspan="2"> {{ display_run(run1) }} </td>
+                            <td colspan="2"> {{ display_run(run2) }} </td>
                         </tr>
                         <tr>
                             <td> Crate </td>

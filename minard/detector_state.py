@@ -21,6 +21,23 @@ def get_mtc_state_for_run(run=0):
 
     return dict(zip(keys,row))
 
+def get_tubii_state_for_run(run=0):
+    """
+    Returns a dictionary of the tubii settings for a given run. If there is no
+    row in the database for the run, returns None.
+    """
+    conn = engine.connect()
+
+    result = conn.execute("SELECT * FROM tubii WHERE key = (SELECT tubii FROM run_state WHERE run = %s)", (run,))
+
+    if result is None:
+        return None
+
+    keys = result.keys()
+    row = result.fetchone()
+
+    return dict(zip(keys,row))
+
 def get_caen_state_for_run(run=0):
     """
     Returns a dictionary of the caen settings for a given run. If there is no

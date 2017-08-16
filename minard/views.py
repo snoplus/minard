@@ -227,6 +227,9 @@ def detector_state_diff():
         mtc_state1 = detector_state.get_mtc_state_for_run(run1)
         mtc_state2 = detector_state.get_mtc_state_for_run(run2)
 
+        tubii_state1 = detector_state.get_tubii_state_for_run(run1)
+        tubii_state2 = detector_state.get_tubii_state_for_run(run2)
+
         caen_state1 = detector_state.get_caen_state_for_run(run1)
         caen_state2 = detector_state.get_caen_state_for_run(run2)
 
@@ -242,6 +245,8 @@ def detector_state_diff():
                            run_state2=run_state2,
                            mtc_state1=mtc_state1,
                            mtc_state2=mtc_state2,
+                           tubii_state1=tubii_state1,
+                           tubii_state2=tubii_state2,
                            caen_state1=caen_state1,
                            caen_state2=caen_state2,
                            detector_state1=detector_state1,

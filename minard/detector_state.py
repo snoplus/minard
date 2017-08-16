@@ -4,6 +4,16 @@ from .db import engine
 from .channeldb import get_nominal_settings_for_run, get_pmt_types
 from collections import defaultdict
 
+def get_latest_run():
+    """
+    Returns the latest run number.
+    """
+    conn = engine.connect()
+
+    result = conn.execute("SELECT last_value FROM run_number")
+
+    return result.fetchone()[0]
+
 def get_mtc_state_for_run(run=0):
     """
     Returns a dictionary of the mtc settings for a given run. If there is no

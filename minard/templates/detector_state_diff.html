@@ -29,9 +29,28 @@
         <div class="row">
             <div class="col-md-3 col-md-offset-9 text-right">
                 <form action="{{ url_for("detector_state_diff") }}">
-                Run1: <input type="number" name="run1" value="{{ run1 }}"></input><br>
-                Run2: <input type="number" name="run2" value="{{ run2 }}"></input><br>
-                <input type="submit" value="Go"></input>
+                    Run1: <input type="number" name="run1" value="{{ run1 }}"></input><br>
+                    Run2: <input type="number" name="run2" value="{{ run2 }}"></input><br>
+                    <input type="submit" value="Go"></input>
+                </form>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-3 col-md-offset-9 text-right">
+                <form action="{{ url_for("detector_state_diff") }}">
+                Run: <input type="number" name="run1" value="{{ run1 }}"></input><br>
+                    <input type="hidden" name="run2" value="0"></input>
+                    <input type="submit" value="Diff with current state"></input>
+                </form>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-3 col-md-offset-9 text-right">
+                <form action="{{ url_for("detector_state_diff") }}">
+                Run: <input type="number" name="run1" value="{{ run1 }}"></input><br>
+                    <input type="hidden" name="run2" value="-1"></input>
+                    <input type="submit" value="Diff with latest run"></input>
+                </form>
             </div>
         </div>
         <div class="row">
@@ -76,8 +95,8 @@
                         <tr>
                             <td> {{ ' '.join(key.split('_')) }} </td>
                             {% if 'mask' in key %}
-                            <td> {{ "0x%08X" % tubii_state1[key] }} </td>
-                            <td> {{ "0x%08X" % tubii_state2[key] }} </td>
+                            <td> {% if tubii_state1[key] is not none %}{{ "0x%08X" % tubii_state1[key] }}{% else %} None {% endif %} </td>
+                            <td> {% if tubii_state2[key] is not none %}{{ "0x%08X" % tubii_state2[key] }}{% else %} None {% endif %} </td>
                             {% else %}
                             <td> {{ tubii_state1[key] }} </td>
                             <td> {{ tubii_state2[key] }} </td>

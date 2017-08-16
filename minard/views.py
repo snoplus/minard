@@ -220,6 +220,12 @@ def detector_state_diff():
     run1 = request.args.get("run1", 100000, type=int)
     run2 = request.args.get("run2", 0, type=int)
 
+    if run1 == -1:
+        run1 = detector_state.get_latest_run()
+
+    if run2 == -1:
+        run2 = detector_state.get_latest_run()
+
     try:
         run_state1 = detector_state.get_run_state(run1)
         run_state2 = detector_state.get_run_state(run1)

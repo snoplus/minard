@@ -13,6 +13,22 @@
         </div>
         {% endif %}
         <div class="row">
+	    <div class="col-md-6 col-md-offset-3">
+		<center>
+                    <h2 style="display:inline">
+                    {% if run1 == 0 %} Current State {% else %} Run {{ run1 }} {% endif %}
+                    -
+                    {% if run2 == 0 %} Current State {% else %} <h2 style="display:inline">Run {{ run2 }} {% endif %}
+		</center>
+	    </div>
+            <div class="col-md-3 text-right">
+                <form action="{{ url_for("detector_state_diff") }}">
+                Run1: <input type="number" name="run1" value="{{ run1 }}"></input><br>
+                Run2: <input type="number" name="run2" value="{{ run2 }}"></input><br>
+                <input type="submit" value="Go"></input>
+            </div>
+        </div>
+        <div class="row">
 	    <div class="col-md-6">
                 <h2>MTC Settings</h2>
                 <table class="table table-hover">
@@ -166,14 +182,4 @@
             </div>
         </div>
     </div>
-{% endblock %}
-{% block script %}
-    <script>
-        $("#run_number").keydown(function (e) {
-            if (e.keyCode == 13) {
-                // Pressed Enter
-                document.location.href = "{{ url_for("detector_state_check") }}/" + $("#run_number").val();
-            }
-        });
-    </script>
 {% endblock %}

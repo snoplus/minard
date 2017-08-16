@@ -3,6 +3,7 @@ import glob
 import os
 import re
 from redis import Redis
+from .views import app
 
 REDIS_SET = "nlrat-runs"
 redis = Redis()
@@ -19,6 +20,7 @@ RUN_TYPES = {
     8:"Supernova",
     }
 
+@app.template_filter('run_type')
 def extract_run_type(run_word):
     '''Get the run type from the run word using RUN_TYPES
     :param int run_word:

@@ -13,15 +13,17 @@
         </div>
         {% endif %}
         <div class="row">
-	    <div class="col-md-6 col-md-offset-3">
+	    <div class="col-md-12">
 		<center>
                     <h2 style="display:inline">
-                    {% if run1 == 0 %} Current State {% else %} Run {{ run1 }} {% endif %}
+                    {% if run1 == 0 %} Current State {% else %} Run {{ run1 }} ({{ run_state1['run_type'] | run_type }}){% endif %}
                     -
-                    {% if run2 == 0 %} Current State {% else %} <h2 style="display:inline">Run {{ run2 }} {% endif %}
+                    {% if run2 == 0 %} Current State {% else %} Run {{ run2 }} ({{ run_state1['run_type'] | run_type }}){% endif %}
 		</center>
 	    </div>
-            <div class="col-md-3 text-right">
+        </div>
+        <div class="row">
+            <div class="col-md-3 col-md-offset-9 text-right">
                 <form action="{{ url_for("detector_state_diff") }}">
                 Run1: <input type="number" name="run1" value="{{ run1 }}"></input><br>
                 Run2: <input type="number" name="run2" value="{{ run2 }}"></input><br>
@@ -31,7 +33,7 @@
         <div class="row">
 	    <div class="col-md-6">
                 <h2>MTC Settings</h2>
-                <table class="table table-hover">
+                <table class="table table-striped">
                     <thead>
                         <tr>
                             <td> Name </td>
@@ -44,8 +46,8 @@
                         <tr>
                             <td> {{ ' '.join(key.split('_')) }} </td>
                             {% if 'mask' in key %}
-                            <td> {{ "0x%08x" % mtc_state1[key] }} </td>
-                            <td> {{ "0x%08x" % mtc_state2[key] }} </td>
+                            <td> {{ "0x%08X" % mtc_state1[key] }} </td>
+                            <td> {{ "0x%08X" % mtc_state2[key] }} </td>
                             {% else %}
                             <td> {{ mtc_state1[key] }} </td>
                             <td> {{ mtc_state2[key] }} </td>
@@ -57,7 +59,7 @@
             </div>
 	    <div class="col-md-6">
                 <h2>CAEN Settings</h2>
-                <table class="table table-hover">
+                <table class="table table-striped">
                     <thead>
                         <tr>
                             <td> Name </td>
@@ -70,8 +72,8 @@
                         <tr>
                             <td> {{ ' '.join(key.split('_')) }} </td>
                             {% if 'mask' in key %}
-                            <td> {{ "0x%08x" % caen_state1[key] }} </td>
-                            <td> {{ "0x%08x" % caen_state2[key] }} </td>
+                            <td> {{ "0x%08X" % caen_state1[key] }} </td>
+                            <td> {{ "0x%08X" % caen_state2[key] }} </td>
                             {% else %}
                             <td> {{ caen_state1[key] }} </td>
                             <td> {{ caen_state2[key] }} </td>
@@ -83,7 +85,7 @@
             </div>
 	    <div class="col-md-6">
                 <h2>Crate Settings</h2>
-                <table class="table">
+                <table class="table table-striped">
                     <thead>
                         <tr>
                             <td> Crate </td>
@@ -99,8 +101,8 @@
                                     <td> {{ crate }} </td>
                                     <td> {{ ' '.join(key.split('_')) }} </td>
                                     {% if 'mask' in key %}
-                                    <td> {{ "0x%08x" % detector_state1[crate][key] }} </td>
-                                    <td> {{ "0x%08x" % detector_state2[crate][key] }} </td>
+                                    <td> {{ "0x%08X" % detector_state1[crate][key] }} </td>
+                                    <td> {{ "0x%08X" % detector_state2[crate][key] }} </td>
                                     {% else %}
                                     <td> {{ detector_state1[crate][key] }} </td>
                                     <td> {{ detector_state2[crate][key] }} </td>
@@ -113,7 +115,7 @@
             </div>
 	    <div class="col-md-6">
                 <h2>Channel Thresholds</h2>
-                <table class="table table-condensed">
+                <table class="table table-condensed table-striped">
                     <thead>
                         <tr>
                             <td> Crate </td>
@@ -142,7 +144,7 @@
             </div>
 	    <div class="col-md-6">
                 <h2>Channel Triggers</h2>
-                <table class="table table-condensed">
+                <table class="table table-condensed table-striped">
                     <thead>
                         <tr>
                             <td> </td>

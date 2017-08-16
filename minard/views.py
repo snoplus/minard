@@ -220,18 +220,26 @@ def detector_state_diff():
     run1 = request.args.get("run1", 100000, type=int)
     run2 = request.args.get("run2", 0, type=int)
 
-    mtc_state1 = detector_state.get_mtc_state_for_run(run1)
-    mtc_state2 = detector_state.get_mtc_state_for_run(run2)
+    try:
+        run_state1 = detector_state.get_run_state(run1)
+        run_state2 = detector_state.get_run_state(run1)
 
-    caen_state1 = detector_state.get_caen_state_for_run(run1)
-    caen_state2 = detector_state.get_caen_state_for_run(run2)
+        mtc_state1 = detector_state.get_mtc_state_for_run(run1)
+        mtc_state2 = detector_state.get_mtc_state_for_run(run2)
 
-    detector_state1 = detector_state.get_detector_state(run1)
-    detector_state2 = detector_state.get_detector_state(run2)
+        caen_state1 = detector_state.get_caen_state_for_run(run1)
+        caen_state2 = detector_state.get_caen_state_for_run(run2)
+
+        detector_state1 = detector_state.get_detector_state(run1)
+        detector_state2 = detector_state.get_detector_state(run2)
+    except Exception as e:
+        flash(str(e), 'danger')
 
     return render_template('detector_state_diff.html',
                            run1=run1,
                            run2=run2,
+                           run_state1=run_state1,
+                           run_state2=run_state2,
                            mtc_state1=mtc_state1,
                            mtc_state2=mtc_state2,
                            caen_state1=caen_state1,

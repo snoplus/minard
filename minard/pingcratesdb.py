@@ -13,7 +13,7 @@ def add_run_to_db(run_dict):
     key = 'pingcrates-run-%s' % run_dict['run_number']
     p = redis.pipeline()
     p.hmset(key, run_dict)
-    p.expire(key, 604800)
+    p.expire(key, 3600*24*7*8) # 8 weeks
     p.zadd(RUN_INDEX, key, float(run_dict['run_number']))
     p.zadd(TIME_INDEX, key, float(run_dict['time']))
     return p.execute() 

@@ -1,0 +1,43 @@
+{% extends "layout.html" %}
+{% block title %}Channel Flags{% endblock %}
+{% block head %}
+  {{ super() }}
+{% endblock %}
+{% block body %}
+  {{ super() }}
+
+<div class="page-header">
+  <h1 align="center">Channel Flags</h1>
+</div>
+
+
+<div class="container">
+  <table class="table table-hover">
+    <thead>
+      <tr> 
+        <th> Run Number </th>
+        <th> Run Type </th>
+        <th> # CMOS Sync 16 Errors </th>
+        <th> # CGT Sync 24 Errors </th>
+        <th> # Missed Count Errors </th>
+        <th> List By Channel </th>
+      </tr>
+    </thead>
+    {% for run in runs if run %}
+      {% if run.run_type == "Physics" %}
+        <tr class="info">
+      {% else %}
+        <tr class="active">
+      {% endif %}
+        <th> {{run.run_number}} </th> 
+        <th> {{run.run_type}} </th>
+        <th> {{run.number_cmos_sync16}}</th>
+        <th> {{run.number_cgt_sync24}}</th>
+        <th> {{run.number_missed_count}}</th>
+        <th> <a href="{{ url_for("channelflagsbychannel",run_number=run.run_number)}}">Channel List</a> </th>
+      </tr>
+    {% endfor %}
+  </table>
+</div>
+
+{% endblock %}

@@ -5,6 +5,7 @@ from itertools import product
 import time
 from redis import Redis
 from os.path import join
+from ast import literal_eval
 import json
 import tools
 import HLDQTools
@@ -18,11 +19,9 @@ import os
 import sys
 import random
 import detector_state
-import pcadb
-import ecadb
+import fiber_position
+import redisdb
 import nlrat
-import noisedb
-import pingcratesdb
 from .polling import polling_runs, polling_info, polling_info_card, polling_check, polling_history
 from .channeldb import ChannelStatusForm, upload_channel_status, get_channels, get_channel_status, get_channel_status_form, get_channel_history, get_pmt_info, get_nominal_settings, get_most_recent_polling_info, get_discriminator_threshold, get_all_thresholds
 import re
@@ -541,7 +540,7 @@ def discriminator_info():
     run = request.args.get('run', 0, type=int)
 
     values, average, nmax, maxed = get_all_thresholds(run)
-    return render_template('discriminator_info.html', values=values, average=average, nmax=nmax, maxed=maxed)
+    return render_template('discriminator_info.html', values=values, average=average, nmax=nmax)
 
 @app.route('/max_thresholds')
 def max_thresholds():
@@ -838,7 +837,7 @@ def metric():
 
 @app.route('/eca')
 def eca():
-    runs = ecadb.runs_after_run(0)
+    runs = redisdb.runs_after_run('eca_runs_by_number', 0)
     return render_template('eca.html', runs=runs)
 
 @app.route('/eca_run_detail/<run_number>')
@@ -884,14 +883,14 @@ def pcatellie():
 
     start_run = request.args.get("start_run", 0)
     installed_only = request.args.get("installed_only", False)
-    runs = pcadb.runs_after_run(start_run)
+    runs = redisdb.runs_after_run('pca_tellie_runs_by_number', start_run)
     # Deal with expired runs
     runs = [run for run in runs if (len(run) > 0)]
     # Revert the order so the last run is at top of list
     runs = runs[::-1]
     # We need to bunch runs by fiber
     fibers = list()
-    for fiber in pcadb.FIBER_POSITION:
+    for fiber in fiber_position.FIBER_POSITION:
         runs_for_fiber = [run for run in runs
                           if int(run["fiber_number"]) == fiber[0]]
         sorted_runs = sorted(runs_for_fiber,
@@ -925,7 +924,7 @@ def pcatellie():
 
 @app.route('/pca_run_detail/<run_number>')
 def pca_run_detail(run_number):
-    run = pcadb.runs_after_run(int(run_number), int(run_number)+1)
+    run = redisdb.runs_after_run('pca_tellie_runs_by_number', int(run_number), int(run_number)+1)
     return render_template('pca_run_detail.html',
                            run_number=run_number,
                            run=run)
@@ -966,12 +965,12 @@ def calibdq_tellie_subrun_number(run_number,subrun_number):
 
 @app.route('/noise')
 def noise():
-    runs = noisedb.runs_after_run(0)
+    runs = redisdb.runs_after_run('noise_runs_by_number', 0)
     return render_template('noise.html', runs=runs)
 
 @app.route('/noise_run_detail/<run_number>')
 def noise_run_detail(run_number):
-    run = noisedb.get_run_by_number(run_number)
+    run = redisdb.get_run_by_number('noise_runs_by_number', run_number)
     if len(run):
         return render_template('noise_run_detail.html', run=run[0], run_number=run_number)
     else:
@@ -994,12 +993,37 @@ def physicsdq():
 
 @app.route('/pingcrates')
 def pingcrates():
-    runs = pingcratesdb.runs_after_run(0)
+    runs = redisdb.runs_after_run('pingcrates_runs_by_number', 0)
     return render_template('pingcrates.html', runs=runs)
 
 @app.route('/pingcrates_run/<run_number>')
 def pingcrates_run(run_number):
     return render_template('pingcrates_run.html', run_number=run_number)
+
+@app.route('/channelflags')
+def channelflags():
+    runs = redisdb.runs_after_run('channelflags_runs_by_number', 0)
+    return render_template('channelflags.html', runs=runs)
+
+@app.route('/channelflagsbychannel/<run_number>')
+def channelflagsbychannel(run_number):
+    run = redisdb.get_run_by_number('channelflags_runs_by_number', run_number)
+    cmos_sync16 = literal_eval(run[0]['cmos_sync16'])
+    cgt_sync24 = literal_eval(run[0]['cgt_sync24'])
+    missed_count = literal_eval(run[0]['missed_count'])
+    run_type = run[0]['run_type']
+    if cgt_sync24 == 0:
+       cgt_sync24 = None
+    if cmos_sync16 == 0:
+       cmos_sync16 = None
+    if missed_count == 0:
+       missed_count = None
+    return render_template('channelflagsbychannel.html', cmos_sync16=cmos_sync16, cgt_sync24=cgt_sync24, missed_count=missed_count, run_number=run_number, run_type=run_type)
+
+@app.route('/trigger_clock_jump')
+def trigger_clock_jump():
+    runs = redisdb.runs_after_run('triggerclockjumps_runs_by_number', 0)
+    return render_template('trigger_clock_jump.html', runs=runs)
  
 @app.route('/physicsdq/<run_number>')
 def physicsdq_run_number(run_number):

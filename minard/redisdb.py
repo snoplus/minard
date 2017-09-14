@@ -2,23 +2,20 @@ from redis import Redis
 
 redis = Redis()
 
-TIME_INDEX = 'pingcrates_runs_by_time'
-RUN_INDEX = 'pingcrates_runs_by_number'
-
-def add_run_to_db(run_dict):
+def add_run_to_db(key_index, run_dict):
     '''
     Creates Redis entries for a run. Requires run_number and time keys in 
     run_dict
     '''
-    key = 'pingcrates-run-%s' % run_dict['run_number']
+    key = '%s%s' % (key_index, run_dict['run_number'])
     p = redis.pipeline()
     p.hmset(key, run_dict)
     p.expire(key, 604800)
     p.zadd(RUN_INDEX, key, float(run_dict['run_number']))
-    p.zadd(TIME_INDEX, key, float(run_dict['time']))
-    return p.execute() 
+    p.zadd(TIME_INDEX, key, float(run_dict['run_time']))
+    return p.execute()  
     
-def runs_after_time(time, maxtime = '+inf'):
+def runs_after_time(TIME_INDEX, time, maxtime = '+inf'):
     '''
     Returns Redis entries for all runs between time and maxtime. 
     Requires Redis instance, start-time and maximum time.
@@ -29,19 +26,18 @@ def runs_after_time(time, maxtime = '+inf'):
         p.hgetall(key)
     return p.execute()    
         
-def runs_after_run(run, maxrun = '+inf'):
+def runs_after_run(RUN_INDEX, run, maxrun = '+inf'):
     '''
     Returns Redis entries for all runs between run and maxrun. 
     Requires Redis instance, start-run and maximum run.
     '''
     keys = redis.zrangebyscore(RUN_INDEX, run, maxrun)
-    keys.reverse() # Sort with most recent first
     p = redis.pipeline()
     for key in keys:
         p.hgetall(key)
     return p.execute()    
 
-def get_run_by_number(runnum):
+def get_run_by_number(RUN_INDEX, runnum):
     '''
     Returns Redis entries for specific run by run number
     Requires Redis instance, and run number.
@@ -52,11 +48,18 @@ def get_run_by_number(runnum):
         p.hgetall(key)
     return p.execute()    
 
-def del_run_from_db(run_number):
+def get_run_status(key_index, runnum):
+    '''
+    Returns run status for specific run by run number
+    Requires Redis instance, and run number.
+    '''
+    return redis.hget("%s%i" % (key_index, int(runnum)), "run_status")
+
+def del_run_from_db(key_index, run_number):
     '''
     Delete run from Redis. Requires Redis instance and run number. 
     '''
-    key = 'pingcrates-run-%s' % run_number
+    key = '%s%s' % (key_index, run_number)
     p = redis.pipeline()
     p.delete(key)
     p.zrem(RUN_INDEX, key)

@@ -1,0 +1,40 @@
+{% extends "layout.html" %}
+{% block title %}Trigger Clock Jumps{% endblock %}
+{% block head %}
+  {{ super() }}
+{% endblock %}
+{% block body %}
+  {{ super() }}
+
+<div class="page-header">
+  <h1 align="center">Trigger Clock Jumps</h1>
+</div>
+
+<div class="container">
+  <table class="table table-hover">
+    <thead>
+      <tr> 
+        <th> Run Number </th>
+        <th> 10MHz Clock Online </th>
+        <th> # of 10MHz Clock Jumps </th>
+        <th> # of 50MHz Clock Jumps </th>
+        <th> Time Processed </th>
+      </tr>
+    {% for run in runs if run %}
+        {% if run.clockOK %}
+        <tr class="success">
+        {% else %}
+        <tr class="danger">  
+        {% endif %}
+        <th> {{run.run_number}} </th>
+        <th> {{run.clockOK}} </th>
+        <th> {{run.clock10jumps}} </th>
+        <th> {{run.clock50jumps}} </th>
+        <th> {{run.time|timefmt}} </th>
+      </tr>
+    {% endfor %}
+    </thead>
+  </table>
+</div>
+
+{% endblock %}

@@ -1,0 +1,102 @@
+{% extends "layout.html" %}
+{% block title %}Channel Flags By Channel{% endblock %}
+{% block head %}
+  {{ super() }}
+{% endblock %}
+{% block body %}
+  {{ super() }}
+
+<div class="page-header">
+  <h1 align="center">Channel Flags By Channel for {{run_type}} Run {{run_number}} </h1>
+</div>
+
+
+<div class="container">
+  <h4> CMOS Sync 16 </h4>
+  <table class="table table-hover">
+    <thead>
+      <tr>
+        <th> Crate </th>
+        <th> Card </th>
+        <th> Channel </th>
+        <th> # Errors </th>
+      </tr>
+    </thead>
+      {% if cmos_sync16 %}
+        {% for data in cmos_sync16 %}
+        <tr class="info">
+          <th> {{data[0]}} </th>
+          <th> {{data[1]}} </th>
+          <th> {{data[2]}} </th>
+          <th> {{data[3]}} </th>
+        </tr> 
+        {% endfor %}
+      {% else %}
+        <tr class="info">
+          <th> - </th>
+          <th> - </th>
+          <th> - </th>
+          <th> None! </th>
+        </tr> 
+      {% endif %}
+  </table>
+  <h4> CGT Sync 24 </h4>
+  <table class="table table-hover">
+    <thead>
+      <tr>
+        <th> Crate </th>
+        <th> Card </th>
+        <th> Channel </th>
+        <th> # Errors </th>
+      </tr>
+    </thead>
+      {% if cgt_sync24 %}
+        {% for data in cgt_sync24 %}
+        <tr class="info">
+          <th> {{data[0]}} </th>
+          <th> {{data[1]}} </th>
+          <th> {{data[2]}} </th>
+          <th> {{data[3]}} </th>
+        </tr> 
+        {% endfor %}
+      {% else %}
+        <tr class="info">
+          <th> - </th>
+          <th> - </th>
+          <th> - </th>
+          <th> None! </th>
+        </tr> 
+      {% endif %}
+  </table>
+  <h4> Missed Count </h4>
+  <table class="table table-hover">
+    <thead>
+      <tr>
+        <th> Crate </th>
+        <th> Card </th>
+        <th> Channel </th>
+        <th> # Errors </th>
+      </tr>
+    </thead>
+      {% if missed_count %}
+        {% for data in missed_count %}
+        <tr class="info">
+          <th> {{data[0]}} </th>
+          <th> {{data[1]}} </th>
+          <th> {{data[2]}} </th>
+          <th> {{data[3]}} </th>
+        </tr> 
+        {% endfor %}
+      {% else %}
+        <tr class="info">
+          <th> - </th>
+          <th> - </th>
+          <th> - </th>
+          <th> None! </th>
+        </tr> 
+      {% endif %}
+  </table>
+</div>
+
+{% endblock %}
+

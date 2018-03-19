@@ -220,8 +220,8 @@ def channel_database():
     results = get_channels(request.args, pmt_type, limit)
 
     # Add PMT type descriptor to results
-    pmt_type = pmt_type_description(pmt_type)
     for i in range(len(results)):
+        pmt_type = pmt_type_description(results[i]['type'])
         results[i]['pmt_type'] = pmt_type
 
     return render_template('channel_database.html', results=results, limit=limit)

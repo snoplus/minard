@@ -3,6 +3,7 @@ import sys
 from redis import Redis
 import bisect
 from redistools import maxcard, avgcard, maxcrate, avgcrate
+from .db import engine
 
 redis = Redis()
 
@@ -71,6 +72,37 @@ def get_hash_timeseries(name, start, stop, step, crate, card=None,
         return values
 
     return map(type, values)
+
+def get_cavity_temp(sensor, start, stop, step):
+    """
+    Returns the time series for column `name` from table `table` from start to
+    stop in increments of step. start, stop, and step should all be UNIX
+    timestamps.
+
+    Note: This function assumes that the table has a column named timestamp.
+    """
+    conn = engine.connect()
+
+    query = ("SELECT floor(extract(epoch from timestamp)/%i)::numeric::integer AS id, avg(temp) "
+             "FROM cavity_temp WHERE extract(epoch from timestamp) >= %i AND "
+             "extract(epoch from timestamp) <= %i "
+             "AND sensor = %%s "
+             "GROUP BY floor(extract(epoch from timestamp)/%i)" % \
+             (step, start, stop, step))
+
+    result = conn.execute(query, (sensor,))
+
+    values = [None]*len(range(start,stop,step))
+
+    rows = result.fetchall()
+
+    print(rows)
+
+    for id, temp in rows:
+        print(id)
+        values[id - start//step] = temp
+
+    return values
 
 def get_timeseries(name, start, stop, step, type=None):
     """

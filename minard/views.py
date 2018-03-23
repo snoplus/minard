@@ -12,6 +12,7 @@ from .tools import parseiso, total_seconds
 from collections import deque, namedtuple
 from .timeseries import get_timeseries, get_interval, get_hash_timeseries
 from .timeseries import get_timeseries_field, get_hash_interval
+from .timeseries import get_cavity_temp
 from math import isnan
 import os
 import sys
@@ -990,7 +991,11 @@ def metric_hash():
     return jsonify(values=values)
 
 def get_metric(expr, start, stop, step):
-    if expr in ('L2:gtid', 'L2:run'):
+    print(expr.split('-')[0] == 'temp')
+    if expr.split('-')[0] == 'temp':
+        sensor = int(expr.split('-')[1])
+        values = get_cavity_temp(sensor, start, stop, step)
+    elif expr in ('L2:gtid', 'L2:run'):
         values = get_timeseries(expr, start, stop, step)
     elif expr in ('gtid', 'run', 'subrun'):
         values = get_timeseries_field('trig', expr, start, stop, step)

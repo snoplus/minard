@@ -4,6 +4,39 @@ $("#step-menu").on("change", function() {
 
 var context = create_context('#main', step);
 
+var CAVITY_TEMP_SENSORS = [
+  20,
+  16,
+  7,
+  22,
+  24,
+  21,
+  0,
+  23,
+  12,
+  3,
+  13,
+  26,
+  1,
+  9,
+  4,
+  14,
+  29,
+  8,
+  5,
+  2,
+  27,
+  18,
+  11,
+  19,
+  25,
+  17,
+  15,
+  28,
+  6,
+  10,
+];
+
 function metric(name) {
     var display = name;
 
@@ -53,7 +86,11 @@ function add_horizon(expressions, format, colors, extent) {
         });
 }
 
-add_horizon(["temp-1"]);
+add_horizon(CAVITY_TEMP_SENSORS.map(function(x) { return "temp-" + x; }),
+            format_rate,
+            null,
+            [10,20]);
+
 context.on("focus", function(i) {
   d3.selectAll(".value").style("right", i === null ? null : context.size() - i + "px");
 });

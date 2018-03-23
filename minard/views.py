@@ -692,6 +692,14 @@ def docs(dir='', subdir='', filename='index.html'):
     path = join('docs', dir, subdir, filename)
     return app.send_static_file(path)
 
+@app.route('/cavity-temp')
+def cavity_temp():
+    if len(request.args) == 0:
+        return redirect(url_for('cavity_temp',step=867,height=20,_external=True))
+    step = request.args.get('step',1,type=int)
+    height = request.args.get('height',40,type=int)
+    return render_template('cavity_temp.html',step=step,height=height)
+
 @app.route('/snostream')
 def snostream():
     if len(request.args) == 0:

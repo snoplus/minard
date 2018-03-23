@@ -999,7 +999,6 @@ def metric_hash():
     return jsonify(values=values)
 
 def get_metric(expr, start, stop, step):
-    print(expr.split('-')[0] == 'temp')
     if expr.split('-')[0] == 'temp':
         sensor = int(expr.split('-')[1])
         values = get_cavity_temp(sensor, start, stop, step)

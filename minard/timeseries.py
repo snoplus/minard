@@ -97,7 +97,10 @@ def get_cavity_temp(sensor, start, stop, step):
     rows = result.fetchall()
 
     for id, temp in rows:
-        values[id - start//step] = temp
+        try:
+            values[id - start//step] = temp
+        except IndexError:
+            pass
 
     return values
 

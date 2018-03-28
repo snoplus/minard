@@ -83,14 +83,13 @@ def get_cavity_temp(sensor, start, stop, step):
     """
     conn = engine.connect()
 
-    query = ("SELECT floor(extract(epoch from timestamp)/%i)::numeric::integer AS id, avg(temp) "
-             "FROM cavity_temp WHERE extract(epoch from timestamp) >= %i AND "
-             "extract(epoch from timestamp) <= %i "
-             "AND sensor = %%s "
-             "GROUP BY floor(extract(epoch from timestamp)/%i)" % \
-             (step, start, stop, step))
+    query = ("SELECT floor(extract(epoch from timestamp)/%s)::numeric::integer AS id, avg(temp) "
+             "FROM cavity_temp WHERE timestamp >= to_timestamp(%s) AND "
+             "timestamp <= to_timestamp(%s) "
+             "AND sensor = %s "
+             "GROUP BY floor(extract(epoch from timestamp)/%s)")
 
-    result = conn.execute(query, (sensor,))
+    result = conn.execute(query, (step, start, stop, sensor, step))
 
     values = [None]*len(range(start,stop,step))
 

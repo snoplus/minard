@@ -1,5 +1,107 @@
 #!/usr/bin/env python
-from minard.data import cmos_consumer, base_consumer
+from __future__ import print_function, division
+from snotdaq import DataStream, Logger
+from minard.data import flush_to_redis, parse_base, unpack_index
+import socket
+import time
+import os
+
+# Set up the logging
+log = Logger()
+
+def base_consumer(host, port):
+    data = DataStream(host, port=port, subscriptions=['BASE'],
+		      timeout=0.1)
+    data.connect()
+
+    log.notice("connected to data server at '%s'" % host)
+
+    base_currents = {}
+
+    then = None
+    while True:
+        now = int(time.time())
+        try:
+            id, rec = data.recv_record()
+        except socket.timeout as e:
+            # timeout
+            log.debug("timeout")
+            id = None
+
+        if now > then and len(base_currents) > 0:
+            log.debug("flush to redis")
+            flush_to_redis(base_currents, 'base', then)
+            then = None
+            base_currents.clear()
+
+        if id is None:
+            time.sleep(0.1)
+            continue
+
+        if id != 'BASE':
+            raise ValueError("Expected base current record got id %i" % id)
+
+        if then is None:
+            then = now
+
+        crate, slotmask, channelmask, error_flags, counts, busy, timestamp = \
+            parse_base(rec)
+
+        log.debug("got data from crate %i" % crate)
+
+        for i, slot in enumerate(i for i in range(16) if (slotmask >> i) & 1):
+            for j, value in enumerate(map(int,counts[slot])):
+                if not channelmask[slot] & (1 << j) or value >> 31:
+                    continue
+
+                index = crate << 9 | slot << 5 | j
+
+                base_currents[index] = value - 127
+
+def daemonize():
+    if os.fork() != 0:
+        os._exit(0)
+
+    os.setsid()
+
+    f = open('/dev/null', 'w')
+
+    fd = f.fileno()
+
+    os.dup2(fd, 0)
+    os.dup2(fd, 1)
+    os.dup2(fd, 2)
 
 if __name__ == '__main__':
-    base_consumer(5558)
+    import argparse
+    import sys
+
+    parser = argparse.ArgumentParser('Script to parse BASE records and push them to redis')
+    parser.add_argument('--host',default='buffer1.sp.snolab.ca')
+    parser.add_argument('--port',default=4000,type=int)
+    parser.add_argument("--logfile", help="filename for log file",
+                        default=None)
+    parser.add_argument("-d", "--daemonize", action="store_true",
+			default=False)
+    parser.add_argument('--loglevel',
+                        help="logging level (debug, verbose, notice, warning)",
+                        default='notice')
+    args = parser.parse_args()
+
+    log.set_verbosity(args.loglevel)
+
+    if args.logfile:
+        log.set_logfile(args.logfile)
+
+    if args.daemonize:
+	daemonize()
+
+    while True:
+	try:
+	    base_consumer(args.host,args.port)
+	except socket.error as e:
+	    log.warn('failed to connect to data: %s' % str(e))
+	    time.sleep(60)
+	except Exception as e:
+	    log.warn('unhandled exception: %s' % str(e))
+	    time.sleep(60)

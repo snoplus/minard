@@ -8,19 +8,15 @@
 EXEC=/opt/minard/bin/data_consumer_cmos
 USER=minard
 MINARD_SETTINGS=/etc/minard/settings.cfg
+LOGFILE=/var/log/minard/data_consumer_cmos.log
 
 export MINARD_SETTINGS
 
-WORKERS=8
-
 case $1 in
     start)
-	for i in `seq 1 $WORKERS`; do
-	    echo -n "starting $EXEC"
-	    LOGFILE=/var/log/minard/data_consumer_cmos_$i.log
-	    daemon --user=$USER --check=$EXEC "nohup $EXEC > $LOGFILE 2>&1 &"
-	    echo
-	done
+        echo -n "starting $EXEC"
+        daemon --user=$USER --check=$EXEC $EXEC -d --logfile=$LOGFILE
+        echo
 	;;
     stop)
 	pkill -f $EXEC

@@ -1,5 +1,131 @@
 #!/usr/bin/env python
-from minard.data import cmos_consumer, base_consumer
+from __future__ import print_function, division
+from snotdaq import DataStream, Logger
+from minard.data import flush_to_redis, parse_cmos, unpack_index
+import socket
+import time
+import numpy as np
+import os
+
+# Set up the logging
+log = Logger()
+
+def cmos_consumer(host, port):
+    data = DataStream(host, port=port, subscriptions=['CMOS'],
+		      timeout=0.1)
+    data.connect()
+
+    log.notice("connected to data server at '%s'" % host)
+
+    cmos_count = {}
+    cmos_rates = {}
+
+    then = None
+    while True:
+        try:
+            id, rec = data.recv_record()
+        except socket.timeout as e:
+            # timeout
+            log.debug("timeout")
+            id = None
+
+        now = int(time.time())
+
+        if now > then and len(cmos_rates) > 0:
+            # flush results to database once a second
+            log.debug("flush to redis")
+            flush_to_redis(cmos_rates, 'cmos', then)
+            then = None
+            cmos_rates.clear()
+
+        if id is None:
+            time.sleep(0.1)
+            continue
+
+        if id != 'CMOS':
+            raise ValueError('Expected CMOS record, got record %i' % id)
+
+        if then is None:
+            then = now
+
+        crate, slotmask, channelmask, error_flags, counts, timestamp = \
+            parse_cmos(rec)
+
+        log.debug("got data from crate %i" % crate)
+
+	if slotmask == 0:
+	    continue
+
+        cards = np.array([i for i in range(16) if (slotmask >> i) & 1])
+        indices = (crate << 9 | cards[:,np.newaxis] << 5 | np.arange(32)).flatten()
+
+        for index, count in zip(indices, counts):
+            _, card, channel = unpack_index(index)
+
+            if (not channelmask[card] & (1 << channel)
+                or count >> 31):
+                continue
+
+            if index not in cmos_count:
+                cmos_count[index] = count, timestamp
+                continue
+
+            last_count, last_timestamp = cmos_count[index]
+
+            cmos_count[index] = count, timestamp
+
+            # time delta between cmos counts (seconds)
+            dt = timestamp - last_timestamp
+
+            if 0 < dt < 10 and count > last_count:
+                rate = (count-last_count)/dt
+                # time series
+                cmos_rates[index] = rate
+
+def daemonize():
+    if os.fork() != 0:
+        os._exit(0)
+
+    os.setsid()
+
+    f = open('/dev/null', 'w')
+
+    fd = f.fileno()
+
+    os.dup2(fd, 0)
+    os.dup2(fd, 1)
+    os.dup2(fd, 2)
 
 if __name__ == '__main__':
-    cmos_consumer(5557)
+    import argparse
+    import sys
+
+    parser = argparse.ArgumentParser('Script to parse CMOS records and push them to redis')
+    parser.add_argument('--host',default='buffer1.sp.snolab.ca')
+    parser.add_argument('--port',default=4000,type=int)
+    parser.add_argument("--logfile", help="filename for log file",
+                        default=None)
+    parser.add_argument("-d", "--daemonize", action="store_true",
+			default=False)
+    parser.add_argument('--loglevel',
+                        help="logging level (debug, verbose, notice, warning)",
+                        default='notice')
+    args = parser.parse_args()
+
+    log.set_verbosity(args.loglevel)
+
+    if args.logfile:
+        log.set_logfile(args.logfile)
+
+    if args.daemonize:
+	daemonize()
+
+    while True:
+	try:
+	    cmos_consumer(args.host,args.port)
+	except socket.error as e:
+	    log.warn('failed to connect to data: %s' % str(e))
+	    time.sleep(60)
+	except Exception as e:
+	    log.warn('unhandled exception: %s' % str(e))
+	    time.sleep(60)

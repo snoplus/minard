@@ -34,7 +34,6 @@ install: /opt/minard/bin/activate
 	$(INSTALL) init/gunicorn_snoplus_log /etc/init.d/
 	$(INSTALL) init/minard_dispatch_push /etc/init.d/
 	$(INSTALL) init/minard_dispatch_pull /etc/init.d/
-	$(INSTALL) init/data_producer /etc/init.d/
 	$(INSTALL) init/data_consumer_cmos /etc/init.d/
 	$(INSTALL) init/data_consumer_base /etc/init.d/
 	$(INSTALL) init/baseline_monitor /etc/init.d/
@@ -42,7 +41,6 @@ install: /opt/minard/bin/activate
 	chkconfig gunicorn_snoplus_log on
 	chkconfig minard_dispatch_push on
 	chkconfig minard_dispatch_pull on
-	chkconfig data_producer on
 	chkconfig data_consumer_cmos on
 	chkconfig data_consumer_base on
 	chkconfig baseline_monitor on

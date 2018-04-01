@@ -18,7 +18,7 @@ case $1 in
 	for i in `seq 1 $WORKERS`; do
 	    echo -n "starting $EXEC"
 	    LOGFILE=/var/log/minard/minard_dispatch_pull_$i.log
-	    daemon --user=$USER --check=$EXEC "nohup $EXEC > $LOGFILE 2>&1 &"
+	    daemon --user=$USER --check=$EXEC $EXEC -n $WORKERS -i $i -d --logfile=$LOGFILE
 	    echo
 	done
 	;;

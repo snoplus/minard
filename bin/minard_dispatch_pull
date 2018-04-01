@@ -123,6 +123,8 @@ def pull(host, num_workers, worker):
     """Connects to the dispatcher and processes the dispatch stream."""
     dispatcher = Dispatch(host)
 
+    log.notice("connected to %s" % host)
+
     post(host)
 
     cache = {}

@@ -5,10 +5,10 @@
 
 . /etc/init.d/functions
 
-EXEC=/opt/minard/bin/data_consumer_base
+EXEC=/opt/minard/bin/minard-base
 USER=minard
 MINARD_SETTINGS=/etc/minard/settings.cfg
-LOGFILE=/var/log/minard/data_consumer_cmos.log
+LOGFILE=/var/log/minard/minard_base.log
 
 export MINARD_SETTINGS
 

@@ -125,10 +125,6 @@ def pull(host, num_workers, worker):
 
     post(host)
 
-    context = zmq.Context()
-    zmq_socket = context.socket(zmq.PULL)
-    zmq_socket.connect('tcp://127.0.0.1:5560')
-
     cache = {}
     cache['trig'] = defaultdict(int)
     cache['trig:nhit'] = defaultdict(int)
@@ -264,9 +260,9 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Process SNO+ events from a dispatch stream and update redis')
     parser.add_argument('--host', default='localhost',
                         help='hostname of the dispatcher')
-    parser.add_argument('-n', '--num-workers', default=1,
+    parser.add_argument('-n', '--num-workers', type=int, default=1,
                         help='total number of workers running')
-    parser.add_argument('-w', '--worker', default=0,
+    parser.add_argument('-w', '--worker', type=int, default=0,
                         help='the worker number. This means the script will only process GTIDs which are equal to the worker number mod the total number of workers.')
     parser.add_argument("--logfile", help="filename for log file",
                         default=None)

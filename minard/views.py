@@ -33,6 +33,7 @@ import channelflagsdb
 import dropout
 import pmtnoisedb
 import gain_monitor
+import standard_runs as sr
 from run_list import golden_run_list
 from .polling import polling_runs, polling_info, polling_info_card, polling_check, polling_history, polling_summary
 from .channeldb import ChannelStatusForm, upload_channel_status, get_channels, get_channel_status, get_channel_status_form, get_channel_history, get_pmt_info, get_nominal_settings, get_most_recent_polling_info, get_discriminator_threshold, get_all_thresholds, get_maxed_thresholds, get_gtvalid_lengths, get_pmt_types, pmt_type_description, get_fec_db_history
@@ -1576,3 +1577,7 @@ def _dropout_detail_n100(run_number):
 @app.route("/dropout/_dropout_detail/N20/<int:run_number>")
 def _dropout_detail_n20(run_number):
     return dropout.get_details(run_number, 2)
+
+@app.route("/standard_runs")
+def standard_runs():
+    return render_template('standard_runs.html', values=sr.get_standard_runs())

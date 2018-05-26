@@ -1578,6 +1578,11 @@ def _dropout_detail_n100(run_number):
 def _dropout_detail_n20(run_number):
     return dropout.get_details(run_number, 2)
 
+@app.route('/standard_runs/<uuid>')
+@app.route("/standard_runs/")
 @app.route("/standard_runs")
-def standard_runs():
-    return render_template('standard_runs.html', values=sr.get_standard_runs())
+def standard_runs(uuid=None):
+    if uuid is None:
+        return render_template('standard_runs.html', values=sr.get_standard_runs())
+    print(uuid)
+    return "ZING"

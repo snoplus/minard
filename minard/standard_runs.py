@@ -16,3 +16,8 @@ def get_standard_runs():
     runs = sorted(runs, key=lambda x: x.key[1])
     runs = [(x, list(y)) for x,y in groupby(runs, lambda x: x.key[1])]
     return runs
+
+def get_standard_run(uuid):
+    couch = couchdb.Server("http://snoplus:"+app.config["COUCHDB_PASSWORD"]+"@"+app.config["COUCHDB_HOSTNAME"])
+    orca_db = couch['orca']
+    return orca_db.get(uuid)

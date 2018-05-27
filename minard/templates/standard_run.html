@@ -1,0 +1,37 @@
+{% extends "layout.html" %}
+{% block title %}Standard Runs{% endblock %}
+{% block head %}
+    {{ super() }}
+{% endblock %}
+{% block body %}
+    {{ super() }}
+    <div class="container">
+        {% if error %}
+            <p> {{error}} </p>
+        {% else %}
+        <form action="">
+        <table align="left">
+            <thead>
+            <th> Key </th>
+            <th> Value </th>
+            <th> New Value </th>
+            <th> Replace? </th>
+            </thead>
+            {% for k,v in sr_info %}
+            <tr>
+                <th> {{ k }} </th>
+                <th> {{ v }} </th>
+                <th> <input type="text"</th>
+                <th> <input type="checkbox"></input> </th>
+            </tr>
+            {% endfor %}
+        </table>
+        <br>
+        <button>Submit </button>
+        </form>
+        {% endif %}
+    </div>
+{% endblock %}
+{% block script %}
+{% endblock %}
+

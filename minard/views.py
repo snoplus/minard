@@ -192,6 +192,7 @@ def calculate_resistors():
     return render_template('calculate_resistors.html', crate=crate, slot=slot, resistors=resistors)
 
 @app.route('/detector-state-check')
+@app.route('/detector-state-check/')
 @app.route('/detector-state-check/<int:run>')
 def detector_state_check(run=None):
     if run is None:
@@ -434,6 +435,7 @@ def detector_state_diff():
                            detector_state2=detector_state2)
 
 @app.route('/state')
+@app.route('/state/')
 @app.route('/state/<int:run>')
 def state(run=None):
     try:

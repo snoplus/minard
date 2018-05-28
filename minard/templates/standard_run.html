@@ -30,11 +30,12 @@
             <p> Notes: {{ comments }} </p>
         </div>
         {% endif %}
+        <hr>
         <div class="row">
         <form action="{{url_for('standard_runs')}}/{{uuid}}" method="POST">
             <table class="table table-striped">
                 <thead>
-                    <th> Name</th>
+                    <th> Setting</th>
                     <th> Current Value</th>
                     <th> New Value</th>
                     <th> Replace?</th>
@@ -70,7 +71,5 @@
         </div>
         {% endif %}
     </div>
+    <br>
 {% endblock %}
-{% block script %}
-{% endblock %}
-

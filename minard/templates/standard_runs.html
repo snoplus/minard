@@ -1,0 +1,25 @@
+{% extends "layout.html" %}
+{% block title %}Standard Runs{% endblock %}
+{% block head %}
+{{ super() }}
+{% endblock %}
+{% block body %}
+{{ super() }}
+<div class="container">
+    <h1> Standard Runs </h1>
+    <ul class="list-group">
+        {% for k, v in values %}
+        <li class="list-group-item">
+            <h4>{{ k }}</h4>
+            <div class="list-group">
+                {% for x in v %}
+                <a class="list-group-item" href="{{url_for('standard_runs') }}/{{x.id}}" >{{ x.key[2]  }} </a> 
+                {% endfor %}
+            </div>
+        </li>
+        {% endfor %}
+    </ul>
+</div>
+{% endblock %}
+{% block script %}
+{% endblock %}

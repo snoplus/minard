@@ -1609,7 +1609,7 @@ def standard_runs(uuid=None):
         flash("Requested standard run does not exist", "danger")
         return render_template("standard_run.html")
 
-    # Remove values that shouldn't be changed
+    # Remove values that shouldn't be changed or are just noise
     sr_info.pop("version", None)
     sr_info.pop("MTC,tub", None)
     sr_info.pop("timestamp", None)

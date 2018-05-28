@@ -1584,22 +1584,30 @@ def _dropout_detail_n20(run_number):
 @app.route("/standard_runs/")
 @app.route("/standard_runs")
 def standard_runs(uuid=None):
-    error = None
     if uuid is None:
         return render_template('standard_runs.html', values=sr.get_standard_runs())
     if request.method =='POST':
+        updater = request.form.get("name")
+        info = request.form.get("info")
+        passw = request.form.get("password")
+        print(updater, info, passw)
         new_values = [x[:-8] for x in request.form.keys() if x[-8:] == "_replace"]
         new_values = {x:request.form[x+"_value"] for x in new_values}
         new_values = {k:v for k,v in new_values.iteritems() if v}
         if not new_values:
-            error = "No new values given. No update performed"
+            flash("No new values given. Update not performed", "danger")
+        elif(passw != app.config["SECRET_KEY"]):
+            flash("Incorrect password", "danger")
         else:
+            new_values["updated_by"] = updater
+            new_values["comments"] = info
             new_uuid = sr.update_standard_run(uuid, new_values)
             uuid = new_uuid
-
+            flash("Updated standard run", "success")
     sr_info = sr.get_standard_run(uuid)
     if sr_info is None:
-        return render_template("standard_run.html", error="Requested standard run does not exist")
+        flash("Requested standard run does not exist", "danger")
+        return render_template("standard_run.html")
 
     # Remove values that shouldn't be changed
     sr_info.pop("version", None)
@@ -1610,6 +1618,9 @@ def standard_runs(uuid=None):
     sr_info.pop("_id", None)
     sr_info.pop("XilinxFilePath", None)
     sr_info.pop("type", None)
+    comments = sr_info.pop("comments", None)
+    updater = sr_info.pop("updated_by", None)
+    sr_info.pop("Comments", None)
 
-    sr_info = sorted(sr_info.iteritems(), key=lambda x: x[0])
-    return render_template("standard_run.html", sr_info=sr_info, uuid=uuid, error=error)
+    return render_template("standard_run.html", sr_info=sr_info, uuid=uuid,
+                           comments=comments, updater=updater)

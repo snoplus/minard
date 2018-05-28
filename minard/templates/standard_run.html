@@ -7,50 +7,62 @@
     {{ super() }}
     <div class="container">
         {% if error %}
-            <p> {{error}} </p>
-        {% else %}
-        <div class="row">
-            <div class="col-md-3">
-                <strong>Name</strong>
-            </div>
-
-            <div class="col-md-3">
-                <strong>Current Value</strong>
-            </div>
-            <div class="col-md-3">
-                <strong>New Value</strong>
-            </div>
-            <div class="col-md-3">
-                <strong>Replace?</strong>
-            </div>
+            <p class="text-danger"> {{error}} </p>
+        {% endif %}
+        {% if sr_info %}
+        <div class = "row">
+            <h2>
+                {{sr_info.get('run_type')}} - {{sr_info.get('run_version')}}
+            </h2>
+            {% if updater %}
+            <h4>
+                Last Updated By: {{ updater }}
+            </h4>
+            {% endif %}
+            {% if comments %}
+            <p>
+            Notes: {{ comments }}
+            </p>
+            {% endif %}
         </div>
-        <br><hr>
-
+        <div class="row">
         <form action="{{url_for('standard_runs')}}/{{uuid}}" method="POST">
-        <div class="form-group">
-            {% for k, v in sr_info %}
-        <div class="row">
-            <div class="col-md-3">
-            <label for="{{ k }}"> {{ k }}</label>
-            </div>
-            <div class="col-md-3">
-                <p>
-                {{v}}
-                </p>
-            </div>
-            <div class="col-md-3">
-                <input type="text" name="{{ k }}_value" class="form-control" id="{{ k }} ">
-            </div>
-            <div class="col-md-3">
-                <input type="checkbox" name="{{ k }}_replace" class="form-control">
-            </div>
-        </div>
+            <table class="table table-striped">
+                <thead>
+                    <th> Name</th>
+                    <th> Current Value</th>
+                    <th> New Value</th>
+                    <th> Replace?</th>
+                </thead>
+            {% for k, v in sr_info.iteritems()|sort %}
+            <tr>
+                <td> <label for="{{k}}"> {{ k }} </label> </td>
+                <td> {{ v }} </td>
+                <td> <input type="text" name="{{k}}_value" class="form-control" id="{{k}}"></input></td>
+                <td> <input type="checkbox" name="{{k}}_replace" class="form-control"></input></td>
+            </tr>
             {% endfor %}
-            <div class="row">
-                <button type="submit" class="btn btn primary"> Submit </button>
+            </table>
+
+            <div class="form-group">
+                <label for="name"> Name </label>
+                <input class="form-control" required type=text" name="name" style="width:500px"></input>
             </div>
-        </div>
+
+            <div class="form-group">
+                <label for="textarea"> Info </label>
+                <textarea class="form-control" required type="textarea" name="info" rows=3 style="width:500px"></textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="password"> Password </label>
+                <input class="form-control" required type="password" name="password" style="width:500px"></input>
+            </div>
+            <div class="row">
+                <button type="submit" class="btn btn-primary"> Submit </button>
+            </div>
         </form>
+        </div>
         {% endif %}
     </div>
 {% endblock %}

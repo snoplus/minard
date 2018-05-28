@@ -12,19 +12,24 @@
         {% if sr_info %}
         <div class = "row">
             <h2>
+                <a href="{{url_for('standard_runs')}}">
+                    <span class="glyphicon glyphicon-chevron-left"> </span>
+                </a>
                 {{sr_info.get('run_type')}} - {{sr_info.get('run_version')}}
             </h2>
-            {% if updater %}
+        </div>
+        {% if updater %}
+        <div class = "row">
             <h4>
                 Last Updated By: {{ updater }}
             </h4>
-            {% endif %}
-            {% if comments %}
-            <p>
-            Notes: {{ comments }}
-            </p>
-            {% endif %}
         </div>
+        {% endif %}
+        {% if comments %}
+        <div class="row">
+            <p> Notes: {{ comments }} </p>
+        </div>
+        {% endif %}
         <div class="row">
         <form action="{{url_for('standard_runs')}}/{{uuid}}" method="POST">
             <table class="table table-striped">

@@ -21,3 +21,12 @@ def get_standard_run(uuid):
     couch = couchdb.Server("http://snoplus:"+app.config["COUCHDB_PASSWORD"]+"@"+app.config["COUCHDB_HOSTNAME"])
     orca_db = couch['orca']
     return orca_db.get(uuid)
+
+def update_standard_run(uuid, new_values):
+    couch = couchdb.Server("http://snoplus:"+app.config["COUCHDB_PASSWORD"]+"@"+app.config["COUCHDB_HOSTNAME"])
+    orca_db = couch['orca']
+    doc = orca_db.get(uuid)
+    for k, v in new_values.iteritems():
+        doc[k] = v
+    new_uuid, _ = orca_db.save(doc)
+    return new_uuid

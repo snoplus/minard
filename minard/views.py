@@ -1578,23 +1578,36 @@ def _dropout_detail_n100(run_number):
 def _dropout_detail_n20(run_number):
     return dropout.get_details(run_number, 2)
 
-@app.route('/standard_runs/<uuid>')
+@app.route('/standard_runs/<uuid>', methods=['GET', 'POST'])
 @app.route("/standard_runs/")
 @app.route("/standard_runs")
 def standard_runs(uuid=None):
+    error = None
     if uuid is None:
         return render_template('standard_runs.html', values=sr.get_standard_runs())
+    if request.method =='POST':
+        new_values = [x[:-8] for x in request.form.keys() if x[-8:] == "_replace"]
+        new_values = {x:request.form[x+"_value"] for x in new_values}
+        new_values = {k:v for k,v in new_values.iteritems() if v}
+        if not new_values:
+            error = "No new values given. No update performed"
+        else:
+            new_uuid = sr.update_standard_run(uuid, new_values)
+            uuid = new_uuid
+
     sr_info = sr.get_standard_run(uuid)
     if sr_info is None:
         return render_template("standard_run.html", error="Requested standard run does not exist")
+
     # Remove values that shouldn't be changed
     sr_info.pop("version", None)
+    sr_info.pop("MTC,tub", None)
     sr_info.pop("timestamp", None)
     sr_info.pop("time_stamp", None)
     sr_info.pop("_rev", None)
     sr_info.pop("_id", None)
     sr_info.pop("XilinxFilePath", None)
+    sr_info.pop("type", None)
 
-    sr_info = sorted(sr_info.iteritems())
-    return render_template("standard_run.html", sr_info=sr_info)
-
+    sr_info = sorted(sr_info.iteritems(), key=lambda x: x[0])
+    return render_template("standard_run.html", sr_info=sr_info, uuid=uuid, error=error)

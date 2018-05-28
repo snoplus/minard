@@ -9,25 +9,47 @@
         {% if error %}
             <p> {{error}} </p>
         {% else %}
-        <form action="">
-        <table align="left">
-            <thead>
-            <th> Key </th>
-            <th> Value </th>
-            <th> New Value </th>
-            <th> Replace? </th>
-            </thead>
-            {% for k,v in sr_info %}
-            <tr>
-                <th> {{ k }} </th>
-                <th> {{ v }} </th>
-                <th> <input type="text"</th>
-                <th> <input type="checkbox"></input> </th>
-            </tr>
+        <div class="row">
+            <div class="col-md-3">
+                <strong>Name</strong>
+            </div>
+
+            <div class="col-md-3">
+                <strong>Current Value</strong>
+            </div>
+            <div class="col-md-3">
+                <strong>New Value</strong>
+            </div>
+            <div class="col-md-3">
+                <strong>Replace?</strong>
+            </div>
+        </div>
+        <br><hr>
+
+        <form action="{{url_for('standard_runs')}}/{{uuid}}" method="POST">
+        <div class="form-group">
+            {% for k, v in sr_info %}
+        <div class="row">
+            <div class="col-md-3">
+            <label for="{{ k }}"> {{ k }}</label>
+            </div>
+            <div class="col-md-3">
+                <p>
+                {{v}}
+                </p>
+            </div>
+            <div class="col-md-3">
+                <input type="text" name="{{ k }}_value" class="form-control" id="{{ k }} ">
+            </div>
+            <div class="col-md-3">
+                <input type="checkbox" name="{{ k }}_replace" class="form-control">
+            </div>
+        </div>
             {% endfor %}
-        </table>
-        <br>
-        <button>Submit </button>
+            <div class="row">
+                <button type="submit" class="btn btn primary"> Submit </button>
+            </div>
+        </div>
         </form>
         {% endif %}
     </div>

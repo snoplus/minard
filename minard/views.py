@@ -1590,7 +1590,6 @@ def standard_runs(uuid=None):
         updater = request.form.get("name")
         info = request.form.get("info")
         passw = request.form.get("password")
-        print(updater, info, passw)
         new_values = [x[:-8] for x in request.form.keys() if x[-8:] == "_replace"]
         new_values = {x:request.form[x+"_value"] for x in new_values}
         new_values = {k:v for k,v in new_values.iteritems() if v}

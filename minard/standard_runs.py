@@ -1,9 +1,10 @@
 import couchdb
 from itertools import groupby
 from .views import app
+from uuid import uuid4
 
 def get_standard_runs():
-    couch = couchdb.Server("http://snoplus:"+app.config["COUCHDB_PASSWORD"]+"@"+app.config["COUCHDB_HOSTNAME"])
+    couch = couchdb.Server("https://snoplus:"+app.config["COUCHDB_PASSWORD"]+"@"+app.config["COUCHDB_HOSTNAME"])
     orca_db = couch['orca']
     sr_view = orca_db.view("standardRuns/getStandardRunsWithVersion")
     # standard run keys are [doc-version, run name, run version, timestamp]
@@ -18,15 +19,17 @@ def get_standard_runs():
     return runs
 
 def get_standard_run(uuid):
-    couch = couchdb.Server("http://snoplus:"+app.config["COUCHDB_PASSWORD"]+"@"+app.config["COUCHDB_HOSTNAME"])
+    couch = couchdb.Server("https://snoplus:"+app.config["COUCHDB_PASSWORD"]+"@"+app.config["COUCHDB_HOSTNAME"])
     orca_db = couch['orca']
     return orca_db.get(uuid)
 
 def update_standard_run(uuid, new_values):
-    couch = couchdb.Server("http://snoplus:"+app.config["COUCHDB_PASSWORD"]+"@"+app.config["COUCHDB_HOSTNAME"])
+    couch = couchdb.Server("https://snoplus:"+app.config["COUCHDB_PASSWORD"]+"@"+app.config["COUCHDB_HOSTNAME"])
     orca_db = couch['orca']
-    doc = orca_db.get(uuid)
+    doc = dict(orca_db.get(uuid))
     for k, v in new_values.iteritems():
         doc[k] = v
+    doc["_id"] = uuid4().hex
+    del doc["_rev"]
     new_uuid, _ = orca_db.save(doc)
     return new_uuid

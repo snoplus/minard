@@ -1597,7 +1597,11 @@ def standard_runs(uuid=None):
         passw = request.form.get("password")
         new_values = [x[:-8] for x in request.form.keys() if x[-8:] == "_replace"]
         new_values = {x:request.form[x+"_value"] for x in new_values}
-        new_values = {k:v for k,v in new_values.iteritems() if v}
+        # Convert values from strings to floats/integers/bools if appropriate
+        new_values = {k:True if v.lower() == 'true' else v for k,v in new_values.iteritems() if v}
+        new_values = {k:False if v.lower() == 'false' else v for k,v in new_values.iteritems()}
+        new_values = {k:float(v) if v.isdigit() else v for k,v in new_values.iteritems()}
+        new_values = {k:int(v) if type(v)==float and v.is_integer() else v for k,v in new_values.iteritems()}
         if not new_values:
             flash("No new values given. Update not performed", "danger")
         elif(passw != app.config["SECRET_KEY"]):

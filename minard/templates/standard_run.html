@@ -6,9 +6,6 @@
 {% block body %}
     {{ super() }}
     <div class="container">
-        {% if error %}
-            <p class="text-danger"> {{error}} </p>
-        {% endif %}
         {% if sr_info %}
         <div class = "row">
             <h2>

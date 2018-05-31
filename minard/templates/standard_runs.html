@@ -6,6 +6,7 @@
 {% block body %}
 {{ super() }}
 <div class="container">
+    {% if values %}
     <h1> Standard Runs </h1>
     <ul class="list-group">
         {% for k, v in values %}
@@ -19,5 +20,6 @@
         </li>
         {% endfor %}
     </ul>
+    {% endif %}
 </div>
 {% endblock %}

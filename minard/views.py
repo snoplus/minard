@@ -1585,7 +1585,12 @@ def _dropout_detail_n20(run_number):
 @app.route("/standard_runs")
 def standard_runs(uuid=None):
     if uuid is None:
-        return render_template('standard_runs.html', values=sr.get_standard_runs())
+        values = None
+        try:
+            values = sr.get_standard_runs()
+        except sr.couchdb.http.socket.error:
+            flash("Error connecting to database, could not retrieve standard runs", "danger")
+        return render_template('standard_runs.html', values=values)
     if request.method =='POST':
         updater = request.form.get("name")
         info = request.form.get("info")
@@ -1600,12 +1605,24 @@ def standard_runs(uuid=None):
         else:
             new_values["updated_by"] = updater
             new_values["comments"] = info
-            new_uuid = sr.update_standard_run(uuid, new_values)
-            flash("Updated standard run", "success")
-            return redirect(url_for("standard_runs",uuid=new_uuid))
-    sr_info = sr.get_standard_run(uuid)
+            try:
+                new_uuid = sr.update_standard_run(uuid, new_values)
+                flash("Updated standard run", "success")
+                uuid = new_uuid
+            except sr.couchdb.http.socket.error:
+                flash("Error connecting to database, standard run not updated", "danger")
+
+            return redirect(url_for("standard_runs",uuid=uuid))
+
+    error_string = "Requested standard run does not exist"
+    try:
+        sr_info = sr.get_standard_run(uuid)
+    except sr.couchdb.http.socket.error:
+        sr_info = None
+        error_string = "Error connecting to database"
+
     if sr_info is None:
-        flash("Requested standard run does not exist", "danger")
+        flash(error_string, "danger")
         return render_template("standard_run.html")
 
     # Remove values that shouldn't be changed or are just noise

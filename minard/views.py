@@ -1601,8 +1601,8 @@ def standard_runs(uuid=None):
             new_values["updated_by"] = updater
             new_values["comments"] = info
             new_uuid = sr.update_standard_run(uuid, new_values)
-            uuid = new_uuid
             flash("Updated standard run", "success")
+            return redirect(url_for("standard_runs",uuid=new_uuid))
     sr_info = sr.get_standard_run(uuid)
     if sr_info is None:
         flash("Requested standard run does not exist", "danger")
@@ -1617,9 +1617,9 @@ def standard_runs(uuid=None):
     sr_info.pop("_id", None)
     sr_info.pop("XilinxFilePath", None)
     sr_info.pop("type", None)
+    sr_info.pop("Comments", None)
     comments = sr_info.pop("comments", None)
     updater = sr_info.pop("updated_by", None)
-    sr_info.pop("Comments", None)
 
     return render_template("standard_run.html", sr_info=sr_info, uuid=uuid,
                            comments=comments, updater=updater)

@@ -32,6 +32,15 @@ def update_standard_run(uuid, new_values):
         doc[k] = v
     doc["_id"] = uuid4().hex
     doc["time_stamp"] = time()
+
+    if not doc.has_key("run_version") or not bool(doc["run_version"]):
+        raise RuntimeError("run_version must be present in new document")
+
+    if not doc.has_key("run_type") or not bool(doc["run_type"]):
+        raise RuntimeError("run_type must be present in new document")
+
+    doc["run_type"] = doc["run_type"].upper()
+    doc["run_version"] = doc["run_version"].upper()
     try:
         del doc["_rev"]
     except KeyError:

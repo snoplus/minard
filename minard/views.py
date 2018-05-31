@@ -1611,7 +1611,8 @@ def standard_runs(uuid=None):
                 uuid = new_uuid
             except sr.couchdb.http.socket.error:
                 flash("Error connecting to database, standard run not updated", "danger")
-
+            except RuntimeError as e:
+                flash("Did not update standard run: %s" % str(e), "danger")
             return redirect(url_for("standard_runs",uuid=uuid))
 
     error_string = "Requested standard run does not exist"

@@ -1,6 +1,7 @@
 import couchdb
 from itertools import groupby
 from .views import app
+from time import time
 from uuid import uuid4
 
 def get_standard_runs():
@@ -30,6 +31,11 @@ def update_standard_run(uuid, new_values):
     for k, v in new_values.iteritems():
         doc[k] = v
     doc["_id"] = uuid4().hex
-    del doc["_rev"]
+    doc["time_stamp"] = time()
+    try:
+        del doc["_rev"]
+    except KeyError:
+        pass
+
     new_uuid, _ = orca_db.save(doc)
     return new_uuid

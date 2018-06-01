@@ -5,13 +5,16 @@ from time import time
 from uuid import uuid4
 
 def get_standard_runs():
+    # This number should match the version used by ORCA
+    COUCH_DOC_VERSION = app.config["ORCA_STANDARD_RUN_VERSION"]
     couch = couchdb.Server("https://snoplus:"+app.config["COUCHDB_PASSWORD"]+"@"+app.config["COUCHDB_HOSTNAME"])
     orca_db = couch['orca']
     sr_view = orca_db.view("standardRuns/getStandardRunsWithVersion")
     # standard run keys are [doc-version, run name, run version, timestamp]
     # I want to groupby by run name then within that group all run versions sorted
     # by timestamp
-    rows = sorted(sr_view.rows, key=lambda x: x.key[1] + x.key[2])
+    rows = filter(lambda x: x.key[0] == COUCH_DOC_VERSION, sr_view.rows)
+    rows = sorted(rows, key=lambda x: x.key[1] + x.key[2])
     groups = groupby(rows, lambda x: x.key[1] + x.key[2])
     groups = [(x, list(y)) for x, y in groups]
     runs = [max(group, key=lambda x: x.key[3]) for _, group in groups]
@@ -33,14 +36,17 @@ def update_standard_run(uuid, new_values):
     doc["_id"] = uuid4().hex
     doc["time_stamp"] = time()
 
-    if not doc.has_key("run_version") or not bool(doc["run_version"]):
+    if not doc.has_key("run_version") or not doc["run_version"]:
         raise RuntimeError("run_version must be present in new document")
 
-    if not doc.has_key("run_type") or not bool(doc["run_type"]):
+    if not doc.has_key("run_type") or not doc["run_type"]:
         raise RuntimeError("run_type must be present in new document")
 
     doc["run_type"] = doc["run_type"].upper()
     doc["run_version"] = doc["run_version"].upper()
+
+    # Remove revision field since we want to post a new document, not a
+    # revision of an existing one.
     try:
         del doc["_rev"]
     except KeyError:

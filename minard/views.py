@@ -1605,8 +1605,6 @@ def standard_runs(uuid=None):
         new_values = dict(new_values)
         if not new_values:
             flash("No new values given. Update not performed", "danger")
-        elif(passw != app.config["SECRET_KEY"]):
-            flash("Incorrect password", "danger")
         else:
             new_values["updated_by"] = updater
             new_values["comments"] = info

@@ -7,7 +7,8 @@ from uuid import uuid4
 def get_standard_runs():
     # This number should match the version used by ORCA
     COUCH_DOC_VERSION = app.config["ORCA_STANDARD_RUN_VERSION"]
-    couch = couchdb.Server("https://snoplus:"+app.config["COUCHDB_PASSWORD"]+"@"+app.config["COUCHDB_HOSTNAME"])
+    url = "https://%s:%s@%s" % ("snoplus", app.config["COUCHDB_PASSWORD"], app.config["COUCHDB_HOSTNAME"])
+    couch = couchdb.Server(url)
     orca_db = couch['orca']
     sr_view = orca_db.view("standardRuns/getStandardRunsWithVersion")
     # standard run keys are [doc-version, run name, run version, timestamp]
@@ -23,13 +24,25 @@ def get_standard_runs():
     return runs
 
 def get_standard_run(uuid):
-    couch = couchdb.Server("https://snoplus:"+app.config["COUCHDB_PASSWORD"]+"@"+app.config["COUCHDB_HOSTNAME"])
+    url = "https://%s:%s@%s" % ("snoplus", app.config["COUCHDB_PASSWORD"], app.config["COUCHDB_HOSTNAME"])
+    couch = couchdb.Server(url)
     orca_db = couch['orca']
     return orca_db.get(uuid)
 
 def update_standard_run(uuid, new_values):
-    couch = couchdb.Server("https://snoplus:"+app.config["COUCHDB_PASSWORD"]+"@"+app.config["COUCHDB_HOSTNAME"])
-    orca_db = couch['orca']
+    try:
+        password = new_values["password"]
+    except KeyError:
+        raise RuntimeError("no password given")
+    url = "https://%s:%s@%s" % (app.config["COUCH_DETECTOR_EXPERT_NAME"],
+                                password,
+                                app.config["COUCHDB_HOSTNAME"])
+    couch = couchdb.Server(url)
+    try:
+        orca_db = couch['orca']
+    except coucdb.http.Unautorized:
+        raise RuntimeError("Incorrect password given")
+
     doc = dict(orca_db.get(uuid))
     for k, v in new_values.iteritems():
         doc[k] = v

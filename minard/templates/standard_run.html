@@ -6,13 +6,22 @@
 {% block body %}
     {{ super() }}
     <div class="container">
-        {% if sr_info %}
+        {% if form %}
+        {% if form.errors %}
+            <ul class="errors">
+                {% for field_name, field_errors in form.errors|dictsort if field_errors %}
+                {% for error in field_errors %}
+                <li>{{ form[field_name].label }}: {{ error }}</li>
+                {% endfor %}
+                {% endfor %}
+            </ul>
+        {% endif %}
         <div class = "row">
             <h2>
                 <a href="{{url_for('standard_runs')}}">
                     <span class="glyphicon glyphicon-chevron-left"> </span>
                 </a>
-                {{sr_info.get('run_type')}} - {{sr_info.get('run_version')}}
+                {{ form.run_type.data }} - {{ form.run_version.data }}
             </h2>
         </div>
         {% if updater %}
@@ -29,43 +38,44 @@
         {% endif %}
         <hr>
         <div class="row">
-        <form action="{{url_for('standard_runs')}}/{{uuid}}" method="POST">
-            <table class="table table-striped">
-                <thead>
-                    <th> Setting</th>
-                    <th> Current Value</th>
-                    <th> New Value</th>
-                    <th> Replace?</th>
-                </thead>
-            {% for k, v in sr_info.iteritems()|sort %}
-            <tr>
-                <td> <label for="{{k}}"> {{ k }} </label> </td>
-                <td> {{ v }} </td>
-                <td> <input type="text" name="{{k}}_value" class="form-control" id="{{k}}"></input></td>
-                <td> <input type="checkbox" name="{{k}}_replace" class="form-control"></input></td>
-            </tr>
-            {% endfor %}
-            </table>
-
-            <div class="form-group">
-                <label for="name"> Name </label>
-                <input class="form-control" required type=text" name="name" style="width:500px"></input>
-            </div>
-
-            <div class="form-group">
-                <label for="textarea"> Info </label>
-                <textarea class="form-control" required type="textarea" name="info" rows=3 style="width:500px"></textarea>
-            </div>
-
-            <div class="form-group">
-                <label for="password"> Password </label>
-                <input class="form-control" required type="password" name="password" style="width:500px"></input>
-            </div>
-            <div class="row">
-                <button type="submit" class="btn btn-primary"> Submit </button>
-            </div>
-        </form>
+        <div>
+            <form action="{{url_for('standard_runs',uuid=uuid)}}" method="POST">
+                <table class="table table-striped">
+                    <thead>
+                        <th> Setting </th>
+                        <th> Current Value </th>
+                        <th> New Value </th>
+                    </thead>
+                    {% for field in form %}
+                    {% if field.label.text.lower() not in ['name', 'password', 'info'] %}
+                    <tr>
+                        <td> {{ field.label }} </td>
+                        <td> {{ field.data }} </td>
+                        <td> {{ field()}} </td>
+                    </tr>
+                    {% endif %}
+                    {% endfor %}
+                </table>
+                <div class="form-group">
+                    {{ form.name.label }}
+                    {{ form.name(class="form-control",style="width:500px") }}
+                </div>
+                <div class="form-group">
+                    {{ form.info.label }}
+                    {{ form.info(class="form-control",style="width:500px") }}
+                </div>
+                <div class="form-group">
+                    {{ form.password.label }}
+                    {{ form.password(class="form-control",style="width:500px") }}
+                </div>
+                <div class="row">
+                    <button type="submit" class="btn btn-primary"> Submit </button>
+                </div>
+            </form>
         </div>
+        </div>
+        {% else %}
+        <p> No form provided...not sure how this happened. </p>
         {% endif %}
     </div>
     <br>

@@ -1591,23 +1591,16 @@ def standard_runs(uuid=None):
         except sr.couchdb.http.socket.error:
             flash("Error connecting to database, could not retrieve standard runs", "danger")
         return render_template('standard_runs.html', values=values)
+
     if request.method =='POST':
-        updater = request.form.get("name")
-        info = request.form.get("info")
-        passw = request.form.get("password")
-        new_values = [x[:-8] for x in request.form.keys() if x[-8:] == "_replace"]
-        new_values = [(x,request.form[x+"_value"]) for x in new_values]
-        # Convert values from strings to floats/integers/bools if appropriate
-        new_values = [(k, True if v.lower() == 'true' else v) for k,v in new_values if v]
-        new_values = [(k, False if v.lower() == 'false' else v) for k,v in new_values]
-        new_values = [(k, float(v) if v.isdigit() else v) for k,v in new_values]
-        new_values = [(k, int(v) if type(v)==float and v.is_integer() else v) for k,v in new_values]
-        new_values = dict(new_values)
-        if not new_values:
-            flash("No new values given. Update not performed", "danger")
-        else:
-            new_values["updated_by"] = updater
-            new_values["comments"] = info
+        Form = sr.create_form(request.form)
+        form = Form(request.form)
+        if form.validate():
+            # Change form to a dict
+            new_values = {}
+            for field in form:
+                new_values[field.name] = field.data
+
             try:
                 new_uuid = sr.update_standard_run(uuid, new_values)
                 flash("Updated standard run", "success")
@@ -1617,6 +1610,10 @@ def standard_runs(uuid=None):
             except RuntimeError as e:
                 flash("Did not update standard run: %s" % str(e), "danger")
             return redirect(url_for("standard_runs",uuid=uuid))
+
+        else:
+            flash("Did not update standard run, new settings are not valid", "danger")
+            return render_template("standard_run.html", form=form, uuid=uuid)
 
     error_string = "Requested standard run does not exist"
     try:
@@ -1631,16 +1628,19 @@ def standard_runs(uuid=None):
 
     # Remove values that shouldn't be changed or are just noise
     sr_info.pop("version", None)
-    sr_info.pop("MTC,tub", None)
     sr_info.pop("timestamp", None)
     sr_info.pop("time_stamp", None)
     sr_info.pop("_rev", None)
     sr_info.pop("_id", None)
-    sr_info.pop("XilinxFilePath", None)
     sr_info.pop("type", None)
     sr_info.pop("Comments", None)
-    comments = sr_info.pop("comments", None)
-    updater = sr_info.pop("updated_by", None)
+    comments = sr_info.pop("info", None)
+    updater = sr_info.pop("name", None)
 
-    return render_template("standard_run.html", sr_info=sr_info, uuid=uuid,
+
+    Form = sr.create_form(sr_info)
+    form = Form()
+    for k, v in sr_info.iteritems():
+        form[k].data = v
+    return render_template("standard_run.html", form=form, uuid=uuid,
                            comments=comments, updater=updater)

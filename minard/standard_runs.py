@@ -1,8 +1,10 @@
 import couchdb
-from itertools import groupby
 from .views import app
+from itertools import groupby
 from time import time
 from uuid import uuid4
+from wtforms import Form, IntegerField, StringField, TextAreaField, PasswordField,\
+                    DecimalField, BooleanField, validators
 
 def get_standard_runs():
     # This number should match the version used by ORCA
@@ -31,7 +33,7 @@ def get_standard_run(uuid):
 
 def update_standard_run(uuid, new_values):
     try:
-        password = new_values["password"]
+        password = new_values.pop("password", None)
     except KeyError:
         raise RuntimeError("no password given")
     url = "https://%s:%s@%s" % (app.config["COUCH_DETECTOR_EXPERT_NAME"],
@@ -40,7 +42,7 @@ def update_standard_run(uuid, new_values):
     couch = couchdb.Server(url)
     try:
         orca_db = couch['orca']
-    except coucdb.http.Unautorized:
+    except couchdb.http.Unauthorized:
         raise RuntimeError("Incorrect password given")
 
     doc = dict(orca_db.get(uuid))
@@ -67,3 +69,75 @@ def update_standard_run(uuid, new_values):
 
     new_uuid, _ = orca_db.save(doc)
     return new_uuid
+
+expected_fields = [
+            IntegerField("CAEN_acquisitionMode", [validators.NumberRange(min=0, max=0b111)]),
+            IntegerField("CAEN_channelConfigMask"),
+            IntegerField("CAEN_coincidenceLevel"),
+            BooleanField("CAEN_countAllTriggers"),
+            IntegerField("CAEN_customSize"),
+            IntegerField("CAEN_dac_0", [validators.NumberRange(min=0, max=0xFFFF)]),
+            IntegerField("CAEN_dac_1", [validators.NumberRange(min=0, max=0xFFFF)]),
+            IntegerField("CAEN_dac_2", [validators.NumberRange(min=0, max=0xFFFF)]),
+            IntegerField("CAEN_dac_3", [validators.NumberRange(min=0, max=0xFFFF)]),
+            IntegerField("CAEN_dac_4", [validators.NumberRange(min=0, max=0xFFFF)]),
+            IntegerField("CAEN_dac_5", [validators.NumberRange(min=0, max=0xFFFF)]),
+            IntegerField("CAEN_dac_6", [validators.NumberRange(min=0, max=0xFFFF)]),
+            IntegerField("CAEN_dac_7", [validators.NumberRange(min=0, max=0xFFFF)]),
+            IntegerField("CAEN_enabledMask", [validators.NumberRange(min=0, max=0xFF)]),
+            IntegerField("CAEN_eventSize"),
+            IntegerField("CAEN_frontPanelControlMask"),
+            BooleanField("CAEN_isCustomSize"),
+            IntegerField("CAEN_postTriggerSetting"),
+            IntegerField("CAEN_triggerOutMask"),
+            IntegerField("CAEN_triggerSourceMask"),
+            IntegerField("MTC_ESUMH_Threshold", [validators.NumberRange(min=0,max=4095)]),
+            IntegerField("MTC_ESUML_Threshold", [validators.NumberRange(min=0,max=4095)]),
+            IntegerField("MTC_GTMask", [validators.NumberRange(min=0, max=0x3FFFFFF)]),
+            IntegerField("MTC_LockoutWidth", [validators.NumberRange(min=20, max=5000)]),
+            IntegerField("MTC_N100H_Threshold", [validators.NumberRange(min=0, max=4095)]),
+            IntegerField("MTC_N100L_Threshold", [validators.NumberRange(min=0, max=4095)]),
+            IntegerField("MTC_N100M_Threshold", [validators.NumberRange(min=0, max=4095)]),
+            IntegerField("MTC_N20LB_Threshold", [validators.NumberRange(min=0, max=4095)]),
+            IntegerField("MTC_N20_Threshold", [validators.NumberRange(min=0, max=4095)]),
+            IntegerField("MTC_OWLEH_Threshold", [validators.NumberRange(min=0, max=4095)]),
+            IntegerField("MTC_OWLEL_Threshold", [validators.NumberRange(min=0, max=4095)]),
+            IntegerField("MTC_OWLN_Threshold", [validators.NumberRange(min=0, max=4095)]),
+            IntegerField("MTC_PrescaleValue", [validators.NumberRange(min=2, max=65536)]),
+            BooleanField("MTC_PulserEnabled"),
+            BooleanField("MTC_PulserMode"),
+            DecimalField("MTC_PulserRate", [validators.NumberRange(min=0.04, max=390000)]),
+            IntegerField("TUBii_CaenChannelMask", [validators.NumberRange(min=0, max=255)]),
+            IntegerField("TUBii_CaenGainMask", [validators.NumberRange(min=0, max=255)]),
+            IntegerField("TUBii_DGT_Bits", [validators.NumberRange(min=0, max=255)]),
+            IntegerField("TUBii_LO_Bits", [validators.NumberRange(min=0, max=255)]),
+            IntegerField("TUBii_MTCAMimic1_ThresholdInBits", [validators.NumberRange(min=0, max=4095)]),
+            IntegerField("TUBii_TUBiiPGT_Rate", [validators.NumberRange(min=0)]),
+            IntegerField("TUBii_asyncTrigMask"),
+            IntegerField('TUBii_controlReg', [validators.NumberRange(min=0,max=255)]),
+            IntegerField('TUBii_counterMask', [validators.NumberRange(min=0)]),
+            IntegerField('TUBii_speakerMask', [validators.NumberRange(min=0)]),
+            IntegerField('TUBii_syncTrigMask', [validators.NumberRange(min=0)]),
+            IntegerField("run_type_word", [validators.NumberRange(min=0x0, max=0xFFFFFFF)]),
+            StringField("run_version", [validators.DataRequired()]),
+            StringField("type", [validators.DataRequired()])
+]
+expected_fields = dict([(x.args[0], x) for x in expected_fields])
+
+def create_form(fields):
+    class SRSettingsForm(Form):
+        name = StringField('Name', [validators.DataRequired()])
+        info = TextAreaField('Info', [validators.DataRequired()])
+        password = PasswordField('Password', [validators.DataRequired()])
+
+    # First create a form for the various fields in the couchDB doc
+    for key, value in fields.iteritems():
+        # skip any fields that are already in the form
+        if key.lower() in ["name", "info", "password"]:
+            continue
+        if expected_fields.has_key(key):
+            field = expected_fields[key]
+            setattr(SRSettingsForm, key, field)
+        else:
+            setattr(SRSettingsForm, key, StringField(key))
+    return SRSettingsForm

@@ -69,7 +69,25 @@ def occupancy_by_trigger_limit(limit, selected_run, run_range_low, run_range_hig
         crates[run] = str(crates[run])[1:-1]
 
     return status, crates, slots
- 
+
+def occupancy_timestamp(run):
+    """
+    Grab the timestamp before the queried run to speed up
+    the occupancy query
+    """
+    conn = engine_nl.connect()
+
+    result = conn.execute("SELECT timestamp FROM esumh_occupancy_fail "
+                          "WHERE run < %s ORDER BY timestamp DESC LIMIT 1", run)
+
+    row = result.fetchone()
+    if row is None:
+        return None
+
+    t = row[0]
+    time = t.strftime('%Y-%m-%d %H:%M:%S.%f')
+
+    return time
 
 def occupancy_by_trigger(trigger_type, run, find_issues):
     """
@@ -78,11 +96,15 @@ def occupancy_by_trigger(trigger_type, run, find_issues):
     """
     conn = engine_nl.connect()
 
+    # Used to speed up select statement
+    time = occupancy_timestamp(run)
+
     result = conn.execute("SELECT DISTINCT ON (run, lcn, trigger_bit) "
                           "lcn, trigger_norm, occupancy "
-                          "FROM trigger_occupancy WHERE trigger_bit = %s AND run = %s "
+                          "FROM trigger_occupancy WHERE timestamp >= %s "
+                          "AND trigger_bit = %s AND run = %s "
                           "ORDER BY run, lcn, trigger_bit ", \
-                          (trigger_type, run))
+                          (time, trigger_type, run))
 
     rows = result.fetchall()
 
@@ -102,7 +124,6 @@ def occupancy_by_trigger(trigger_type, run, find_issues):
     data = [float(x) / trigger_norm for x in data]
 
     return data
-
 
 def run_list(limit, run_range_low, run_range_high, gold):
     """
@@ -128,5 +149,4 @@ def run_list(limit, run_range_low, run_range_high, gold):
         runs.append(run[0])
 
     return runs
-
 

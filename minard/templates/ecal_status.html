@@ -1,0 +1,301 @@
+{% extends "layout.html" %}
+{% block title %}ECAL Status{% endblock %}
+{% block head %}
+    {{ super() }}
+    <style>
+        .noel tbody tr:nth-child(even) {
+            background-color: #ffffff;
+        }
+        .noel tbody tr:nth-child(odd) {
+            background-color: #adffad;
+        }
+    </style>
+{% endblock %}
+{% block body %}
+    {{ super() }}
+    <div class="container">
+	<div class="row">
+	    <div class="col-md-12">
+                <h3> Find ECAL Settings by CCC </h3>
+                Crate/Card/Channel
+                <select id="crate">
+                    <option value="0">0</option>
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                    <option value="5">5</option>
+                    <option value="6">6</option>
+                    <option value="7">7</option>
+                    <option value="8">8</option>
+                    <option value="9">9</option>
+                    <option value="10">10</option>
+                    <option value="11">11</option>
+                    <option value="12">12</option>
+                    <option value="13">13</option>
+                    <option value="14">14</option>
+                    <option value="15">15</option>
+                    <option value="16">16</option>
+                    <option value="17">17</option>
+                    <option value="18">18</option>
+                    <option value="19">19</option>
+                </select>
+                /
+                <select id="slot">
+                    <option value="0">0</option>
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                    <option value="5">5</option>
+                    <option value="6">6</option>
+                    <option value="7">7</option>
+                    <option value="8">8</option>
+                    <option value="9">9</option>
+                    <option value="10">10</option>
+                    <option value="11">11</option>
+                    <option value="12">12</option>
+                    <option value="13">13</option>
+                    <option value="14">14</option>
+                    <option value="15">15</option>
+                </select>
+                /
+                <select id="channel">
+                    <option value="0">0</option>
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                    <option value="5">5</option>
+                    <option value="6">6</option>
+                    <option value="7">7</option>
+                    <option value="8">8</option>
+                    <option value="9">9</option>
+                    <option value="10">10</option>
+                    <option value="11">11</option>
+                    <option value="12">12</option>
+                    <option value="13">13</option>
+                    <option value="14">14</option>
+                    <option value="15">15</option>
+                    <option value="16">16</option>
+                    <option value="17">17</option>
+                    <option value="18">18</option>
+                    <option value="19">19</option>
+                    <option value="20">20</option>
+                    <option value="21">21</option>
+                    <option value="22">22</option>
+                    <option value="23">23</option>
+                    <option value="24">24</option>
+                    <option value="25">25</option>
+                    <option value="26">26</option>
+                    <option value="27">27</option>
+                    <option value="28">28</option>
+                    <option value="29">29</option>
+                    <option value="30">30</option>
+                    <option value="31">31</option>
+                </select>
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <td> MBID </td>
+                            <td> DBID </td>
+                            <td> VBal Low Gain </td>
+                            <td> VBal High Gain </td>
+                            <td> VThr </td>
+                            <td> ISETM0 </td>
+                            <td> ISETM1 </td>
+                            <td> RMP </th>
+                        </tr>
+                    </thead>
+                    <tr>
+                        <td><a href="http://snopl.us/debugdb/board/{{ ecal_data['mbid'][2:] }}">{{ ecal_data['mbid'][2:] }}</a></td>
+                        <td><a href="http://snopl.us/debugdb/board/{{ ecal_data['dbid'][2:] }}">{{ ecal_data['dbid'][2:] }}</a></td>
+                        <td> {{ ecal_data['vbal_0'] }} </td>
+                        <td> {{ ecal_data['vbal_1'] }} </td>
+                        <td> {{ ecal_data['vthr'] }} </td>
+                        <td> {{ ecal_data['isetm0'] }} </td>
+                        <td> {{ ecal_data['isetm1'] }} </td>
+                        <td> {{ ecal_data['rmp'] }} </td>
+                    </tr>
+                </table>
+                <h3> Find Channels Failing the Following Test </h3>
+                Test Failed:
+                <select id="test">
+                    <option value="All">All</option>
+                    <option value="Crate CBal">Crate CBal</option>
+                    <option value="ZDisc">ZDisc</option>
+                    <option value="Set TTot">Set TTot</option>
+                    <option value="GTValid">GTValid</option>
+                    <option value="Pedestal">Pedestal</option>
+                    <option value="CGT">CGT</option>
+                    <option value="Get TTot">Get TTot</option>
+                    <option value="FEC Test">FEC Test</option>
+                    <option value="Disc Check">Disc Check</option>
+                </select>
+                Crate/Card/Channel
+                <select id="crate2">
+                    <option value="-1">-</option>
+                    <option value="0">0</option>
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                    <option value="5">5</option>
+                    <option value="6">6</option>
+                    <option value="7">7</option>
+                    <option value="8">8</option>
+                    <option value="9">9</option>
+                    <option value="10">10</option>
+                    <option value="11">11</option>
+                    <option value="12">12</option>
+                    <option value="13">13</option>
+                    <option value="14">14</option>
+                    <option value="15">15</option>
+                    <option value="16">16</option>
+                    <option value="17">17</option>
+                    <option value="18">18</option>
+                    <option value="19">19</option>
+                </select>
+                /
+                <select id="slot2">
+                    <option value="-1">-</option>
+                    <option value="0">0</option>
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                    <option value="5">5</option>
+                    <option value="6">6</option>
+                    <option value="7">7</option>
+                    <option value="8">8</option>
+                    <option value="9">9</option>
+                    <option value="10">10</option>
+                    <option value="11">11</option>
+                    <option value="12">12</option>
+                    <option value="13">13</option>
+                    <option value="14">14</option>
+                    <option value="15">15</option>
+                </select>
+                /
+                <select id="channel2">
+                    <option value="-1">-</option>
+                    <option value="0">0</option>
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                    <option value="5">5</option>
+                    <option value="6">6</option>
+                    <option value="7">7</option>
+                    <option value="8">8</option>
+                    <option value="9">9</option>
+                    <option value="10">10</option>
+                    <option value="11">11</option>
+                    <option value="12">12</option>
+                    <option value="13">13</option>
+                    <option value="14">14</option>
+                    <option value="15">15</option>
+                    <option value="16">16</option>
+                    <option value="17">17</option>
+                    <option value="18">18</option>
+                    <option value="19">19</option>
+                    <option value="20">20</option>
+                    <option value="21">21</option>
+                    <option value="22">22</option>
+                    <option value="23">23</option>
+                    <option value="24">24</option>
+                    <option value="25">25</option>
+                    <option value="26">26</option>
+                    <option value="27">27</option>
+                    <option value="28">28</option>
+                    <option value="29">29</option>
+                    <option value="30">30</option>
+                    <option value="31">31</option>
+                </select>
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <td> Crate </td>
+                            <td> Slot </td>
+                            <td> Channel </td>
+                            <td> FEC ID </td>
+                            <td> DB ID </td>
+                            <td> Tests Failed </td>
+                            <td> ECAL ID </td>
+                        <tr>
+                    </thead>
+                    {% if test == "All" %}
+                        <h4> Total: {{ ccc|length }} Channels Failed </h4>
+                    {% else %}
+                        <h4> Total: {{ ccc|length }} Channels Failed: {{ test }} </h4>
+                    {% endif %}
+                    {% if ccc %}
+                        {% for crate, slot, channel, ecalid, mbid, dbid, test in ccc %}
+                            <tr onclick="window.document.location = '{{ "channel-status?crate=%i&slot=%i&channel=%i" % (crate, slot, channel ) }}';">
+                                <td> {{ crate }} </td>
+                                <td> {{ slot }} </td>
+                                <td> {{ channel }} </td>
+                                <td><a href="http://snopl.us/debugdb/board/{{ mbid[2:] }}">{{ mbid[2:] }}</a></td>
+                                <td><a href="http://snopl.us/debugdb/board/{{ dbid[2:] }}">{{ dbid[2:] }}</a></td>
+                                <td> {{ test }} </td>
+                                <td><a href="https://snopl.us/debugdb/ecal/{{ ecalid }}">{{ ecalid }}</a></td>
+                            </tr>
+                        {% endfor %}
+                    {% else %}
+                        <td> None! </td>
+                    {% endif %}
+                </table>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+{% block script %}
+    <script>
+        if (url_params.crate) {
+            document.getElementById("crate").value = url_params.crate;
+        }
+        if (url_params.slot) {
+            document.getElementById("slot").value = url_params.slot;
+        }
+        if (url_params.channel) {
+            document.getElementById("channel").value = url_params.channel;
+        }
+        if (url_params.test) {
+            document.getElementById("test").value = url_params.test;
+        }
+        if (url_params.crate2) {
+            document.getElementById("crate2").value = url_params.crate2;
+        }
+        if (url_params.slot2) {
+            document.getElementById("slot2").value = url_params.slot2;
+        }
+        if (url_params.channel2) {
+            document.getElementById("channel2").value = url_params.channel2;
+        }
+        $("#crate, #slot, #channel, #test, #crate2, #slot2, #channel2").on("change", function() {
+            var params = {};
+            if (document.getElementById("crate").value != -1) {
+                params['crate'] = document.getElementById("crate").value;
+            }
+            if (document.getElementById("slot").value != -1) {
+                params['slot'] = document.getElementById("slot").value;
+            }
+            if (document.getElementById("channel").value != -1) {
+                params['channel'] = document.getElementById("channel").value;
+            }
+            if (document.getElementById("test").value != "") {
+                params['test'] = document.getElementById("test").value;
+            }
+            if (document.getElementById("crate2").value != -1) {
+                params['crate2'] = document.getElementById("crate2").value;
+            }
+            if (document.getElementById("slot2").value != -1) {
+                params['slot2'] = document.getElementById("slot2").value;
+            }
+            if (document.getElementById("channel2").value != -1) {
+                params['channel2'] = document.getElementById("channel2").value;
+            }
+            window.location.replace($SCRIPT_ROOT + "/ecal-status?" + $.param(params));
+        });
+    </script>
+{% endblock %}

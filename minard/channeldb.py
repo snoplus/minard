@@ -261,9 +261,8 @@ def get_discriminator_threshold(crate, slot):
     conn = engine.connect()
 
     # Select most recent zdisc with ecalid field
-    result = conn.execute("SELECT zero_disc FROM zdisc WHERE "
-        "(ecalid <> '') AND crate = %s AND slot = %s "
-        "ORDER BY timestamp DESC LIMIT 1", (crate, slot))
+    result = conn.execute("SELECT zero_disc FROM current_zdisc WHERE "
+        "crate = %s AND slot = %s", (crate, slot))
 
     if result is None:
         return None
@@ -298,7 +297,7 @@ def get_discriminator_threshold(crate, slot):
     threshold.update(vthr)
 
     result = conn.execute("SELECT vthr FROM fecdoc WHERE crate = %s AND slot = %s "
-                          "ORDER BY timestamp DESC LIMIT 1", (crate, slot))
+        "ORDER BY timestamp DESC LIMIT 1", (crate, slot))
 
     rows = result.fetchone()
 

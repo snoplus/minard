@@ -328,6 +328,25 @@
 		    {% endfor %}
 		</table>
 	    </div>
+	    <div class="col-md-4">
+                <h3>ECAL Tests Failed</h3>
+		<table class="table">
+		    <thead>
+			<tr>
+                            <th> Test(s) </th>
+                        </tr>
+                    </thead>
+		    <thead>
+			<tr>
+                        {% if test_failed %}
+                            <td> {{ test_failed }} </td>
+                        {% else %}
+                            <td> None </td>
+                        {% endif %}
+			</tr>
+		    </thead>
+		</table>
+	    </div>
 	</div>
     </div>
 {% endblock %}

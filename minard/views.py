@@ -37,6 +37,7 @@ import gain_monitor
 from run_list import golden_run_list
 from .polling import polling_runs, polling_info, polling_info_card, polling_check, polling_history, polling_summary, get_most_recent_polling_info, get_vmon, get_base_current_history
 from .channeldb import ChannelStatusForm, upload_channel_status, get_channels, get_channel_status, get_channel_status_form, get_channel_history, get_pmt_info, get_nominal_settings, get_discriminator_threshold, get_all_thresholds, get_maxed_thresholds, get_gtvalid_lengths, get_pmt_types, pmt_type_description, get_fec_db_history
+from .ecaldb import ecal_state, penn_daq_ccc_by_test, get_penn_daq_tests
 from .mtca_crate_mapping import MTCACrateMappingForm, OWLCrateMappingForm, upload_mtca_crate_mapping, get_mtca_crate_mapping, get_mtca_crate_mapping_form, mtca_relay_status
 import re
 from .resistor import get_resistors, ResistorValuesForm, get_resistor_values_form, update_resistor_values
@@ -349,8 +350,22 @@ def channel_status():
     gtvalid_lengths = get_gtvalid_lengths(crate, slot)
     fec_db_history = get_fec_db_history(crate, slot, channel)
     vmon, bad_vmon = get_vmon(crate, slot)
+    test_failed = get_penn_daq_tests(crate, slot, channel)
     qhs, qhl, qlx = get_pedestals(crate, slot, channel)
-    return render_template('channel_status.html', crate=crate, slot=slot, channel=channel, results=results, pmt_info=pmt_info, nominal_settings=nominal_settings, polling_info=polling_info, discriminator_threshold=discriminator_threshold, gtvalid_lengths=gtvalid_lengths, fec_db_history=fec_db_history, vmon=vmon, bad_vmon=bad_vmon, qhs=qhs, qhl=qhl, qlx=qlx)
+    return render_template('channel_status.html', crate=crate, slot=slot, channel=channel, results=results, pmt_info=pmt_info, nominal_settings=nominal_settings, polling_info=polling_info, discriminator_threshold=discriminator_threshold, gtvalid_lengths=gtvalid_lengths, fec_db_history=fec_db_history, vmon=vmon, bad_vmon=bad_vmon, qhs=qhs, qhl=qhl, qlx=qlx, test_failed=test_failed)
+
+@app.route('/ecal-status')
+def ecal_status():
+    crate = request.args.get("crate", 0, type=int)
+    slot = request.args.get("slot", 0, type=int)
+    channel = request.args.get("channel", 0, type=int)
+    test = request.args.get("test", "All", type=str)
+    crate2 = request.args.get("crate2", -1, type=int)
+    slot2 = request.args.get("slot2", -1, type=int)
+    channel2 = request.args.get("channel2", -1, type=int)
+    ecal_data = ecal_state(crate, slot, channel)
+    ccc = penn_daq_ccc_by_test(test, crate2, slot2, channel2)
+    return render_template('ecal_status.html', crate=crate, slot=slot, channel=channel, crate2=crate2, slot2=slot2, channel2=channel2, test=test, ecal_data=ecal_data, ccc=ccc)
 
 @app.route('/update-mtca-crate-mapping', methods=["GET", "POST"])
 def update_mtca_crate_mapping():

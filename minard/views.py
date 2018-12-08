@@ -1583,10 +1583,11 @@ def crate_gain_history():
 
 @app.route('/deck_activity')
 def deck_activity():
-    limit = request.args.get('limit',100,type=int)
+    limit = request.args.get('limit',25,type=int)
+    offset = request.args.get('offset',0,type=int)
 
-    act = activity.get_deck_activity(limit)
-    return render_template('deck_activity.html', act=act, limit=limit)
+    act = activity.get_deck_activity(limit, offset)
+    return render_template('deck_activity.html', act=act, limit=limit, offset=offset)
 
 @app.route('/physicsdq/<int:run_number>')
 def physicsdq_run_number(run_number):

@@ -256,6 +256,8 @@ def get_detector_state_check(run=0):
     channels = []
     messages = []
 
+    gt_crate_mask = None
+
     if mtc_key is None:
         messages.append("mtc state unknown")
     else:

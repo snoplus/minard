@@ -1,0 +1,73 @@
+{% extends "layout.html" %}
+{% block title %} Deck and DCR Activity  {% endblock %}
+{% block head %}
+  {{ super() }}
+{% endblock %}
+{% block body %}
+  {{ super() }}
+
+<div class="container">
+  <div class="row">
+    <h2 align="center">Deck and DCR Activity</h2>
+    Limit: 
+    <select id="limit" onchange="get_limit(this.value);">
+      <option selected value="{{limit}}">{{limit}}</option>
+      {% for n in [10, 25, 50, 100, 500] %}
+        {% if n != limit %}
+          <option value="{{n}}">{{n}}</option>
+        {% endif %}
+      {% endfor %}
+    </select>
+    <table class="table table-hover">
+    <tr>
+      <th> Timestamp </th>
+      <th> Run </th>
+      <th> Direction </th>
+      <th> Location </th>
+      <th> Disruptive </th>
+      <th> Name </th>
+      <th> Comment </th>
+    </tr>
+    {% for a in act %}
+      {% if a['direction'] and a['location'] %}
+        <tr class="danger">
+      {% elif a['direction'] and not a['location'] %}
+        <tr class="warning">
+      {% else %}
+        <tr class="success">
+      {% endif %}
+        <th> {{ a['timestamp'].strftime("%m/%d/%Y %H:%M:%S") }} </th>
+        <th> {{ a['run'] }} </th>
+        {% if a['direction'] %}
+          <th> ON </th>
+        {% else %}
+          <th> OFF </th>
+        {% endif %}
+        {% if a['location'] %}
+          <th> DCR </th>
+        {% else %}
+          <th> DECK </th>
+        {% endif %}
+        {% if a['disruptive'] %}
+          <th> YES </th>
+        {% else %}
+          <th> NO </th>
+        {% endif %}
+        <th> {{ a['name'] }} </th>
+        <th> {{ a['comment'] }} </th>
+      </tr>
+    {% endfor %}
+    </table>
+  </div>
+</div>
+{% endblock %}
+{% block script %}
+  <script>
+    function get_limit(limit){
+      params = {};
+      params['limit'] = limit;
+      window.location.replace($SCRIPT_ROOT + 'deck_activity?' + $.param(params));
+    }
+  </script>
+{% endblock %}
+

@@ -34,6 +34,7 @@ import channelflagsdb
 import dropout
 import pmtnoisedb
 import gain_monitor
+import activity
 from run_list import golden_run_list
 from .polling import polling_runs, polling_info, polling_info_card, polling_check, get_cmos_rate_history, polling_summary, get_most_recent_polling_info, get_vmon, get_base_current_history
 from .channeldb import ChannelStatusForm, upload_channel_status, get_channels, get_channel_status, get_channel_status_form, get_channel_history, get_pmt_info, get_nominal_settings, get_discriminator_threshold, get_all_thresholds, get_maxed_thresholds, get_gtvalid_lengths, get_pmt_types, pmt_type_description, get_fec_db_history
@@ -1579,6 +1580,13 @@ def crate_gain_history():
 
     data = gain_monitor.crate_gain_history(starting_run, ending_run, crate, qhs_low, qhs_high)
     return render_template('crate_gain_history.html', crate=crate, data=data, starting_run=starting_run, ending_run=ending_run, qhs_low=qhs_low, qhs_high=qhs_high)
+
+@app.route('/deck_activity')
+def deck_activity():
+    limit = request.args.get('limit',100,type=int)
+
+    act = activity.get_deck_activity(limit)
+    return render_template('deck_activity.html', act=act, limit=limit)
 
 @app.route('/physicsdq/<int:run_number>')
 def physicsdq_run_number(run_number):

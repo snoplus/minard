@@ -28,6 +28,14 @@
                         <td>Position</td>
                         <td id="N100-position">-</td>
                     </tr>
+                    <tr>
+                        <td> Normalization </td>
+                        <td id="N100-norm">-</td>
+                    </tr>
+                    <tr>
+                        <td> &#935;<sup>2</sup></td>
+                        <td id="N100-chi2">-</td>
+                    </tr>
                 </table>
             </div>
         </div>
@@ -50,6 +58,14 @@
                     <tr>
                         <td>Position</td>
                         <td id="N20-position">-</td>
+                    </tr>
+                    <tr>
+                        <td> Normalization </td>
+                        <td id="N20-norm">-</td>
+                    </tr>
+                    <tr>
+                        <td>&#935;<sup>2</sup></td>
+                        <td id="N20-chi2">-</td>
                     </tr>
                 </table>
             </div>
@@ -107,13 +123,21 @@
             elem.textContent = data.separation;
             elem = document.getElementById(type+"-position");
             elem.textContent = data.peak_offset;
+            elem = document.getElementById(type+"-norm");
+            elem.textContent= data.normalization;
+            elem = document.getElementById(type+"-chi2");
+            elem.textContent = data.chisqr;
 
         }
 $.getJSON("_dropout_detail/N100/{{run_number}}", function(data) {
+    data.fit_vals = data.fit_vals.map(function(x) { return x*100; });
+    data.y_vals = data.y_vals.map(function(x) { return x*100; });
     new_dropout_plot(data, "N100");
     fill_in_fit_params(data, "N100");
 });
 $.getJSON("_dropout_detail/N20/{{run_number}}", function(data) {
+    data.fit_vals = data.fit_vals.map(function(x) { return x*100; });
+    data.y_vals = data.y_vals.map(function(x) { return x*100; });
     new_dropout_plot(data, "N20");
     fill_in_fit_params(data, "N20");
 });

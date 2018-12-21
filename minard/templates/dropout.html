@@ -44,6 +44,11 @@
             <label class="radio-inline"> <input type="radio" id="n100_radio" name="trig_radio" checked=true> N100</label>
             <label class="radio-inline"> <input type="radio" id="n20_radio" name="trig_radio"> N20</label>
         </div>
+        <div class="col-md-3">
+            <strong>Data:</strong>
+            <label class="radio-inline"> <input type="radio" id="rate_radio" name="dtype_radio" checked=true> Dropout Rate</label>
+            <label class="radio-inline"> <input type="radio" id="chi2_radio" name="dtype_radio"> &#935;<sup>2</sup></label>
+        </div>
         <div class="col-md-2">
             <button type=button onclick="update_plot();">Update Plot</button>
         </div>
@@ -86,7 +91,7 @@ dotted_line_chart = function() {
 
     var dotted_line_chart = function(selection) {
         selection.each(function(data) {
-            line_graph = d3.select(this).selectAll('.dotted_line_chart').data([data]);
+            line_graph = d3.select(this).selectAll(".dotted_line_chart").data([data]);
             line_graph.enter().append('g').classed("dotted_line_chart", true);
 
             dots = line_graph.selectAll("scatter-dots")
@@ -145,7 +150,7 @@ dotted_line_chart = function() {
             return show_mouse_over_info;
         }
         show_mouse_over_info = value;
-        return show_mouse_over_info;
+        return dotted_line_chart;
     }
 
     dotted_line_chart.line_color = function(value) {
@@ -153,7 +158,7 @@ dotted_line_chart = function() {
             return line_color;
         }
         line_color = value;
-        return line_color;
+        return dotted_line_chart;
     }
 
     dotted_line_chart.x_accessor = function(value) {
@@ -161,7 +166,7 @@ dotted_line_chart = function() {
             return x_accessor;
         }
         x_accessor = value;
-        return x_accessor;
+        return dotted_line_chart;
     }
 
     dotted_line_chart.y_accessor = function(value) {
@@ -169,7 +174,7 @@ dotted_line_chart = function() {
             return y_accessor;
         }
         y_accessor = value;
-        return y_accessor;
+        return dotted_line_chart;
     }
 
     dotted_line_chart.xScale = function(value) {
@@ -192,7 +197,7 @@ dotted_line_chart = function() {
 
 }
 
-draw_plot = function(trigger_type, bounds) {
+draw_plot = function(trigger_type, data_type, bounds) {
     xMin = null;
     xMax = null;
     var valid_bounds = (bounds!=null && bounds != undefined && bounds.constructor == Array && bounds.length >=2);
@@ -215,10 +220,12 @@ draw_plot = function(trigger_type, bounds) {
             container.append(error_msg);
             return;
         }
+        function data_accessor(d) { return data_type=="chi2" ? d[2] : d[1];}
+        data = data.filter(function(x) { return data_accessor(x); });
 
 
-        yMin = d3.min(data, function(d) { return d[1];});
-        yMax = d3.max(data, function(d) { return d[1];});
+        yMin = d3.min(data, data_accessor);
+        yMax = d3.max(data, data_accessor);
 
         if(!valid_bounds) {
             xMin = d3.min(data, function(d) { return d[0];});
@@ -233,12 +240,15 @@ draw_plot = function(trigger_type, bounds) {
         width = $("#plot-container").width() - margin.left - margin.right;
         height = 400 - margin.top - margin.bottom;
         xScale = d3.scale.linear()
-        yScale = d3.scale.linear()
+        yScale = data_type == "chi2" ? d3.scale.log() : d3.scale.linear();
         line_chart = dotted_line_chart()
             .xScale(xScale)
             .yScale(yScale)
+            .y_accessor(data_accessor)
             .point_link_function(function(d) { return "dropout/"+d[0];});
 
+
+        var xAxisTitle = data_type=="chi2" ? "Chi-Squared" : "Average Dropout"
         var xAxis = d3.svg.axis()
             .scale(xScale)
             .orient('bottom');
@@ -254,7 +264,7 @@ draw_plot = function(trigger_type, bounds) {
         navXscale = d3.scale.linear()
             .domain([xMin, xMax])
             .range([0,navWidth])
-        navYscale = d3.scale.linear()
+        navYscale = (data_type == "chi2" ? d3.scale.log() : d3.scale.linear())
             .domain([yMin, yMax])
             .range([navHeight, 0]);
         var navXaxis = d3.svg.axis()
@@ -264,10 +274,10 @@ draw_plot = function(trigger_type, bounds) {
         var navData = d3.svg.area()
             .x(function(d) { return navXscale(d[0]); })
             .y0(navHeight)
-            .y1(function(d) { return navYscale(d[1]); });
+            .y1(function(d) { return navYscale(data_accessor(d)); });
         var navLine = d3.svg.line()
             .x(function(d) {return navXscale(d[0]);})
-            .y(function(d) {return navYscale(d[1]);});
+            .y(function(d) {return navYscale(data_accessor(d));});
 
         svg = d3.select("#plot-container").append("svg")
             .attr("width", width + margin.left + margin.right)
@@ -297,8 +307,9 @@ draw_plot = function(trigger_type, bounds) {
             .attr("transform", "rotate(-90), translate(0,-80)")
             .attr("dy", "2.0em")
             .style("text-anchor", "end")
-            .text("Average Dropout")
+            .text(xAxisTitle)
             .style("font-size", "22px");
+
 
 
         plotArea = g.append('g');
@@ -354,7 +365,8 @@ update_plot = function() {
     run_min = document.getElementById("run_min_text").value;
     run_max = document.getElementById("run_max_text").value;
     trigger_type = document.getElementById("n100_radio").checked ? 0 : 1;
-    // 2. Provide basical validation
+    data_type = document.getElementById("rate_radio").checked ? "rate" : "chi2";
+    // 2. Provide basic validation
     run_min = Number(run_min);
     run_max = Number(run_max);
     if(run_min > run_max) {
@@ -365,7 +377,7 @@ update_plot = function() {
     // 3. destroy existing plot
     d3.select("#plot-container").selectAll("*").remove()
     // 4. call draw_plot()
-    draw_plot(trigger_type, [run_min, run_max]);
+    draw_plot(trigger_type, data_type, [run_min, run_max]);
     // 5. Change title
     document.getElementById("plot-title").textContent =  trigger_type==0 ? "N100" : "N20";
 }
@@ -378,7 +390,11 @@ $(document).ready(function() {
     else {
         d3.select("#n100_radio").attr("checked", true);
     }
-    draw_plot(trigger_type, null);
+    data_type = "rate";
+    if(document.getElementById("chi2_radio").checked) {
+        data_type = "chi2";
+    }
+    draw_plot(trigger_type, data_type, null);
 });
 
     </script>

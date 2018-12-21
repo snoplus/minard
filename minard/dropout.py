@@ -1,10 +1,11 @@
 from .db import engine_nl
 import json
+from math import log10
 
 def get_details(run_number, trigger_type):
     conn = engine_nl.connect()
     command = ("select f.rate, f.peak_offset, f.sigma, f.separation, p.x_vals, "
-    "p.y_vals, p.fit_vals from dropout_fits as f INNER JOIN dropout_plots as p "
+    "p.y_vals, p.fit_vals, p.chisqr, p.normalization from dropout_fits as f INNER JOIN dropout_plots as p "
     "on f.fit_plot=p.key where p.run=%s and p.trigger_type=%s")
     result = conn.execute(command, (run_number, trigger_type));
     keys = result.keys()
@@ -30,7 +31,7 @@ def get_fits(trigger_type=0, run_range=None):
                 args = (trigger_type, run_range[0], run_range[1])
             except Exception as e:
                 raise ValueError("Could not use given run_range, must be int or pair")
-    command = ("SELECT plots.run, fit.rate FROM dropout_fits AS fit "
+    command = ("SELECT plots.run, fit.rate, plots.chisqr FROM dropout_fits AS fit "
     "INNER JOIN dropout_plots AS plots ON "
     "fit.fit_plot=plots.key where trigger_type=%s")
     command += clause

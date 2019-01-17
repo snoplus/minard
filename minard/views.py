@@ -34,6 +34,7 @@ import channelflagsdb
 import dropout
 import pmtnoisedb
 import gain_monitor
+import standard_runs as sr
 from run_list import golden_run_list
 from .polling import polling_runs, polling_info, polling_info_card, polling_check, get_cmos_rate_history, polling_summary, get_most_recent_polling_info, get_vmon, get_base_current_history
 from .channeldb import ChannelStatusForm, upload_channel_status, get_channels, get_channel_status, get_channel_status_form, get_channel_history, get_pmt_info, get_nominal_settings, get_discriminator_threshold, get_all_thresholds, get_maxed_thresholds, get_gtvalid_lengths, get_pmt_types, pmt_type_description, get_fec_db_history
@@ -212,6 +213,7 @@ def calculate_resistors():
     return render_template('calculate_resistors.html', crate=crate, slot=slot, resistors=resistors)
 
 @app.route('/detector-state-check')
+@app.route('/detector-state-check/')
 @app.route('/detector-state-check/<int:run>')
 def detector_state_check(run=None):
     if run is None:
@@ -477,6 +479,7 @@ def detector_state_diff():
                            detector_state2=detector_state2)
 
 @app.route('/state')
+@app.route('/state/')
 @app.route('/state/<int:run>')
 def state(run=None):
     try:
@@ -1654,3 +1657,68 @@ def _dropout_detail_n100(run_number):
 @app.route("/dropout/_dropout_detail/N20/<int:run_number>")
 def _dropout_detail_n20(run_number):
     return dropout.get_details(run_number, 2)
+
+@app.route('/standard_runs/<uuid>', methods=['GET', 'POST'])
+@app.route("/standard_runs/")
+@app.route("/standard_runs")
+def standard_runs(uuid=None):
+    if uuid is None:
+        values = None
+        try:
+            values = sr.get_standard_runs()
+        except sr.couchdb.http.socket.error:
+            flash("Error connecting to database, could not retrieve standard runs", "danger")
+        return render_template('standard_runs.html', values=values)
+
+    if request.method =='POST':
+        Form = sr.create_form(request.form)
+        form = Form(request.form)
+        if form.validate():
+            # Change form to a dict
+            new_values = {}
+            for field in form:
+                new_values[field.name] = field.data
+
+            try:
+                new_uuid = sr.update_standard_run(uuid, new_values)
+                flash("Updated standard run", "success")
+                uuid = new_uuid
+            except sr.couchdb.http.socket.error:
+                flash("Error connecting to database, standard run not updated", "danger")
+            except RuntimeError as e:
+                flash("Did not update standard run: %s" % str(e), "danger")
+            return redirect(url_for("standard_runs",uuid=uuid))
+
+        else:
+            flash("Did not update standard run, new settings are not valid", "danger")
+            return render_template("standard_run.html", form=form, uuid=uuid)
+
+    error_string = "Requested standard run does not exist"
+    try:
+        sr_info = sr.get_standard_run(uuid)
+    except sr.couchdb.http.socket.error:
+        sr_info = None
+        error_string = "Error connecting to database"
+
+    if sr_info is None:
+        flash(error_string, "danger")
+        return render_template("standard_run.html")
+
+    # Remove values that shouldn't be changed or are just noise
+    sr_info.pop("version", None)
+    sr_info.pop("timestamp", None)
+    sr_info.pop("time_stamp", None)
+    sr_info.pop("_rev", None)
+    sr_info.pop("_id", None)
+    sr_info.pop("type", None)
+    sr_info.pop("Comments", None)
+    comments = sr_info.pop("info", None)
+    updater = sr_info.pop("name", None)
+
+
+    Form = sr.create_form(sr_info)
+    form = Form()
+    for k, v in sr_info.iteritems():
+        form[k].data = v
+    return render_template("standard_run.html", form=form, uuid=uuid,
+                           comments=comments, updater=updater)

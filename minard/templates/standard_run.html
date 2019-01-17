@@ -1,0 +1,82 @@
+{% extends "layout.html" %}
+{% block title %}Standard Run{% endblock %}
+{% block head %}
+    {{ super() }}
+{% endblock %}
+{% block body %}
+    {{ super() }}
+    <div class="container">
+        {% if form %}
+        {% if form.errors %}
+            <ul class="errors">
+                {% for field_name, field_errors in form.errors|dictsort if field_errors %}
+                {% for error in field_errors %}
+                <li>{{ form[field_name].label }}: {{ error }}</li>
+                {% endfor %}
+                {% endfor %}
+            </ul>
+        {% endif %}
+        <div class = "row">
+            <h2>
+                <a href="{{url_for('standard_runs')}}">
+                    <span class="glyphicon glyphicon-chevron-left"> </span>
+                </a>
+                {{ form.run_type.data }} - {{ form.run_version.data }}
+            </h2>
+        </div>
+        {% if updater %}
+        <div class = "row">
+            <h4>
+                Last Updated By: {{ updater }}
+            </h4>
+        </div>
+        {% endif %}
+        {% if comments %}
+        <div class="row">
+            <p> Notes: {{ comments }} </p>
+        </div>
+        {% endif %}
+        <hr>
+        <div class="row">
+        <div>
+            <form action="{{url_for('standard_runs',uuid=uuid)}}" method="POST">
+                <table class="table table-striped">
+                    <thead>
+                        <th> Setting </th>
+                        <th> Current Value </th>
+                        <th> New Value </th>
+                    </thead>
+                    {% for field in form %}
+                    {% if field.label.text.lower() not in ['name', 'password', 'info'] %}
+                    <tr>
+                        <td> {{ field.label }} </td>
+                        <td> {{ field.data }} </td>
+                        <td> {{ field()}} </td>
+                    </tr>
+                    {% endif %}
+                    {% endfor %}
+                </table>
+                <div class="form-group">
+                    {{ form.name.label }}
+                    {{ form.name(class="form-control",style="width:500px") }}
+                </div>
+                <div class="form-group">
+                    {{ form.info.label }}
+                    {{ form.info(class="form-control",style="width:500px") }}
+                </div>
+                <div class="form-group">
+                    {{ form.password.label }}
+                    {{ form.password(class="form-control",style="width:500px") }}
+                </div>
+                <div class="row">
+                    <button type="submit" class="btn btn-primary"> Submit </button>
+                </div>
+            </form>
+        </div>
+        </div>
+        {% else %}
+        <p> No form provided...not sure how this happened. </p>
+        {% endif %}
+    </div>
+    <br>
+{% endblock %}

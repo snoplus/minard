@@ -37,6 +37,7 @@ import gain_monitor
 import activity
 import scintillator_level
 import burst as burst_f
+import presn as presn_f
 from shifter_information import get_shifter_information, set_shifter_information, ShifterInfoForm, get_experts
 from run_list import golden_run_list
 from .polling import polling_runs, polling_info, polling_info_card, polling_check, get_cmos_rate_history, polling_summary, get_most_recent_polling_info, get_vmon, get_base_current_history, get_vmon_history
@@ -564,6 +565,27 @@ def burst():
         return redirect("burst?limit=25&offset=0")
     data, total, offset, limit = burst_f.load_burst_runs(offset, limit)
     return render_template( 'burst.html', data=data, total=total, offset=offset, limit=limit )
+
+
+
+
+@app.route('/presn')
+def presn(): # Can we call it the same??
+    offset = request.args.get('offset',type=int)
+    limit = request.args.get('limit',default=25,type=int)
+    search = request.args.get('search',type=str)
+    if search is not None:
+        start = request.args.get('start')
+        end = request.args.get('end')
+        if offset == None:
+            return redirect("burst?limit=%i&offset=0&search=%s&start=%s&end=%s" % (limit, search, start, end))
+        data, total, offset, limit = presn_f.load_bursts_search(search, start, end, offset, limit)
+        return render_template( 'burst.html', data=data, total=total, offset=offset, limit=limit, search=search, start=start, end=end)
+    if offset == None:
+        return redirect("burst?limit=25&offset=0")
+    data, total, offset, limit = burst_f.load_burst_runs(offset, limit)
+    return render_template( 'burst.html', data=data, total=total, offset=offset, limit=limit )
+
 
 @app.route('/orca-session-logs')
 def orca_session_logs():

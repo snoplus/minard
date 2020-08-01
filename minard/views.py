@@ -566,9 +566,6 @@ def burst():
     data, total, offset, limit = burst_f.load_burst_runs(offset, limit)
     return render_template( 'burst.html', data=data, total=total, offset=offset, limit=limit )
 
-
-
-
 @app.route('/presn')
 def presn(): # Can we call it the same??
     offset = request.args.get('offset',type=int)
@@ -578,14 +575,13 @@ def presn(): # Can we call it the same??
         start = request.args.get('start')
         end = request.args.get('end')
         if offset == None:
-            return redirect("burst?limit=%i&offset=0&search=%s&start=%s&end=%s" % (limit, search, start, end))
-        data, total, offset, limit = presn_f.load_bursts_search(search, start, end, offset, limit)
-        return render_template( 'burst.html', data=data, total=total, offset=offset, limit=limit, search=search, start=start, end=end)
+            return redirect("presn?limit=%i&offset=0&search=%s&start=%s&end=%s" % (limit, search, start, end))
+        data, total, offset, limit = presn_f.load_presn_search(search, start, end, offset, limit)
+        return render_template( 'presn.html', data=data, total=total, offset=offset, limit=limit, search=search, start=start, end=end)
     if offset == None:
-        return redirect("burst?limit=25&offset=0")
-    data, total, offset, limit = burst_f.load_burst_runs(offset, limit)
-    return render_template( 'burst.html', data=data, total=total, offset=offset, limit=limit )
-
+        return redirect("presn?limit=25&offset=0")
+    data, total, offset, limit = presn_f.load_presn_runs(offset, limit)
+    return render_template( 'presn.html', data=data, total=total, offset=offset, limit=limit )
 
 @app.route('/orca-session-logs')
 def orca_session_logs():
@@ -1354,6 +1350,11 @@ def pca_run_detail(run_number):
 @app.route('/burst_run_detail/<int:run_number>/<int:subrun>/<int:sub>')
 def burst_run_detail(run_number, subrun, sub):
     return render_template('burst_run_detail.html', data=burst_f.burst_run_detail(run_number, subrun, sub)[0], files=burst_f.burst_run_detail(run_number, subrun, sub)[1])
+
+#@app.route('/presn_run_detail/<int:run_number>/<int:subrun>/<int:sub>')
+@app.route('/presn_run_detail/<int:run_number>/<int:subrun>')
+def presn_run_detail(run_number, subrun):
+    return render_template('presn_run_detail.html', data=presn_f.presn_run_detail(run_number, subrun)[0], files=presn_f.presn_run_detail(run_number, subrun)[1])
 
 @app.route('/calibdq')
 def calibdq():

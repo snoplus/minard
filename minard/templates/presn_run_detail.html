@@ -10,8 +10,6 @@
   <div class="container">
     <div class="row">
       <div class="col-md-12">
-        {{ subrun }}
-        {{ sub }}
         <h2>PreSN Run {{ data["run"] }} details</h2>
         <table class="table table-striped">
           <thead>
@@ -34,41 +32,60 @@
               <td>{{ data["significance"] }}</td>
             </tr>
 	    <tr>
-	      <td>Flag</td>
+	      <td>Pre-SN flag</td>
 	      <td>{{ data["flag"] }}</td>
 	    </tr>
 	    <tr>
-	      <td>Duration [h]</td>
+	      <td>Pre-SN window duration [h]</td>
 	      <td>{{ data["duration"] }}</td>
 	    </tr>
 	    <tr>
-	      <td># Events</td>
+	      <td># Events in window</td>
 	      <td>{{ data["nevents"] }}</td>
 	    </tr>
             <tr>
-              <td>Date</td>
+              <td>Date processed (d/m/y)</td>
               <td>{{ data["date"] }}</td>
             </tr>
             <tr>
-              <td>Time</td>
+              <td>Time processed</td>
               <td>{{ data["time"] }}</td>
             </tr>
             <tr>
-              <td>Date UTC</td>
+              <td>Date processed (UTC)</td>
               <td>{{ data["UTCdate"] }}</td>
             </tr>
             <tr>
-              <td>Time UTC</td>
+              <td>Time processed (UTC)</td>
               <td>{{ data["UTCtime"] }}</td>
             </tr>
 	    <tr>
-	      <td>Last event date</td>
+	      <td>Date of last event</td>
 	      <td>{{ data["evdate"] }}</td>
 	    </tr>
             <tr>
-              <td>Last event time</td>
+              <td>Time of last event</td>
               <td>{{ data["evtime"] }}</td>
             </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+
+  <div class="container">
+    <div class="row">
+      <div class="col-md-12">
+        <h2>Cut details (run level)</h2>
+        <table class="table table-striped">
+          <thead>
+            <tr>
+              <th>Parameter</th>
+              <th>Value</th>
+            </tr>
+          </thead>
+          <tbody>
             <tr>
               <td>Nhit delayed cut (high)</td>
               <td>{{ data["cut_NHit_d_hi"] }}</td>
@@ -86,50 +103,83 @@
               <td>{{ data["cut_NHit_p_low"] }}</td>
             </tr>
             <tr>
-              <td>Radius delayed cut</td>
+              <td>Radius delayed cut [mm]</td>
               <td>{{ data["cut_R_d"] }}</td>
             </tr>
             <tr>
-              <td>Radius prompt cut</td>
+              <td>Radius prompt cut [mm]</td>
               <td>{{ data["cut_R_p"] }}</td>
             </tr>
 	    <tr>
-              <td>dt cut (high)</td>
+              <td>dt cut (high) [ns]</td>
               <td>{{ data["cut_dt_hi"] }}</td>
             </tr>
 	    <tr>
-              <td>dt cut (low)</td>
+              <td>dt cut (low) [ns]</td>
               <td>{{ data["cut_dt_low"] }}</td>
             </tr>
             <tr>
-              <td>L3 Radius Cut</td>
+              <td>dr cut (FIX ME!) [mm]</td>
               <td>{{ data["cut_R_strict"] }}</td>
-            </tr>
-            <tr>
-              <td>L3 dt cut (high)</td>
-              <td>{{ data["cut_dt_strict"] }}</td>
-            </tr>
-            <tr>
-              <td>L3 time window Cut</td>
-              <td>{{ data["cut_timewindow"] }}</td>
-            </tr>
-            <tr>
-              <td>Assumed background rate</td>
-              <td>{{ data["bkg_rate"] }}</td>
             </tr>
           </tbody>
         </table>
       </div>
     </div>
+  </div>
 
+  <div class="container">
+    <div class="row">
+      <div class="col-md-12">
+        <h2>Cut details (pre-supernova level)</h2>
+        <table class="table table-striped">
+          <thead>
+            <tr>
+              <th>Parameter</th>
+              <th>Value</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Pre-SN radius cut [mm]</td>
+              <td>{{ data["cut_R_strict"] }}</td>
+            </tr>
+            <tr>
+              <td>Pre-SN dt cut (high) [ns]</td>
+              <td>{{ data["cut_dt_strict"] }}</td>
+            </tr>
+            <tr>
+              <td>Pre-SN time window cut [h]</td>
+              <td>{{ data["cut_timewindow"] }}</td>
+            </tr>
+            <tr>
+              <td>Assumed background rate [/hour]</td>
+              <td>{{ data["bkg_rate"] }}</td>
+            </tr>
+	    <tr>
+	      <td>Prompt Gtids</td>
+	      <td>{{ data["promptGtids"] }}</td>
+	    </tr>
+	    <tr>
+	      <td>Delayed Gtids</td>
+	      <td>{{ data["delayedGtids"] }}</td>
+	    </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="container">
     <div class="row">
       <div class="col-md-12">
         <div class="panel panel-default">
           <div class="panel-heading">
-            <h3 class="panel-title">Time series (full window duration)</h3>
+            <h3 class="panel-title">Time series (pre-supernova level)</h3>
           </div>
           <div class="panel-body">
 		<img src="{{ url_for('static', filename="presndata/run"+files+"/h_time_"+files+".png") }}" alt="Time series" class="img-responsive center-block" >
+          </div>
         </div>
       </div>
     </div>
@@ -138,19 +188,73 @@
       <div class="col-md-12">
         <div class="panel panel-default">
           <div class="panel-heading">
-            <h3 class="panel-title">Time series (run)</h3>
+            <h3 class="panel-title">NHits (pre-supernova level)</h3>
+          </div>
+          <div class="panel-body">
+		<img src="{{ url_for('static', filename="presndata/run"+files+"/h_nhit_"+files+".png") }}" alt="Time series" class="img-responsive center-block" >
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-12">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h3 class="panel-title">Position (pre-supernova level)</h3>
+          </div>
+          <div class="panel-body">
+            <div class="row">
+              <div class="col-md-6">
+                <img src="{{ url_for('static', filename="presndata/run" + files + "/h_xy_" + files + ".png") }}" alt="xy histogram, alltime" class="img-responsive">
+              </div>
+              <div class="col-md-6">
+                <img src="{{ url_for('static', filename="presndata/run" + files + "/h_rhoz_" + files + ".png") }}" alt="rho-z histogram, alltime" class="img-responsive center-block">
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-12">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h3 class="panel-title">Coincidence separation (pre-supernova level)</h3>
+          </div>
+          <div class="panel-body">
+            <div class="row">
+              <div class="col-md-6">
+                <img src="{{ url_for('static', filename="presndata/run" + files + "/h_dt_" + files + ".png") }}" alt="Coincidence dt histogram, alltime" class="img-responsive">
+              </div>
+              <div class="col-md-6">
+                <img src="{{ url_for('static', filename="presndata/run" + files + "/h_dr_" + files + ".png") }}" alt="Coincidence dr histogram, alltime" class="img-responsive center-block">
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-12">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h3 class="panel-title">Time series (run level)</h3>
           </div>
           <div class="panel-body">
 		<img src="{{ url_for('static', filename="presndata/run"+files+"/"+files+"_t.png") }}" alt="Time series" class="img-responsive center-block" >
+          </div>
         </div>
       </div>
     </div>
-
+      
     <div class="row">
       <div class="col-md-12">
         <div class="panel panel-default">
           <div class="panel-heading">
-            <h3 class="panel-title">NHits</h3>
+            <h3 class="panel-title">NHits (run level)</h3>
           </div>
           <div class="panel-body">
             <img src="{{ url_for('static', filename="presndata/run" + files + "/" + files + "_nhits.png") }}" alt="NHits histogram" class="img-responsive center-block">
@@ -159,12 +263,11 @@
       </div>
     </div>
 
-
     <div class="row">
       <div class="col-md-12">
         <div class="panel panel-default">
           <div class="panel-heading">
-            <h3 class="panel-title">Position</h3>
+            <h3 class="panel-title">Position (run level)</h3>
           </div>
           <div class="panel-body">
             <div class="row">
@@ -179,13 +282,12 @@
         </div>
       </div>
     </div>
-  </div>
 
     <div class="row">
       <div class="col-md-12">
         <div class="panel panel-default">
           <div class="panel-heading">
-            <h3 class="panel-title">Coincidence Separation</h3>
+            <h3 class="panel-title">Coincidence separation (run level)</h3>
           </div>
           <div class="panel-body">
             <div class="row">
@@ -200,4 +302,5 @@
         </div>
       </div>
     </div>
+  </div>
 {% endblock %}

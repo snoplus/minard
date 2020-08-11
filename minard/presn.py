@@ -3,19 +3,19 @@ from . import app
 
 def load_presn_runs(offset, limit):
     """
-    Returns a dictionary with the burst runs loaded from couchdb. The dummy itterator is used as key
-    to keep the ordering from the couchdb query. The content of the couchdb document is stored as values.
-    This loads ALL the documents in burst database, ordered by run_subrun_burst logic.
+    Returns a dictionary with the pre-supernova runs loaded from couchdb. 
+    The dummy itterator is used as key
+    to keep the ordering from the couchdb query. The content of the couchdb document is 
+    stored as values.
+    This loads ALL the documents in pre-supernova database, ordered by run_subrun logic.
     The logic to limit and split the results per page was implemented.
     """
     #server = couchdb.Server("http://snoplus:"+app.config["COUCHDB_PASSWORD"]+"@"+app.config["COUCHDB_HOSTNAME"])
     server = couchdb.Server("http://admin:janetscouchdbpassword@127.0.0.1:5984")
-    #db = server["burst"]
     db = server["pre-supernova"]
 
     results = []
     skip = offset
-    #all = db.view('_design/burst/_view/burst_by_run', descending=True, skip=skip)
     all = db.view('_design/presn/_view/presn_by_run', descending=True, skip=skip)
     total = all.total_rows
     offset = all.offset
@@ -25,17 +25,15 @@ def load_presn_runs(offset, limit):
         try:
             results.append(dict(db.get(run_id).items()))
         except KeyError:
-            app.logger.warning("Code returned KeyError searching for burst information in the couchDB. Run Number: %d" % run)
+            app.logger.warning("Code returned KeyError searching for presn information in the couchDB. Run Number: %d" % run)
 
     return results, total, offset, limit
 
-#def presn_run_detail(run_number, subrun, sub):
 def presn_run_detail(run_number, subrun):
     """
-    Returns a dictionary that is a copy of the couchdb document for specific run_subrun_burst.
+    Returns a dictionary that is a copy of the couchdb document for specific run_subrun.
     """
     #server = couchdb.Server("http://snoplus:"+app.config["COUCHDB_PASSWORD"]+"@"+app.config["COUCHDB_HOSTNAME"])
-    #db = server["burst"]
     server = couchdb.Server("http://admin:janetscouchdbpassword@127.0.0.1:5984")
     db = server["pre-supernova"]
 
@@ -47,20 +45,18 @@ def presn_run_detail(run_number, subrun):
         try:
             result = dict(db.get(run_id).items())
         except KeyError:
-            app.logger.warning("Code returned KeyError searching for burst_details information in the couchDB. Run Number: %d" % run_number)
-        #files = "%i_%i" % (run_number,subrun)
+            app.logger.warning("Code returned KeyError searching for presn_details information in the couchDB. Run Number: %d" % run_number)
         files = "%i" %(run_number)
         
     return result, files
 
 def load_presn_search(search, start, end, offset, limit):
     """
-    Returns a dictionary with the burst runs loaded from couchdb.
+    Returns a dictionary with the pre-supernova runs loaded from couchdb.
     The returned dictionary is given by one of the search conditions on the page:
     either by run, date or GTID which all use corresponding couchdb views.
     """
     #server = couchdb.Server("http://snoplus:"+app.config["COUCHDB_PASSWORD"]+"@"+app.config["COUCHDB_HOSTNAME"])
-    #db = server["burst"]
     server = couchdb.Server("http://admin:janetscouchdbpassword@127.0.0.1:5984")
     db = server["pre-supernova"]
     
@@ -68,10 +64,8 @@ def load_presn_search(search, start, end, offset, limit):
     skip = offset
 
     if search == "run":
-
         startkey = [int(start), 0, {}]
         endkey = [int(end), {}]
-
         view = '_design/presn/_view/presn_by_run'
 
     elif search == "date":
@@ -94,17 +88,16 @@ def load_presn_search(search, start, end, offset, limit):
         endkey = [int(end_year), int(end_month), int(end_day)]
 
         view = '_design/presn/_view/presn_by_date'
-    # Not yet implemented gtid search
+     
     elif search == "gtid":
-
-        view = '_design/burst/_view/burst_by_date_GTID'
-
+        view = '_design/presn/_view/presn_by_date_GTID'
+    
     if search == "run" or search == "date":
         try:
             all = db.view(view, startkey=startkey, endkey=endkey, descending=False)
             total = len(all.rows)
         except:
-            app.logger.warning("Code returned KeyError searching for burst information in the couchDB.")
+            app.logger.warning("Code returned KeyError searching for presn information in the couchDB.")
 
         for row in db.view(view, startkey=startkey, endkey=endkey, descending=False, skip=skip, limit=limit):
             if search == "run":
@@ -115,34 +108,22 @@ def load_presn_search(search, start, end, offset, limit):
             try:
                 results.append(dict(db.get(run_id).items()))
             except KeyError:
-                app.logger.warning("Code returned KeyError searching for burst information in the couchDB. Run Number: %d" % run)
+                app.logger.warning("Code returned KeyError searching for presn information in the couchDB. Run Number: %d" % run)
 
         return results, total, offset, limit
-    # Not yet implemented gtid for preSN
-    elif search == "gtid": ### this needs to loop through all documents (no start-end key) because we want GTID in range of start/end GTID
 
-        for row in db.view(view, descending=True, limit=1000):   ### limiting search to last 1000 entries by date
-            startgtid = int(row.value[3])
-            endgtid = int(row.value[4])
 
-            if endgtid < startgtid: ### case for gtid roll-over
-                if ( (int(start) >= startgtid) and (int(start) <= pow(2,24)) ) or ( (int(end) <= endgtid) and (int(end) >= 0 ) ):
-                    run = row.value[0]
-                    run_id = row.id
-
-                    try:
-                        results.append(dict(db.get(run_id).items()))
-                    except KeyError:
-                        app.logger.warning("Code returned KeyError searching for burst information in the couchDB. Run Number: %d" % run)
-            else:
-                if (int(start) >= startgtid) and (int(end) <= endgtid):
-                    run = row.value[0]
-                    run_id = row.id
-
-                    try:
-                        results.append(dict(db.get(run_id).items()))
-                    except KeyError:
-                        app.logger.warning("Code returned KeyError searching for burst information in the couchDB. Run Number: %d" % run)
-            total = len(results)
-
-        return results, total, 0, 100
+    elif search == "gtid":
+        promptgtid = int(start) 
+        delayedgtid = int(end) 
+        keygtid=[promptgtid, delayedgtid]
+        rows = db.view(view, key=keygtid)
+        for row in rows:
+            run_id=row.id
+            try:
+                results.append(dict(db.get(run_id).items()))
+            except KeyError:
+                app.logger.warning("Code returned KeyError searching for presn information in the couchDB. Run Number: %d" % run)
+                    
+        total = len(results)
+        return results, total, offset, limit

@@ -567,7 +567,7 @@ def burst():
     return render_template( 'burst.html', data=data, total=total, offset=offset, limit=limit )
 
 @app.route('/presn')
-def presn(): # Can we call it the same??
+def presn():
     offset = request.args.get('offset',type=int)
     limit = request.args.get('limit',default=25,type=int)
     search = request.args.get('search',type=str)
@@ -1351,7 +1351,6 @@ def pca_run_detail(run_number):
 def burst_run_detail(run_number, subrun, sub):
     return render_template('burst_run_detail.html', data=burst_f.burst_run_detail(run_number, subrun, sub)[0], files=burst_f.burst_run_detail(run_number, subrun, sub)[1])
 
-#@app.route('/presn_run_detail/<int:run_number>/<int:subrun>/<int:sub>')
 @app.route('/presn_run_detail/<int:run_number>/<int:subrun>')
 def presn_run_detail(run_number, subrun):
     return render_template('presn_run_detail.html', data=presn_f.presn_run_detail(run_number, subrun)[0], files=presn_f.presn_run_detail(run_number, subrun)[1])

@@ -114,6 +114,11 @@
                   </thead>
                   <tbody>
                     <tr>
+                      <td>Threshold</td>
+                      <td>{{ data["highEv_nhit"] }}</td>
+                      <td>NHit threshold defining high NHit event</td>
+                    </tr>
+                    <tr>
                       <td>Total</td>
                       <td>{{ data["total_highEv"] }}</td>
                       <td># of high NHit events</td>
@@ -553,7 +558,7 @@
             <h3 class="panel-title"><b>Review</h3>
           </div>
           <div class="panel-body">
-            <form name="burst_form" method="get" action="/burst_form">
+            <form name="burst_form" method="get" action="/monitoring/burst_form">
               <div class="row">
                 <div class="col-md-4">
                   <label for="review">Reviewed?</label>&emsp;&emsp;&emsp;

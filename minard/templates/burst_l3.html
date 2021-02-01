@@ -108,14 +108,14 @@
                 </tbody>
             </table>
             {% if ( (offset > limit-1) and (search != null) ) %}
-              <a href="{{ url_for("burst", offset=offset-limit, limit=limit, search=search, start=start, end=end) }}">Back</a>
+              <a href="{{ url_for("burst_l3", offset=offset-limit, limit=limit, search=search, start=start, end=end) }}">Back</a>
             {% elif (offset > limit-1) %}
-              <a href="{{ url_for("burst", offset=offset-limit, limit=limit) }}">Back</a>
+              <a href="{{ url_for("burst_l3", offset=offset-limit, limit=limit) }}">Back</a>
             {% endif %}
             {% if ( (total > offset + limit) and (search != null) ) %}
-              <a href="{{ url_for("burst", offset=offset+limit, limit=limit, search=search, start=start, end=end) }}">Next</a>
+              <a href="{{ url_for("burst_l3", offset=offset+limit, limit=limit, search=search, start=start, end=end) }}">Next</a>
             {% elif (total > offset + limit) %}
-              <a href="{{ url_for("burst", offset=offset+limit, limit=limit) }}">Next</a>
+              <a href="{{ url_for("burst_l3", offset=offset+limit, limit=limit) }}">Next</a>
             {% endif %}
         </div>
       </div>

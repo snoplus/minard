@@ -26,47 +26,24 @@
     </p>
     <table class="table table-hover">
     <tr>
-      <th> Timestamp </th>
-      <th> Run </th>
-      <th> Direction </th>
-      <th> Location </th>
-      <th> Disruptive </th>
+      <th> Check-in Time </th>
+      <th> Check-out Time </th>
+      <th> Check-in Run </th>
+      <th> Check-out Run </th>
       <th> Name </th>
-      <th> Comment </th>
+      <th> Reason </th>
     </tr>
     {% for a in act %}
-      <!-- Going into the DCR is dispayed red --!>
-      {% if a['direction'] == 1 and a['location'] %}
-        <tr class="danger">
-      <!-- Going onto deck is dispayed yellow --!>
-      {% elif a['direction'] == 1 and not a['location'] %}
-        <tr class="warning">
-      <!-- Otherwise displayed green --!>
-      {% else %}
-        <tr class="success">
-      {% endif %}
-        <th> {{ a['timestamp'].strftime("%m/%d/%Y %H:%M:%S") }} </th>
-        <th> {{ a['run'] }} </th>
-        <!-- Clearing the deck is a different 'direction' --!>
-        {% if a['direction'] == 2 %}
-          <th> Clearing Deck </th>
-        {% elif a['direction'] == 1 %}
-          <th> ON </th>
+        <th> {{ a['checkintime'].strftime("%m/%d/%Y %H:%M:%S") }} </th>
+        {% if a['checkouttime'] != None %}
+            <th> {{ a['checkouttime'].strftime("%m/%d/%Y %H:%M:%S") }} </th>
         {% else %}
-          <th> OFF </th>
+            <th> </th>
         {% endif %}
-        {% if a['location'] %}
-          <th> DCR </th>
-        {% else %}
-          <th> DECK </th>
-        {% endif %}
-        {% if a['disruptive'] %}
-          <th> YES </th>
-        {% else %}
-          <th> NO </th>
-        {% endif %}
-        <th> {{ a['name'] }} </th>
-        <th> {{ a['comment'] }} </th>
+        <th> {{ a['checkinrun'] }} </th>
+        <th> {{ a['checkoutrun'] }} </th>
+        <th> {{ a['firstname'] }} {{ a['lastname'] }} </th>
+        <th> {{ a['reason'] }} </th>
       </tr>
     {% endfor %}
     </table>

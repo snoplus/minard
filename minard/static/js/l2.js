@@ -18,10 +18,14 @@ function get_SH_settings(interval) {
   // update the current stonehenge settings loaded from redis
 
   $.getJSON($SCRIPT_ROOT + '/get_SH').done(function(obj) {
-    var nhit_td = document.getElementById('nhit').innerHTML = obj.settings[0];
-    var size_td = document.getElementById('size').innerHTML = obj.settings[1];
-    var length_td = document.getElementById('length').innerHTML = obj.settings[2];
-    var rate_td = document.getElementById('rate').innerHTML = obj.settings[3];
+    var nhit3_td = document.getElementById('3Evt').innerHTML = obj.settings[0];
+    var nhit5_td = document.getElementById('5Evt').innerHTML = obj.settings[1];
+    var nhit7_td = document.getElementById('7Evt').innerHTML = obj.settings[2];
+    var nhit10_td = document.getElementById('10Evt').innerHTML = obj.settings[3];
+    var window_td = document.getElementById('window').innerHTML = obj.settings[4];
+    var xwindow_td = document.getElementById('pre').innerHTML = obj.settings[5];
+    var ywindow_td = document.getElementById('post').innerHTML = obj.settings[6];
+    var ext_td = document.getElementById('ext').innerHTML = obj.settings[7];
     setTimeout(function() {get_SH_settings(interval); }, interval*1000);
   });
 }

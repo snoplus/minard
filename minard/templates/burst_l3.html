@@ -1,5 +1,5 @@
 {% extends "layout.html" %}
-{% block title %}Burst Trigger L2{% endblock %}
+{% block title %}Burst Trigger L3{% endblock %}
 {% block head %}
   {{ super() }}
 {% endblock %}
@@ -9,7 +9,7 @@
     <div class="container">
       <div class="row">
         <div class="col-md-12">
-            <h2 style="text-align: center">Supernova Burst Trigger - Level 2</h2>
+            <h2 style="text-align: center">Supernova Burst Trigger - Level 3</h2>
             <div class="row">
                 <div class="col-md-12">
                   <div class="panel panel-default">
@@ -17,7 +17,7 @@
                           Search:
                       </div>
                       <div class="panel-body">
-                          <form class="form-horizontal" role="form" method="get" action="{{ url_for("burst") }}" onsubmit="return validate_form()">
+                          <form class="form-horizontal" role="form" method="get" action="{{ url_for("burst_l3") }}" onsubmit="return validate_form()">
                               <div class="form-group form-group-sm">
                                   <label class="col-sm-2 control-label">
                                       Search by:
@@ -60,7 +60,8 @@
             </div>
 
             <h3>Details</h3>
-              <font size="-1"><b>SH End:</b> 0=normal, 1=end of file reached, 2=events out of order, 3=too long, 4=clock jumps</font>
+              <font size="-1"><b>SH End:</b> 0=normal, 1=end of file reached, 2=events out of order, 3=too long, 4=clock jumps</font> <br>
+              <font size="-1"><b>Check:</b> 0=not checked, 1=checked by algorithm, 2=checked by person</font>
             <table class="table table-bordered table-condensed table-striped">
                 <thead>
                     <tr>
@@ -70,48 +71,51 @@
                         <th style="text-align: center; vertical-align: middle;">Date</th>
                         <th style="text-align: center; vertical-align: middle;">Time</th>
                         <th style="text-align: center; vertical-align: middle;"># Events</th>
+                        <th style="text-align: center; vertical-align: middle;">Clean events</th>
+                        <th style="text-align: center; vertical-align: middle;">High NHit</th>
+                        <th style="text-align: center; vertical-align: middle;">Survived</th>
                         <th style="text-align: center; vertical-align: middle;">Length [s]</th>
                         <th style="text-align: center; vertical-align: middle;">NHit(avg)</th>
-                        <th style="text-align: center; vertical-align: middle;">GTID range</th>
-                        <th style="text-align: center; vertical-align: middle;">Buffer</th>
-                        <th style="text-align: center; vertical-align: middle;">SH 3Evt</th>
-                        <th style="text-align: center; vertical-align: middle;">SH 5Evt</th>
-                        <th style="text-align: center; vertical-align: middle;">SH 7Evt</th>
-                        <th style="text-align: center; vertical-align: middle;">SH 10Evt</th>
                         <th style="text-align: center; vertical-align: middle;">SH End</th>
+                        <th style="text-align: center; vertical-align: middle;">Check</th>
+                        <th style="text-align: center; vertical-align: middle;">Note</th>
                     </tr>
                 </thead>
                 <tbody>
                   {% for run in data %}
                   <tr>
-                      <td style="text-align: center; vertical-align: middle;"><a href="{{ url_for('burst_run_detail', run_number=run['run'], subrun=run['subrun'], sub=run['burst_n']) }}">{{ run['run'] }}</a></td>
-                      <td style="text-align: center; vertical-align: middle;">{{  run["subrun"] }}</td>
-                      <td style="text-align: center; vertical-align: middle;">{{  run["burst_n"] }}</td>
-                      <td style="text-align: center; vertical-align: middle;">{{  run["date"] }}</td>
-                      <td style="text-align: center; vertical-align: middle;">{{  run["time"] }}</td>
-                      <td style="text-align: center; vertical-align: middle;">{{  run["burst_size"] }}</td>
-                      <td style="text-align: center; vertical-align: middle;">{{  run["burst_length"] }}</td>
-                      <td style="text-align: center; vertical-align: middle;">{{  run["avg_nhit"] }}</td>
-                      <td style="text-align: center; vertical-align: middle;">{{ run["firstGTID"] }} - {{ run["lastGTID"] }}</td>
-                      <td style="text-align: center; vertical-align: middle;">{{  run["c_buffer"] }}</td>
-                      <td style="text-align: center; vertical-align: middle;">{{  run["c_nhit3"] }}</td>
-                      <td style="text-align: center; vertical-align: middle;">{{  run["c_nhit5"] }}</td>
-                      <td style="text-align: center; vertical-align: middle;">{{  run["c_nhit7"] }}</td>
-                      <td style="text-align: center; vertical-align: middle;">{{  run["c_nhit10"] }}</td>
-                      <td style="text-align: center; vertical-align: middle;">{{  run["c_flag"] }}</td>
+                      <td style="text-align: center; vertical-align: middle;"><a href="{{ url_for('burst_run_detail_l3', run_number=run['run'], subrun=run['subrun'], sub=run['burst_n']) }}">{{ run['run'] }}</a></td>
+                      <td style="text-align: center; vertical-align: middle;">{{ run["subrun"] }}</td>
+                      <td style="text-align: center; vertical-align: middle;">{{ run["burst_n"] }}</td>
+                      <td style="text-align: center; vertical-align: middle;">{{ run["date"] }}</td>
+                      <td style="text-align: center; vertical-align: middle;">{{ run["time"] }}</td>
+                      <td style="text-align: center; vertical-align: middle;">{{ run["total_events"] }}</td>
+                      <td style="text-align: center; vertical-align: middle;">{{ run["burst_size_clean"] }} &nbsp; <span style="color:red">{{ '%0.2f' % (run["burst_size_clean"]/run["total_events"]*100) }}%</span></td>
+                      <td style="text-align: center; vertical-align: middle;">{{ run["total_highEv"] }}</td>
+                      <td style="text-align: center; vertical-align: middle;">{{ run["clean_highEv"] }} &nbsp;
+                        {% if ( run["total_highEv"] > 0 ) %}
+                          <span style="color:red">{{ '%0.2f' % (run["clean_highEv"]/run["total_highEv"]*100) }}%</span></td>
+                        {% else %}
+                          <span style="color:red">0%</span></td>
+                        {% endif %}
+                      <td style="text-align: center; vertical-align: middle;">{{ run["burst_length_clean"] }}</td>
+                      <td style="text-align: center; vertical-align: middle;">{{ run["avg_nhit_clean"] }}</td>
+                      <td style="text-align: center; vertical-align: middle;">{{ run["c_flag"] }}</td>
+                      <td style="text-align: center; vertical-align: middle;">{{ run["checked"] }}</td>
+                      <td style="text-align: center; vertical-align: middle;">{{ run["summary"] }}</td>
                   </tr>
                   {% endfor %}
                 </tbody>
             </table>
             {% if ( (offset > limit-1) and (search != null) ) %}
-              <a href="{{ url_for("burst", offset=offset-limit, limit=limit, search=search, start=start, end=end) }}">Back</a>
+              <a href="{{ url_for("burst_l3", offset=offset-limit, limit=limit, search=search, start=start, end=end) }}">Back</a>
             {% elif (offset > limit-1) %}
-              <a href="{{ url_for("burst", offset=offset-limit, limit=limit) }}">Back</a>
+              <a href="{{ url_for("burst_l3", offset=offset-limit, limit=limit) }}">Back</a>
             {% endif %}
             {% if ( (total > offset + limit) and (search != null) ) %}
-              <a href="{{ url_for("burst", offset=offset+limit, limit=limit, search=search, start=start, end=end) }}">Next</a>
+              <a href="{{ url_for("burst_l3", offset=offset+limit, limit=limit, search=search, start=start, end=end) }}">Next</a>
             {% elif (total > offset + limit) %}
-              <a href="{{ url_for("burst", offset=offset+limit, limit=limit) }}">Next</a>
+              <a href="{{ url_for("burst_l3", offset=offset+limit, limit=limit) }}">Next</a>
             {% endif %}
         </div>
       </div>

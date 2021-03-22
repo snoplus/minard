@@ -1,0 +1,631 @@
+{% extends "layout.html" %}
+{% block title %}Burst Run Detail - Level 3{% endblock %}
+{% block head %}
+  {{ super() }}
+  <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/pca.css') }}" media="screen">
+{% endblock %}
+{% block body %}
+  {{ super() }}
+
+  <div class="container">
+    <div class="row">
+      <div class="col-md-12">
+        <h1 style="text-align:center">L3: Run {{ data["run"] }} details</h1>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-md-12">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h1 class="panel-title"><b>General information</b></h1>
+          </div>
+          <div class="panel-body">
+            <div class="row">
+              <div class="col-md-12">
+                <table class="table table-striped">
+                  <thead>
+                    <tr>
+                      <th width="25.0%">Parameter</th>
+                      <th width="25.0%">Value</th>
+                      <th width="50.0%">Note</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>Run</td>
+                      <td>{{ data["run"] }}</td>
+                      <td>Run number where burst occured</td>
+                    </tr>
+                    <tr>
+                      <td>SubRun</td>
+                      <td>{{ data["subrun"] }}</td>
+                      <td>Subrun number where burst occured</td>
+                    </tr>
+                    <tr>
+                      <td>Burst #</td>
+                      <td>{{ data["burst_n"] }}</td>
+                      <td>Burst number within subrun</td>
+                    </tr>
+                    <tr>
+                      <td>Run type</td>
+                      <td>{{ runtype }}</td>
+                      <td>Type of run, calibration, run bits</td>
+                    </tr>
+                    <tr>
+                      <td>Date</td>
+                      <td>{{ data["date"] }}</td>
+                      <td>Sudbury date</td>
+                    </tr>
+                    <tr>
+                      <td>Time</td>
+                      <td>{{ data["time"] }}</td>
+                      <td>Sudbury time</td>
+                    </tr>
+                    <tr>
+                      <td>Date UTC</td>
+                      <td>{{ data["dateUTC"] }}</td>
+                      <td>UTC date</td>
+                    </tr>
+                    <tr>
+                      <td>Time UTC</td>
+                      <td>{{ data["timeUTC"] }}</td>
+                      <td>UTC time</td>
+                    </tr>
+                    <tr>
+                      <td>SH Buffer</td>
+                      <td>{{ data["c_buffer"] }}</td>
+                      <td>Logical buffer that triggered burst</td>
+                    </tr>
+                    <tr>
+                      <td>SH End</td>
+                      <td>{{ data["c_flag"] }}</td>
+                      <td>Burst end condition (0:normal,1:EoF reached,2:out of order,3:too long,4:clock jumps)</td>
+                    </tr>
+                    <tr>
+                      <td>Total entries</td>
+                      <td>{{ data["total_entries"] }}</td>
+                      <td></td>
+                    </tr>
+                    <tr>
+                      <td>Total events</td>
+                      <td>{{ data["total_events"] }}</td>
+                      <td></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h1 class="panel-title"><b>High NHit events</b></h1>
+          </div>
+          <div class="panel-body">
+            <div class="row">
+              <div class="col-md-12">
+                <table class="table table-striped">
+                  <thead>
+                    <tr>
+                      <th width="25.0%">Parameter</th>
+                      <th width="25.0%">Value</th>
+                      <th width="50.0%">Note</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>Threshold</td>
+                      <td>{{ data["highEv_nhit"] }}</td>
+                      <td>NHit threshold defining high NHit event</td>
+                    </tr>
+                    <tr>
+                      <td>Total</td>
+                      <td>{{ data["total_highEv"] }}</td>
+                      <td># of high NHit events</td>
+                    </tr>
+                    <tr>
+                      <td>Clean</td>
+                      {% if ( data["total_highEv"] > 0 ) %}
+                        <td>{{ data["clean_highEv"] }} &nbsp; <span style="color:red">{{ '%0.2f' % (data["clean_highEv"]/data["total_highEv"]*100) }}%</span></td>
+                      {% else %}
+                        <td>{{ data["clean_highEv"] }} &nbsp; <span style="color:red">0%</span></td>
+                      {% endif %}
+                      <td># of clean high NHit events, % of surviving events</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h1 class="panel-title"><b>Clean burst</b></h1>
+          </div>
+          <div class="panel-body">
+            <div class="row">
+              <div class="col-md-12">
+                <table class="table table-striped">
+                  <thead>
+                    <tr>
+                      <th width="25.0%">Parameter</th>
+                      <th width="25.0%">Value</th>
+                      <th width="50.0%">Note</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>Burst length</td>
+                      <td>{{ data["burst_length_clean"] }}</td>
+                      <td>[s], this includes the PRE and POST windows</td>
+                    </tr>
+                    <tr>
+                      <td>Burst size</td>
+                      <td>{{ data["burst_size_clean"] }} &nbsp; <span style="color:blue">{{ '%0.2f' % (data["burst_size_clean"]/data["total_events"]*100) }}%</span></td>
+                      <td># events, % of surviving events</td>
+                    </tr>
+                    <tr>
+                      <td>Avg NHit</td>
+                      <td>{{ data["avg_nhit_clean"] }}</td>
+                      <td></td>
+                    </tr>
+                    <tr>
+                      <td>Triggers</td>
+                      <td>{{ data["triggers_clean"] }}</td>
+                      <td></td>
+                    </tr>
+                    <tr>
+                      <td>Hits</td>
+                      <td>{{ data["hits_clean"] }}</td>
+                      <td></td>
+                    </tr>
+                    <tr>
+                      <td>First GTID</td>
+                      <td>{{ data["firstGTID_clean"] }}</td>
+                      <td>GTID of first event</td>
+                    </tr>
+                    <tr>
+                      <td>Last GTID</td>
+                      <td>{{ data["lastGTID_clean"] }}</td>
+                      <td>GTID of last event</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h1 class="panel-title"><b>Cut burst</b></h1>
+          </div>
+          <div class="panel-body">
+            <div class="row">
+              <div class="col-md-12">
+                <table class="table table-striped">
+                  <thead>
+                    <tr>
+                      <th width="25.0%">Parameter</th>
+                      <th width="25.0%">Value</th>
+                      <th width="50.0%">Note</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>Burst length</td>
+                      <td>{{ data["burst_length"] }}</td>
+                      <td>[s], this includes the PRE and POST windows</td>
+                    </tr>
+                    <tr>
+                      <td>Burst size</td>
+                      <td>{{ data["burst_size"] }} &nbsp; <span style="color:red">{{ '%0.2f' % (data["burst_size"]/data["total_events"]*100) }}%</span></td>
+                      <td># events, % of cut events</td>
+                    </tr>
+                    <tr>
+                      <td>Avg NHit</td>
+                      <td>{{ data["avg_nhit"] }}</td>
+                      <td></td>
+                    </tr>
+                    <tr>
+                      <td>Triggers</td>
+                      <td>{{ data["triggers"] }}</td>
+                      <td></td>
+                    </tr>
+                    <tr>
+                      <td>Hits</td>
+                      <td>{{ data["hits"] }}</td>
+                      <td></td>
+                    </tr>
+                    <tr>
+                      <td>First GTID</td>
+                      <td>{{ data["firstGTID"] }}</td>
+                      <td>GTID of first event</td>
+                    </tr>
+                    <tr>
+                      <td>Last GTID</td>
+                      <td>{{ data["lastGTID"] }}</td>
+                      <td>GTID of last event</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h1 class="panel-title"><b>Cuts statistics</b></h1>
+          </div>
+          <div class="panel-body">
+            <div class="row">
+              <div class="col-md-12">
+                <table class="table table-striped">
+                  <thead>
+                    <tr>
+                      <th width="25.0%">Parameter</th>
+                      <th width="25.0%">Value</th>
+                      <th width="50.0%">Note</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>nhitcut</td>
+                      <td>{{ data["nhitcut"] }} &nbsp; {{ '%0.2f' % (data["nhitcut"]/data["total_events"]*100) }}%</td>
+                      <td>Flag events below chosen nhit value</td>
+                    </tr>
+                    <tr>
+                      <td>zerozerocut</td>
+                      <td>{{ data["zerozero"] }} &nbsp; {{ '%0.2f' % (data["zerozero"]/data["total_events"]*100) }}%</td>
+                      <td>Tags when last two hex digits of the gtid are zero (bad orphans)</td>
+                    </tr>
+                    <tr>
+                      <td>ringoffire</td>
+                      <td>{{ data["rof"] }} &nbsp; {{ '%0.2f' % (data["rof"]/data["total_events"]*100) }}%</td>
+                      <td>Checks for rings – associated with FE electronics</td>
+                    </tr>
+                    <tr>
+                      <td>crateisotropy</td>
+                      <td>{{ data["crateiso"] }} &nbsp; {{ '%0.2f' % (data["crateiso"]/data["total_events"]*100) }}%</td>
+                      <td>Check hits are unevenly distributed in electonics space</td>
+                    </tr>
+                    <tr>
+                      <td>flashergeocut</td>
+                      <td>{{ data["flashergeo"] }} &nbsp; {{ '%0.2f' % (data["flashergeo"]/data["total_events"]*100) }}%</td>
+                      <td>Flashers – events with a cluster of hits (PMTs near each other)</td>
+                    </tr>
+                    <tr>
+                      <td>neckcut</td>
+                      <td>{{ data["neckcut"] }} &nbsp; {{ '%0.2f' % (data["neckcut"]/data["total_events"]*100) }}%</td>
+                      <td>Neck events: many neck tubes hit or bad charge, hit earlier than avg time of hits</td>
+                    </tr>
+                    <tr>
+                      <td>junkcut</td>
+                      <td>{{ data["junkcut"] }} &nbsp; {{ '%0.2f' % (data["junkcut"]/data["total_events"]*100) }}%</td>
+                      <td>Event where channel has more than one hit</td>
+                    </tr>
+                    <tr>
+                      <td>qcluster</td>
+                      <td>{{ data["qcluster"] }} &nbsp; {{ '%0.2f' % (data["qcluster"]/data["total_events"]*100) }}%</td>
+                      <td>WEB, flashers, sharkfins by looking for clusters of hits in ES</td>
+                    </tr>
+                    <tr>
+                      <td>qvt</td>
+                      <td>{{ data["qvt"] }} &nbsp; {{ '%0.2f' % (data["qvt"]/data["total_events"]*100) }}%</td>
+                      <td>Flashers where there is lower charge in flashing tube</td>
+                    </tr>
+                    <tr>
+                      <td>qvnhit</td>
+                      <td>{{ data["qvnhit"] }} &nbsp; {{ '%0.2f' % (data["qvnhit"]/data["total_events"]*100) }}%</td>
+                      <td>Noise events by looking at charge compared to nhit (noise will have lower charge)</td>
+                    </tr>
+                    <tr>
+                      <td>thresholdflashercut</td>
+                      <td>{{ data["flasherthresh"] }} &nbsp; {{ '%0.2f' % (data["flasherthresh"]/data["total_events"]*100) }}%</td>
+                      <td>Flasher and sharkfins that occur next to channel with maxed discriminator threshold</td>
+                    </tr>
+                    <tr>
+                      <td style="color:red">caencut</td>
+                      <td>{{ data["caencut"] }} &nbsp; {{ '%0.2f' % (data["caencut"]/data["total_events"]*100) }}%</td>
+                      <td></td>
+                    </tr>
+                    <tr>
+                      <td style="color:red">muontag</td>
+                      <td>{{ data["muontag"] }} &nbsp; {{ '%0.2f' % (data["muontag"]/data["total_events"]*100) }}%</td>
+                      <td></td>
+                    </tr>
+                    <tr>
+                      <td style="color:red">tpmuonfollowercut</td>
+                      <td>{{ data["muonfollow"] }} &nbsp; {{ '%0.2f' % (data["muonfollow"]/data["total_events"]*100) }}%</td>
+                      <td></td>
+                    </tr>
+                    <tr>
+                      <td style="color:red">missedmuonfollower</td>
+                      <td>{{ data["missedmuon"] }} &nbsp; {{ '%0.2f' % (data["missedmuon"]/data["total_events"]*100) }}%</td>
+                      <td></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h1 class="panel-title"><b>Other details</b></h1>
+          </div>
+          <div class="panel-body">
+            <div class="row">
+              <div class="col-md-12">
+                <table class="table table-striped">
+                  <thead>
+                    <tr>
+                      <th width="25.0%">Parameter</th>
+                      <th width="25.0%">Value</th>
+                      <th width="50.0%">Note</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>Input file</td>
+                      <td>{{ data["input"] }}</td>
+                      <td></td>
+                    </tr>
+                    <tr>
+                      <td>Output file</td>
+                      <td>{{ data["output"] }}</td>
+                      <td></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-12">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h3 class="panel-title"><b>Events statistics</b></h3>
+          </div>
+          <div class="panel-body">
+            <div class="row">
+              <div class="col-md-6">
+                <img src="{{ url_for('static', filename="bursts/L3/" + files + "/L3_" + files + "_pie.png") }}" alt="Events summary pie plot" class="img-responsive">
+              </div>
+              <div class="col-md-6">
+                <img src="{{ url_for('static', filename="bursts/L3/" + files + "/L3_" + files + "_pie2.png") }}" alt="Cuts summary pie plot" class="img-responsive">
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-12">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h3 class="panel-title"><b>Time-NHit plots: L2 / L3</b></h3>
+          </div>
+          <div class="panel-body">
+            <div class="row">
+              <div class="col-md-6">
+                <img src="{{ url_for('static', filename="bursts/" + files + "/" + files + "_timenhit.png") }}" alt="L2 timenhit plot" class="img-responsive">
+              </div>
+              <div class="col-md-6">
+                <img src="{{ url_for('static', filename="bursts/L3/" + files + "/L3_" + files + "_timenhit.png") }}" alt="L3 timenhit plot" class="img-responsive">
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-md-6">
+                <img src="{{ url_for('static', filename="bursts/L3/" + files + "/L3_" + files + "_timenhitXY.png") }}" alt="Timenhit scatter plot" class="img-responsive">
+              </div>
+              <div class="col-md-6">
+                <img src="{{ url_for('static', filename="bursts/L3/" + files + "/L3_" + files + "_timenhitXY_cuts.png") }}" alt="Timenhit cuts plot" class="img-responsive">
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-12">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h3 class="panel-title"><b>Nhit (ZOOM) / Nhit (log) / Nhit - cuts</b></h3>
+          </div>
+          <div class="panel-body">
+            <div class="row">
+              <div class="col-md-6">
+                <img src="{{ url_for('static', filename="bursts/L3/" + files + "/L3_" + files + "_nhit_zoom.png") }}" alt="NHit ZOOM histogram" class="img-responsive">
+              </div>
+              <div class="col-md-6">
+                <img src="{{ url_for('static', filename="bursts/L3/" + files + "/L3_" + files + "_nhit.png") }}" alt="NHit histogram" class="img-responsive">
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-md-6">
+                <img src="{{ url_for('static', filename="bursts/L3/" + files + "/L3_" + files + "_nhit_cuts.png") }}" alt="NHit cuts histogram" class="img-responsive">
+              </div>
+              <div class="col-md-6">
+                <img src="{{ url_for('static', filename="bursts/L3/" + files + "/L3_" + files + "_nhit_cuts2.png") }}" alt="NHit cuts2 histogram" class="img-responsive">
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-12">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h3 class="panel-title"><b>Time spectrum / Time spectrum (cumulative) / Time spectrum - cuts</b></h3>
+          </div>
+          <div class="panel-body">
+            <div class="row">
+              <div class="col-md-6">
+                <img src="{{ url_for('static', filename="bursts/L3/" + files + "/L3_" + files + "_time.png") }}" alt="Time spectrum histogram" class="img-responsive">
+              </div>
+              <div class="col-md-6">
+                <img src="{{ url_for('static', filename="bursts/L3/" + files + "/L3_" + files + "_timeC.png") }}" alt="Time spectrum - cumulative histogram" class="img-responsive">
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-md-6">
+                <img src="{{ url_for('static', filename="bursts/L3/" + files + "/L3_" + files + "_time_cuts.png") }}" alt="Time spectrum cuts histogram" class="img-responsive">
+              </div>
+              <div class="col-md-6">
+                <img src="{{ url_for('static', filename="bursts/L3/" + files + "/L3_" + files + "_time_cuts2.png") }}" alt="Time spectrum cuts2 histogram" class="img-responsive">
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-12">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h3 class="panel-title"><b>Time difference / Triggers</b></h3>
+          </div>
+          <div class="panel-body">
+            <div class="row">
+              <div class="col-md-6">
+                <img src="{{ url_for('static', filename="bursts/L3/" + files + "/L3_" + files + "_timeDiff.png") }}" alt="Time difference between events" class="img-responsive">
+              </div>
+              <div class="col-md-6">
+                <img src="{{ url_for('static', filename="bursts/L3/" + files + "/L3_" + files + "_trigs.png") }}" alt="Triggers histogram" class="img-responsive">
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-12">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h3 class="panel-title"><b>Crate / Card / Channel distributions (normalized)</b></h3>
+          </div>
+          <div class="panel-body">
+            <div class="row">
+              <div class="col-md-4">
+                <img src="{{ url_for('static', filename="bursts/L3/" + files + "/L3_" + files + "_crate.png") }}" alt="Crate histogram" class="img-responsive">
+              </div>
+              <div class="col-md-4">
+                <img src="{{ url_for('static', filename="bursts/L3/" + files + "/L3_" + files + "_card.png") }}" alt="Card histogram" class="img-responsive">
+              </div>
+              <div class="col-md-4">
+                <img src="{{ url_for('static', filename="bursts/L3/" + files + "/L3_" + files + "_channel.png") }}" alt="Channel histogram" class="img-responsive">
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-12">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h3 class="panel-title"><b>Flat maps (log) </b>[offline PMTs are set as -5]</h3>
+          </div>
+          <div class="panel-body">
+            <div class="row">
+              <div class="col-md-6">
+                <img src="{{ url_for('static', filename="bursts/L3/" + files + "/L3_" + files + "_flatmap_cleared.png") }}" alt="Flatmap clear histogram" class="img-responsive">
+              </div>
+              <div class="col-md-6">
+                <img src="{{ url_for('static', filename="bursts/L3/" + files + "/L3_" + files + "_flatmap.png") }}" alt="Flatmap histogram" class="img-responsive">
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-12">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h3 class="panel-title"><b>Review</h3>
+          </div>
+          <div class="panel-body">
+            <form name="burst_form" method="get" action="/monitoring/burst_form">
+              <div class="row">
+                <div class="col-md-4">
+                  <label for="review">Reviewed?</label>&emsp;&emsp;&emsp;
+                  <select id="review" name="review">
+                    {% if data["checked"] == 1 %}
+                      <option value="0">Not reviewed</option>
+                      <option value="1" selected>Algorithm</option>
+                      <option value="2">Person</option>
+                    {% elif data["checked"] == 2  %}
+                      <option value="0">Not reviewed</option>
+                      <option value="1">Algorithm</option>
+                      <option value="2" selected>Person</option>
+                    {% else %}
+                      <option value="0" selected>Not reviewed</option>
+                      <option value="1">Algorithm</option>
+                      <option value="2">Person</option>
+                    {% endif %}
+                  </select>
+                  <input type="hidden" id="run_number" name="run_number" value='{{ data["run"] }}'>
+                  <input type="hidden" id="subrun" name="subrun" value='{{ data["subrun"] }}'>
+                  <input type="hidden" id="sub" name="sub" value='{{ data["burst_n"] }}'>
+                </div>
+                <div class="col-md-4">
+                  <label for="review_by">Reviewed by:</label>
+                  <input type="text" id="review_by" name="review_by" style="width:63%" value='{{ data["reviewed_by"] }}'>
+                </div>
+                <div class="col-md-4">
+                  Review date: {{ data["review_date"] }} &emsp; {{ data["review_time"] }} [local]
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-md-1">
+                  <label for="notes">Summary:</label>
+                </div>
+                <div class="col-md-10">
+                  {% if data["summary"]|length > 1 %}
+                    <textarea style="width:100%" id="summary" name="summary" rows="3" onkeypress="press(event)">{{ data["summary"] }}</textarea>
+                  {% else %}
+                    <textarea style="width:100%" id="summary" name="summary" rows="2" onkeypress="press(event)"></textarea>
+                  {% endif %}
+                </div>
+                <div class="col-md-1">
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-md-1">
+                  <label for="notes">Notes:</label>
+                </div>
+                <div class="col-md-10">
+                  {% if data["note"]|length > 1 %}
+                    <textarea style="width:100%" id="notes" name="notes" rows="3" onkeypress="press(event)">{{ data["note"] }}</textarea>
+                  {% else %}
+                    <textarea style="width:100%" id="notes" name="notes" rows="2" onkeypress="press(event)"></textarea>
+                  {% endif %}
+                </div>
+                <div class="col-md-1">
+                  <input type="submit" value="Submit">
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+{% endblock %}
+{% block script %}
+  <script src="{{ url_for('static', filename='js/burst_form.js') }}"></script>
+{% endblock %}

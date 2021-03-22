@@ -1,5 +1,5 @@
 {% extends "layout.html" %}
-{% block title %}Burst Run Detail{% endblock %}
+{% block title %}Burst Run Detail - Level 2{% endblock %}
 {% block head %}
   {{ super() }}
   <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/pca.css') }}" media="screen">
@@ -10,99 +10,239 @@
   <div class="container">
     <div class="row">
       <div class="col-md-12">
-        {{ subrun }}
-        {{ sub }}
-        <h2>Run {{ data["run"] }} details</h2>
-        <table class="table table-striped">
-          <thead>
-            <tr>
-              <th>Parameter</th>
-              <th>Value</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>Run</td>
-              <td>{{ data["run"] }}</td>
-            </tr>
-            <tr>
-              <td>SubRun</td>
-              <td>{{ data["subrun"] }}</td>
-            </tr>
-            <tr>
-              <td>Burst #</td>
-              <td>{{ data["burst_n"] }}</td>
-            </tr>
-            <tr>
-              <td>Date</td>
-              <td>{{ data["date"] }}</td>
-            </tr>
-            <tr>
-              <td>Time</td>
-              <td>{{ data["time"] }}</td>
-            </tr>
-            <tr>
-              <td>Date UTC</td>
-              <td>{{ data["dateUTC"] }}</td>
-            </tr>
-            <tr>
-              <td>Time UTC</td>
-              <td>{{ data["timeUTC"] }}</td>
-            </tr>
-            <tr>
-              <td>First GTID</td>
-              <td>{{ data["firstGTID"] }}</td>
-            </tr>
-            <tr>
-              <td>Last GTID</td>
-              <td>{{ data["lastGTID"] }}</td>
-            </tr>
-            <tr>
-              <td>Burst length</td>
-              <td>{{ data["burst_length"] }}</td>
-            </tr>
-            <tr>
-              <td>Burst size</td>
-              <td>{{ data["burst_size"] }}</td>
-            </tr>
-            <tr>
-              <td>Avg NHit</td>
-              <td>{{ data["avg_nhit"] }}</td>
-            </tr>
-            <tr>
-              <td>Triggers</td>
-              <td>{{ data["triggers"] }}</td>
-            </tr>
-            <tr>
-              <td>Hits</td>
-              <td>{{ data["hits"] }}</td>
-            </tr>
-            <tr>
-              <td>SH Nhit</td>
-              <td>{{ data["c_nhit"] }}</td>
-            </tr>
-            <tr>
-              <td>SH length</td>
-              <td>{{ data["c_length"] }}</td>
-            </tr>
-            <tr>
-              <td>SH size</td>
-              <td>{{ data["c_size"] }}</td>
-            </tr>
-            <tr>
-              <td>SH endrate</td>
-              <td>{{ data["c_rate"] }}</td>
-            </tr>
-            <tr>
-              <td>ROOT file</td>
-              <td>{{ data["root_file"] }}</td>
-            </tr>
-            <tr>
-              <td>ZDAB file</td>
-              <td>{{ data["zdab_file"] }}</td>
-            </tr>
-          </tbody>
-        </table>
+        <h1 style="text-align:center">L2: Run {{ data["run"] }} details</h1>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-md-12">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h1 class="panel-title"><b>General information</b></h1>
+          </div>
+          <div class="panel-body">
+            <div class="row">
+              <div class="col-md-12">
+                <table class="table table-striped">
+                  <thead>
+                    <tr>
+                      <th width="25.0%">Parameter</th>
+                      <th width="25.0%">Value</th>
+                      <th width="50.0%">Note</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>Run</td>
+                      <td>{{ data["run"] }}</td>
+                      <td>Run number where burst occured</td>
+                    </tr>
+                    <tr>
+                      <td>SubRun</td>
+                      <td>{{ data["subrun"] }}</td>
+                      <td>Subrun number where burst occured</td>
+                    </tr>
+                    <tr>
+                      <td>Burst #</td>
+                      <td>{{ data["burst_n"] }}</td>
+                      <td>Burst number within subrun</td>
+                    </tr>
+                    <tr>
+                      <td>Run type</td>
+                      <td>{{ runtype }}</td>
+                      <td>Type of run, calibration, run bits</td>
+                    </tr>
+                    <tr>
+                      <td>Date</td>
+                      <td>{{ data["date"] }}</td>
+                      <td>Sudbury date</td>
+                    </tr>
+                    <tr>
+                      <td>Time</td>
+                      <td>{{ data["time"] }}</td>
+                      <td>Sudbury time</td>
+                    </tr>
+                    <tr>
+                      <td>Date UTC</td>
+                      <td>{{ data["dateUTC"] }}</td>
+                      <td>UTC date</td>
+                    </tr>
+                    <tr>
+                      <td>Time UTC</td>
+                      <td>{{ data["timeUTC"] }}</td>
+                      <td>UTC time</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h1 class="panel-title"><b>Burst details</b></h1>
+          </div>
+          <div class="panel-body">
+            <div class="row">
+              <div class="col-md-12">
+                <table class="table table-striped">
+                  <thead>
+                    <tr>
+                      <th width="25.0%">Parameter</th>
+                      <th width="25.0%">Value</th>
+                      <th width="50.0%">Note</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>Burst length</td>
+                      <td>{{ data["burst_length"] }}</td>
+                      <td>[s]</td>
+                    </tr>
+                    <tr>
+                      <td>Burst size</td>
+                      <td>{{ data["burst_size"] }}</td>
+                      <td># events</td>
+                    </tr>
+                    <tr>
+                      <td>Avg NHit</td>
+                      <td>{{ data["avg_nhit"] }}</td>
+                      <td></td>
+                    </tr>
+                    <tr>
+                      <td>Hits</td>
+                      <td>{{ data["hits"] }}</td>
+                      <td></td>
+                    </tr>
+                    <tr>
+                      <td>Triggers</td>
+                      <td>{{ data["triggers"] }}</td>
+                      <td></td>
+                    </tr>
+                    <tr>
+                      <td>First GTID</td>
+                      <td>{{ data["firstGTID"] }}</td>
+                      <td>GTID of first event</td>
+                    </tr>
+                    <tr>
+                      <td>Last GTID</td>
+                      <td>{{ data["lastGTID"] }}</td>
+                      <td>GTID of last event</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h1 class="panel-title"><b>Stonehenge settings</b></h1>
+          </div>
+          <div class="panel-body">
+            <div class="row">
+              <div class="col-md-12">
+                <table class="table table-striped">
+                  <thead>
+                    <tr>
+                      <th width="25.0%">Parameter</th>
+                      <th width="25.0%">Value</th>
+                      <th width="50.0%">Note</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>SH Buffer</td>
+                      <td>{{ data["c_buffer"] }}</td>
+                      <td>Logical buffer that triggered burst</td>
+                    </tr>
+                    <tr>
+                      <td>SH End</td>
+                      <td>{{ data["c_flag"] }}</td>
+                      <td>Burst end condition (0:normal,1:EoF reached,2:out of order,3:too long,4:clock jumps)</td>
+                    </tr>
+                    <tr>
+                      <td>SH Window</td>
+                      <td>{{ data["c_window"] }}</td>
+                      <td>[s] Declaration window</td>
+                    </tr>
+                    <tr>
+                      <td>SH Pre</td>
+                      <td>{{ data["c_xwindow"] }}</td>
+                      <td>[s] Pre-declaration window</td>
+                    </tr>
+                    <tr>
+                      <td>SH Post</td>
+                      <td>{{ data["c_ywindow"] }}</td>
+                      <td>[s] Post-declaration window</td>
+                    </tr>
+                    <tr>
+                      <td>SH Ext</td>
+                      <td>{{ data["c_extwindow"] }}</td>
+                      <td>[s] Extending window</td>
+                    </tr>
+                    <tr>
+                      <td>SH Nhit 3 Evs</td>
+                      <td>{{ data["c_nhit3"] }}</td>
+                      <td>NHit threshold for 3 event logical buffer</td>
+                    </tr>
+                    <tr>
+                      <td>SH Nhit 5 Evs</td>
+                      <td>{{ data["c_nhit5"] }}</td>
+                      <td>NHit threshold for 5 event logical buffer</td>
+                    </tr>
+                    <tr>
+                      <td>SH Nhit 7 Evs</td>
+                      <td>{{ data["c_nhit7"] }}</td>
+                      <td>NHit threshold for 7 event logical buffer</td>
+                    </tr>
+                    <tr>
+                      <td>SH Nhit 10 Evs</td>
+                      <td>{{ data["c_nhit10"] }}</td>
+                      <td>NHit threshold for 10 event logical buffer</td>
+                    </tr>
+                    <tr>
+                      <td>SH Nhit Ext</td>
+                      <td>{{ data["c_nhitExt"] }}</td>
+                      <td>NHit threshold for extending</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h1 class="panel-title"><b>Other details</b></h1>
+          </div>
+          <div class="panel-body">
+            <div class="row">
+              <div class="col-md-12">
+                <table class="table table-striped">
+                  <thead>
+                    <tr>
+                      <th width="25.0%">Parameter</th>
+                      <th width="25.0%">Value</th>
+                      <th width="50.0%">Note</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>ROOT file</td>
+                      <td>{{ data["root_file"] }}</td>
+                      <td></td>
+                    </tr>
+                    <tr>
+                      <td>ZDAB file</td>
+                      <td>{{ data["zdab_file"] }}</td>
+                      <td></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -110,7 +250,7 @@
       <div class="col-md-12">
         <div class="panel panel-default">
           <div class="panel-heading">
-            <h3 class="panel-title">Nhit(ZOOM) / Nhit</h3>
+            <h3 class="panel-title"><b>Nhit (ZOOM) / Nhit (log)</b></h3>
           </div>
           <div class="panel-body">
             <div class="row">
@@ -130,7 +270,7 @@
       <div class="col-md-12">
         <div class="panel panel-default">
           <div class="panel-heading">
-            <h3 class="panel-title">Time spectrum / Time spectrum (cumulative)</h3>
+            <h3 class="panel-title"><b>Time spectrum / Time spectrum (cumulative)</b></h3>
           </div>
           <div class="panel-body">
             <div class="row">
@@ -150,7 +290,7 @@
       <div class="col-md-12">
         <div class="panel panel-default">
           <div class="panel-heading">
-            <h3 class="panel-title">Time difference / Time vs NHit</h3>
+            <h3 class="panel-title"><b>Time difference / Time vs NHit</b></h3>
           </div>
           <div class="panel-body">
             <div class="row">
@@ -170,7 +310,7 @@
       <div class="col-md-12">
         <div class="panel panel-default">
           <div class="panel-heading">
-            <h3 class="panel-title">Crate / Card / Channel distributions</h3>
+            <h3 class="panel-title"><b>Crate / Card / Channel distributions (normalized)</b></h3>
           </div>
           <div class="panel-body">
             <div class="row">
@@ -193,7 +333,7 @@
       <div class="col-md-12">
         <div class="panel panel-default">
           <div class="panel-heading">
-            <h3 class="panel-title">Triggers</h3>
+            <h3 class="panel-title"><b>Triggers / Flat map (log)</b> [offline PMTs are set as -5]</h3>
           </div>
           <div class="panel-body">
             <div class="row">

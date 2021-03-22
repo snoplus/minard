@@ -6,13 +6,9 @@ def get_deck_activity(limit=25, offset=0):
     '''
     conn = engine.connect()
 
-    '''
-    Direction = 0, Off. Direction = 1, On. Direction = 2, Clearing.
-    Location = 0, Deck. Location = 1, DCR.
-    '''
-    result = conn.execute("SELECT run, timestamp, direction, location, " 
-                          "disruptive, name, comment FROM deck_activity "
-                          "ORDER BY timestamp DESC LIMIT %s OFFSET %s", \
+    result = conn.execute("SELECT checkintime, checkouttime, checkinrun, "
+                          "checkoutrun, firstname, lastname, reason FROM logbook "
+                          "ORDER BY checkintime DESC LIMIT %s OFFSET %s", \
                           (limit,offset))
 
     if result is None:

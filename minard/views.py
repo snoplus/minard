@@ -566,6 +566,33 @@ def burst():
     data, total, offset, limit = burst_f.load_burst_runs(offset, limit)
     return render_template( 'burst.html', data=data, total=total, offset=offset, limit=limit )
 
+@app.route('/l3')
+def l3():
+    step = request.args.get('step',3,type=int)
+    height = request.args.get('height',20,type=int)
+    data = burst_f.burst_get_cuts()
+    if not request.args.get('step') or not request.args.get('height'):
+        return redirect(url_for('l3',step=step,height=height,_external=True,data=data))
+    return render_template('l3.html',step=step,height=height,data=data)
+
+@app.route('/burst_l3')
+def burst_l3():
+    offset = request.args.get('offset',type=int)
+    limit = request.args.get('limit',default=25,type=int)
+    search = request.args.get('search',type=str)
+    if search is not None:
+        start = request.args.get('start')
+        end = request.args.get('end')
+        if offset == None:
+            return redirect("burst_l3?limit=%i&offset=0&search=%s&start=%s&end=%s" % (limit, search, start, end))
+        data, total, offset, limit = burst_f.load_bursts_search(search, start, end, offset, limit, 3)
+        return render_template( 'burst_l3.html', data=data, total=total, offset=offset, limit=limit, search=search, start=start, end=end)
+    if offset == None:
+        return redirect("burst_l3?limit=25&offset=0")
+    data, total, offset, limit = burst_f.load_burst_runs(offset, limit, 3)
+    return render_template( 'burst_l3.html', data=data, total=total, offset=offset, limit=limit )
+
+
 @app.route('/presn')
 def presn():
     offset = request.args.get('offset',type=int)
@@ -582,6 +609,7 @@ def presn():
         return redirect("presn?limit=25&offset=0")
     data, total, offset, limit = presn_f.load_presn_runs(offset, limit)
     return render_template( 'presn.html', data=data, total=total, offset=offset, limit=limit )
+
 
 @app.route('/orca-session-logs')
 def orca_session_logs():
@@ -711,18 +739,35 @@ def get_l2():
 
     return jsonify(files=files,times=times)
 
+@app.route('/get_l3')
+def get_l3():
+    name = request.args.get('name')
+
+    try:
+        files, times = zip(*redis.zrange('l3:%s' % name, 0, -1, withscores=True))
+    except ValueError:
+        # no files
+        files = []
+        times = []
+
+    return jsonify(files=files,times=times)
+
 @app.route('/get_SH')
 def get_SH():
     try:
-        nhit = redis.get('l2:nhit')
-        size = redis.get('l2:size')
+        nhit3 = redis.get('l2:nhit3')
+        nhit5 = redis.get('l2:nhit5')
+        nhit7 = redis.get('l2:nhit7')
+        nhit10 = redis.get('l2:nhit10')
         window = redis.get('l2:window')
-        rate = redis.get('l2:rate')
-        settings = [nhit,size,window,rate]
+        xwindow = redis.get('l2:xwindow')
+        ywindow = redis.get('l2:ywindow')
+        ext = redis.get('l2:extwindow')
+        high = redis.get('l2:highnhit')
+        settings = [nhit3,nhit5,nhit7,nhit10,window,xwindow,ywindow,ext,high]
     except ValueError:
         # no files
-        settings = [0,0,0,0]
-
+        settings = [0,0,0,0,0,0,0,0,0]
     return jsonify(settings=settings)
 
 @app.route('/graph')
@@ -1349,11 +1394,29 @@ def pca_run_detail(run_number):
 
 @app.route('/burst_run_detail/<int:run_number>/<int:subrun>/<int:sub>')
 def burst_run_detail(run_number, subrun, sub):
-    return render_template('burst_run_detail.html', data=burst_f.burst_run_detail(run_number, subrun, sub)[0], files=burst_f.burst_run_detail(run_number, subrun, sub)[1])
+    return render_template('burst_run_detail.html', data=burst_f.burst_run_detail(run_number, subrun, sub)[0], files=burst_f.burst_run_detail(run_number, subrun, sub)[1], runtype=burst_f.get_run_type(run_number))
+
+@app.route('/burst_run_detail_l3/<int:run_number>/<int:subrun>/<int:sub>')
+def burst_run_detail_l3(run_number, subrun, sub):
+    return render_template('burst_run_detail_l3.html', data=burst_f.burst_run_detail(run_number, subrun, sub, 3)[0], files=burst_f.burst_run_detail(run_number, subrun, sub, 3)[1], runtype=burst_f.get_run_type(run_number))
+
+@app.route('/burst_form')
+def burst_form():
+    tick = request.args.get('review',type=int)
+    note = request.args.get('notes',type=str)
+    summary = request.args.get('summary',type=str)
+    name = request.args.get('review_by',type=str)
+    run_number = request.args.get('run_number',type=int)
+    subrun = request.args.get('subrun',type=int)
+    sub = request.args.get('sub',type=int)
+    burst_f.burst_form_upload(run_number, subrun, sub, tick, summary, note, name)
+    return render_template('burst_run_detail_l3.html', data=burst_f.burst_run_detail(run_number, subrun, sub, 3)[0], files=burst_f.burst_run_detail(run_number, subrun, sub, 3)[1])
+
 
 @app.route('/presn_run_detail/<int:run_number>/<int:subrun>')
 def presn_run_detail(run_number, subrun):
     return render_template('presn_run_detail.html', data=presn_f.presn_run_detail(run_number, subrun)[0], files=presn_f.presn_run_detail(run_number, subrun)[1])
+
 
 @app.route('/calibdq')
 def calibdq():
@@ -1770,6 +1833,8 @@ def scint_level():
     if run_range_high == 0:
         run_range_high = detector_state.get_latest_run()
 
-    data = scintillator_level.get_scintillator_level(run_range_low, run_range_high)
+    scint_data = scintillator_level.get_scintillator_level(run_range_low, run_range_high)
+    av_data = scintillator_level.get_av_z_offset(run_range_low, run_range_high)
+    rope_data = scintillator_level.get_av_rope_data(run_range_low, run_range_high)
+    return render_template('scint_level.html', scint_data=scint_data, av_data=av_data, rope_data=rope_data, run_range_low=run_range_low, run_range_high=run_range_high)
 
-    return render_template('scint_level.html', data=data, run_range_low=run_range_low, run_range_high=run_range_high)

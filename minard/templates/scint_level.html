@@ -1,5 +1,5 @@
 {% extends "layout.html" %}
-{% block title %}Scintillator Level{% endblock %}
+{% block title %}Scintillator Level and AV offset{% endblock %}
 {% block head %}
     <!-- metrics-graphics stylesheet goes above super() because we want bootstrap's style
     (which is linked in super()) to override it. -->
@@ -14,12 +14,53 @@
         Run Range:
         <input type="text" id="run_range_low" value={{run_range_low}} style="width:80px;"> - 
         <input type="text" id="run_range_high" value={{run_range_high}} style="width:80px;"> 
-        <button type=button onclick="history();">Update Plot</button>
+        <button type=button onclick="history();">Update Plots</button>
     </div>
     <h2> Scintillator z level (mm) used in RAT vs run number </h2>
     <div class="row">
-        <div class="col-md-12" id="main">
-            {% if not data %}
+        <div class="col-md-12" id="main-scint">
+            {% if not scint_data %}
+                <h2 align="left"> No data available </h2>
+            {% endif %}
+        </div>
+    </div>
+    <h2> AV z-offset (mm) used in RAT vs run number </h2>
+    <div class="row">
+        <div class="col-md-12" id="main-av">
+            {% if not av_data %}
+                <h2 align="left"> No data available </h2>
+            {% endif %}
+        </div>
+    </div>
+    <h2> Rope Lengths </h2>
+    <div class="row">
+        <div class="col-md-12" id="main-ropea">
+            {% if not rope_data %}
+                <h2 align="left"> No data available </h2>
+            {% endif %}
+        </div>
+        <div class="col-md-12" id="main-ropec">
+            {% if not rope_data %}
+                <h2 align="left"> No data available </h2>
+            {% endif %}
+        </div>
+        <div class="col-md-12" id="main-roped">
+            {% if not rope_data %}
+                <h2 align="left"> No data available </h2>
+            {% endif %}
+        </div>
+        <div class="col-md-12" id="main-ropee">
+            {% if not rope_data %}
+                <h2 align="left"> No data available </h2>
+            {% endif %}
+        </div>
+        <div class="col-md-12" id="main-ropef">
+            {% if not rope_data %}
+                <h2 align="left"> No data available </h2>
+            {% endif %}
+        </div>
+        <div class="col-md-12" id="main-ropeg">
+            {% if not rope_data %}
                 <h2 align="left"> No data available </h2>
             {% endif %}
         </div>
@@ -42,17 +83,19 @@
             document.getElementById("run_range_high").value = url_params.run_range_high;
         }
 
-        var sdata = {{ data | safe }};
+        var sdata = {{ scint_data | safe }};
+        var adata = {{ av_data | safe }};
+        var rdata = {{ rope_data | safe }};
 
-        var params = {
+        var sparams = {
             chart_type: 'point',
             area: false,
             data: sdata,
-            width: $('#main').width(),
+            width: $('#main-scint').width(),
             left: 100,
             right: 100,
             height: url_params['height'] || 600,
-            target: "#main",
+            target: "#main-scint",
             x_accessor:'run',
             y_accessor:'scint_lvl',
             min_y_from_data: true,
@@ -62,11 +105,178 @@
             yax_count: 10,
             xax_count: 10,
             y_mouseover: function(d, i) {
-                return 'Scint. z level (mm):' + my_si_format(d['scint_lvl']);
+                return 'Scint. z level (mm):' + format_int(d['scint_lvl']);
             },
         };
 
-        MG.data_graphic(params);
+        var aparams = {
+            chart_type: 'point',
+            area: false,
+            data: adata,
+            width: $('#main-av').width(),
+            left: 100,
+            right: 100,
+            height: url_params['height'] || 600,
+            target: "#main-av",
+            x_accessor:'run',
+            y_accessor:'av_offset_z',
+            min_y_from_data: true,
+            point_size: 4.0,
+            y_label: "AV offset (mm)",
+            x_label: "Run number",
+            yax_count: 10,
+            xax_count: 10,
+            y_mouseover: function(d, i) {
+                return 'AV offset (mm):' + format_int(d['av_offset_z']);
+            },
+        };
+
+        var raparams = {
+            chart_type: 'point',
+            area: false,
+            data: rdata,
+            width: $('#main-ropea').width(),
+            left: 100,
+            right: 100,
+            height: url_params['height'] || 600,
+            target: "#main-ropea",
+            x_accessor:'run',
+            y_accessor:'avg_rope_a_reading',
+            min_y_from_data: true,
+            point_size: 4.0,
+            title: "Rope A", 
+            y_label: "Rope A Length (cm)",
+            x_label: "Run number",
+            yax_count: 10,
+            xax_count: 10,
+            y_mouseover: function(d, i) {
+                return 'Rope A Length (cm):' + format_int(d['avg_rope_a_reading']);
+            },
+        };
+
+        var rcparams = {
+            chart_type: 'point',
+            area: false,
+            data: rdata,
+            width: $('#main-ropec').width(),
+            left: 100,
+            right: 100,
+            height: url_params['height'] || 600,
+            target: "#main-ropec",
+            x_accessor:'run',
+            y_accessor:'avg_rope_c_reading',
+            min_y_from_data: true,
+            point_size: 4.0,
+            title: "Rope C", 
+            y_label: "Rope C Length (cm)",
+            x_label: "Run number",
+            yax_count: 10,
+            xax_count: 10,
+            y_mouseover: function(d, i) {
+                return 'Rope C Length (cm):' + format_int(d['avg_rope_c_reading']);
+            },
+        };
+
+        var rdparams = {
+            chart_type: 'point',
+            area: false,
+            data: rdata,
+            width: $('#main-roped').width(),
+            left: 100,
+            right: 100,
+            height: url_params['height'] || 600,
+            target: "#main-roped",
+            x_accessor:'run',
+            y_accessor:'avg_rope_d_reading',
+            min_y_from_data: true,
+            point_size: 4.0,
+            title: "Rope D", 
+            y_label: "Rope D Length (cm)",
+            x_label: "Run number",
+            yax_count: 10,
+            xax_count: 10,
+            y_mouseover: function(d, i) {
+                return 'Rope D Length (cm):' + format_int(d['avg_rope_d_reading']);
+            },
+        };
+
+        var reparams = {
+            chart_type: 'point',
+            area: false,
+            data: rdata,
+            width: $('#main-ropee').width(),
+            left: 100,
+            right: 100,
+            height: url_params['height'] || 600,
+            target: "#main-ropee",
+            x_accessor:'run',
+            y_accessor:'avg_rope_e_reading',
+            min_y_from_data: true,
+            point_size: 4.0,
+            title: "Rope E",
+            y_label: "Rope E Length (cm)",
+            x_label: "Run number",
+            yax_count: 10,
+            xax_count: 10,
+            y_mouseover: function(d, i) {
+                return 'Rope E Length (cm):' + format_int(d['avg_rope_e_reading']);
+            },
+        };
+
+        var rfparams = {
+            chart_type: 'point',
+            area: false,
+            data: rdata,
+            width: $('#main-ropef').width(),
+            left: 100,
+            right: 100,
+            height: url_params['height'] || 600,
+            target: "#main-ropef",
+            x_accessor:'run',
+            y_accessor:'avg_rope_f_reading',
+            min_y_from_data: true,
+            point_size: 4.0,
+            title: "Rope F",
+            y_label: "Rope F Length (cm)",
+            x_label: "Run number",
+            yax_count: 10,
+            xax_count: 10,
+            y_mouseover: function(d, i) {
+                return 'Rope F Length (cm):' + format_int(d['avg_rope_f_reading']);
+            },
+        };
+
+        var rgparams = {
+            chart_type: 'point',
+            area: false,
+            data: rdata,
+            width: $('#main-ropeg').width(),
+            left: 100,
+            right: 100,
+            height: url_params['height'] || 600,
+            target: "#main-ropeg",
+            x_accessor:'run',
+            y_accessor:'avg_rope_g_reading',
+            min_y_from_data: true,
+            point_size: 4.0,
+            title: "Rope G",
+            y_label: "Rope G Length (cm)",
+            x_label: "Run number",
+            yax_count: 10,
+            xax_count: 10,
+            y_mouseover: function(d, i) {
+                return 'Rope G Length (cm):' + format_int(d['avg_rope_g_reading']);
+            },
+        };
+
+        MG.data_graphic(sparams);
+        MG.data_graphic(aparams);
+        MG.data_graphic(raparams);
+        MG.data_graphic(rcparams);
+        MG.data_graphic(rdparams);
+        MG.data_graphic(reparams);
+        MG.data_graphic(rfparams);
+        MG.data_graphic(rgparams);
 
         function history() {
             var params = {};

@@ -22,6 +22,27 @@
     <div class="container">
 
         <div class="row">
+          <div class="col-md-12">
+            <div class="panel panel-default">
+              <div class="panel-heading">
+                <h3 class="panel-title" style="text-align: center">Supernova Burst Trigger - Level 2</h3>
+              </div>
+              <div class="panel-body">
+                <div class="row">
+                  <div class="col-md-12" style="text-align: center">
+                    Level 2 is responsible for the immediate analysis of the bursts created by Stonehenge software.<br>
+                    The bursts are created "in real-time" looking at the data written by the builder.<br>
+                    There are 4 logical buffers that can trigger a burst.<br>
+                    The detector activity is monitored and the thresholds can be adjusted dynamically.<br><br>
+                    <i>The main idea is to monitor high NHit bursts of events in order to "catch" a Supernova with minimal latency.</i>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="row">
             <div class="col-md-2 col-md-offset-10 text-right">
                 <select id="step-menu">
                     {% for i, text in [(1,"15 min"), (4, "1 hour"), (8, "3 hours"), (32, "9 hours"), (128, "1 day"), (256, "3 days"), (1024, "1 week"), (2048, "1 month"), (8192, "3 months"), (32768, "1 year"), (262144, "10 years")] %}
@@ -38,7 +59,7 @@
           <div class="col-md-12">
             <div class="panel panel-default">
               <div class="panel-heading">
-                <h3 class="panel-title">Dynamic threshold</h3>
+                <h3 class="panel-title" style="text-align: center">Dynamic threshold</h3>
               </div>
               <div class="panel-body">
                 <div class="row">
@@ -56,17 +77,25 @@
               <table class="table table-hover">
                   <thead>
                       <tr>
-                          <th>NHit burst</th>
-                          <th>Burst Window</th>
-                          <th>Burst Size</th>
-                          <th>End Rate</th>
+                          <th width="12.5%">3Evt [NHit]</th>
+                          <th width="12.5%">5Evt [NHit]</th>
+                          <th width="12.5%">7Evt [NHit]</th>
+                          <th width="12.5%">10Evt [NHit]</th>
+                          <th width="12.5%">Window [s]</th>
+                          <th width="12.5%">Pre [s]</th>
+                          <th width="12.5%">Post [s]</th>
+                          <th width="12.5%">Ext [s]</th>
                       </tr>
                   </thead>
                       <tr>
-                          <td id="nhit"> 1 </td>
-                          <td id="length"> 2 </td>
-                          <td id="size"> 3 </td>
-                          <td id="rate"> 4 </td>
+                          <td id="3Evt"> 1 </td>
+                          <td id="5Evt"> 2 </td>
+                          <td id="7Evt"> 3 </td>
+                          <td id="10Evt"> 4 </td>
+                          <td id="window"> 5 </td>
+                          <td id="pre"> 6 </td>
+                          <td id="post"> 7 </td>
+                          <td id="ext"> 8 </td>
                       </tr>
               </table>
           </div>
@@ -81,7 +110,7 @@
                     <table class="table table-hover" id="{{ id }}">
                         <thead>
                             <tr>
-                                <th>{{ caption }}</th>
+                                <th style="width:60%">{{ caption }}</th>
                             </tr>
                         </thead>
                         <tbody></tbody>

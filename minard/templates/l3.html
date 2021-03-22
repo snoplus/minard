@@ -1,0 +1,144 @@
+{% extends "layout.html" %}
+{% block title %}L3{% endblock %}
+{% block head %}
+    {{ super() }}
+    <style>
+        .axis path {
+            display: none;
+        }
+
+        #main {
+            margin-bottom: 30px;
+        }
+
+        .horizon .title,
+        .horizon .value {
+            line-height: {{ height }}px;
+        }
+    </style>
+{% endblock %}
+{% block body %}
+{{ super() }}
+  <div class="container">
+
+    <div class="row">
+      <div class="col-md-12">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h3 class="panel-title" style="text-align: center">Supernova Burst Trigger - Level 3</h3>
+          </div>
+          <div class="panel-body">
+            <div class="row">
+              <div class="col-md-12" style="text-align: center">
+                Level 3 is a continuation of the Supernova burst detection.<br>
+                Data cleaning is applied to bursts as well as basic analysis.<br>
+                Additionally, burst classification occurs at this step.<br>
+                There is a focus on the surviving high NHit events.<br><br>
+                <i>The goal is to validate whether burst is "Supernova-like".</i>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-12">
+        <table class="table table-hover">
+          <thead>
+          <tr>
+          <th width="10%">Status</th>
+          <th width="90%">Cuts</th>
+          </tr>
+          </thead>
+
+          <tr>
+            <td> &#9989; Applied: </td>
+            <td>
+              {% for cut in data[0][:-1] %}
+                {{ cut }},
+              {% endfor %}
+              {{ data[0][-1] }}
+            </td>
+          </tr>
+
+          <tr>
+            <td> &#10060; Not Applied: </td>
+            <td>
+              {% for cut in data[1][:-1] %}
+                {{ cut }},
+              {% endfor %}
+              {{ data[1][-1] }}
+            </td>
+          </tr>
+
+        </table>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-12">
+          <table class="table table-hover">
+              <thead>
+                  <tr>
+                      <th>3Evt [NHit]</th>
+                      <th>5Evt [NHit]</th>
+                      <th>7Evt [NHit]</th>
+                      <th>10Evt [NHit]</th>
+                      <th>Window [s]</th>
+                      <th>Pre [s]</th>
+                      <th>Post [s]</th>
+                      <th>Ext [s]</th>
+                      <th>High NHit</th>
+                  </tr>
+              </thead>
+                  <tr>
+                      <td id="3Evt"> 1 </td>
+                      <td id="5Evt"> 2 </td>
+                      <td id="7Evt"> 3 </td>
+                      <td id="10Evt"> 4 </td>
+                      <td id="window"> 5 </td>
+                      <td id="pre"> 6 </td>
+                      <td id="post"> 7 </td>
+                      <td id="ext"> 8 </td>
+                      <td id="high"> 9 </td>
+                  </tr>
+          </table>
+      </div>
+    </div>
+
+    <div class="row">
+        {% for id, caption in states %}
+            {% if not loop.first and loop.index0 % 3 == 0 %}
+                <!-- add new row -->
+                </div><div class="row">
+            {% endif %}
+            <div class="col-md-4">
+                <table class="table table-hover" id="{{ id }}">
+                    <thead>
+                        <tr>
+                            <th style="width:50%">{{ caption }}</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        {% endfor %}
+    </div>
+
+  </div>
+{% endblock %}
+{% set states = [("burstl2", "Burst L2"), ("burstdc1", "DC - pass 1"), ("burstdc2", "DC - pass 2"), ("burstl3", "Burst L3"), ("done", "Done"), ("fail", "Failed")] %}
+{% block script %}
+  <script src="{{ url_for('static', filename='js/moment.min.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/moment-timezone-with-data.min.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/l3.js') }}"></script>
+  <script>
+      {% for name, _ in states %}
+          update_files("{{ name }}", 20);
+      {% endfor %}
+  </script>
+  <script>
+      get_SH_settings(20);
+  </script>
+{% endblock %}

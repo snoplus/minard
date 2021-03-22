@@ -71,13 +71,13 @@
 			<th>Significance</th>
 			<th>Flag</th>
                         <th># Events</th>
-                        <th>Duration [h]</th>
+                        <th>Window duration [h]</th>
                     </tr>
                 </thead>
                 <tbody>
                   {% for run in data %}
                   <tr>
-                    <td><a href="{{ url_for('presn_run_detail', run_number=run['run'], subrun=run['subrun']) }}">{{ run['run'] }}</a></td> 
+		      <td><a href="{{ url_for('presn_run_detail', run_number=run['run'], subrun=run['subrun']) }}">{{ run['run'] }}</a></td>
                       <td>{{  run["subrun"] }}</td>
                       <td>{{  run["date"] }}</td>
                       <td>{{  run["time"] }}</td>

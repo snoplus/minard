@@ -10,8 +10,7 @@ def load_presn_runs(offset, limit):
     This loads ALL the documents in pre-supernova database, ordered by run_subrun logic.
     The logic to limit and split the results per page was implemented.
     """
-    #server = couchdb.Server("http://snoplus:"+app.config["COUCHDB_PASSWORD"]+"@"+app.config["COUCHDB_HOSTNAME"])
-    server = couchdb.Server("http://admin:janetscouchdbpassword@127.0.0.1:5984")
+    server = couchdb.Server("http://snoplus:"+app.config["COUCHDB_PASSWORD"]+"@"+app.config["COUCHDB_HOSTNAME"])
     db = server["pre-supernova"]
 
     results = []
@@ -33,8 +32,8 @@ def presn_run_detail(run_number, subrun):
     """
     Returns a dictionary that is a copy of the couchdb document for specific run_subrun.
     """
-    #server = couchdb.Server("http://snoplus:"+app.config["COUCHDB_PASSWORD"]+"@"+app.config["COUCHDB_HOSTNAME"])
-    server = couchdb.Server("http://admin:janetscouchdbpassword@127.0.0.1:5984")
+    server = couchdb.Server("http://snoplus:"+app.config["COUCHDB_PASSWORD"]+"@"+app.config["COUCHDB_HOSTNAME"])
+
     db = server["pre-supernova"]
 
     startkey = [run_number, subrun]
@@ -56,8 +55,7 @@ def load_presn_search(search, start, end, offset, limit):
     The returned dictionary is given by one of the search conditions on the page:
     either by run, date or GTID which all use corresponding couchdb views.
     """
-    #server = couchdb.Server("http://snoplus:"+app.config["COUCHDB_PASSWORD"]+"@"+app.config["COUCHDB_HOSTNAME"])
-    server = couchdb.Server("http://admin:janetscouchdbpassword@127.0.0.1:5984")
+    server = couchdb.Server("http://snoplus:"+app.config["COUCHDB_PASSWORD"]+"@"+app.config["COUCHDB_HOSTNAME"])
     db = server["pre-supernova"]
     
     results = []

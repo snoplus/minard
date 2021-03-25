@@ -1412,10 +1412,9 @@ def burst_form():
     burst_f.burst_form_upload(run_number, subrun, sub, tick, summary, note, name)
     return render_template('burst_run_detail_l3.html', data=burst_f.burst_run_detail(run_number, subrun, sub, 3)[0], files=burst_f.burst_run_detail(run_number, subrun, sub, 3)[1])
 
-
-@app.route('/presn_run_detail/<int:run_number>/<int:subrun>')
-def presn_run_detail(run_number, subrun):
-    return render_template('presn_run_detail.html', data=presn_f.presn_run_detail(run_number, subrun)[0], files=presn_f.presn_run_detail(run_number, subrun)[1])
+@app.route('/presn_run_detail/<int:run_number>')
+def presn_run_detail(run_number):
+    return render_template('presn_run_detail.html', data=presn_f.presn_run_detail(run_number)[0], files=presn_f.presn_run_detail(run_number)[1])
 
 
 @app.route('/calibdq')

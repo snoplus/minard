@@ -15,11 +15,11 @@ def load_presn_runs(offset, limit):
 
     results = []
     skip = offset
-    all = db.view('_design/presn/_view/presn_by_run', descending=True, skip=skip)
+    all = db.view('_design/presn/_view/presn_by_run_only', descending=True, skip=skip)
     total = all.total_rows
     offset = all.offset
-    for row in db.view('_design/presn/_view/presn_by_run', descending=True, limit=limit, skip=skip):
-        run = row.key[0]
+    for row in db.view('_design/presn/_view/presn_by_run_only', descending=True, limit=limit, skip=skip):
+        run = row.key
         run_id = row.id
         try:
             results.append(dict(db.get(run_id).items()))
@@ -28,17 +28,17 @@ def load_presn_runs(offset, limit):
 
     return results, total, offset, limit
 
-def presn_run_detail(run_number, subrun):
+def presn_run_detail(run_number):
     """
-    Returns a dictionary that is a copy of the couchdb document for specific run_subrun.
+    Returns a dictionary that is a copy of the couchdb document for a specific run.
     """
     server = couchdb.Server("http://snoplus:"+app.config["COUCHDB_PASSWORD"]+"@"+app.config["COUCHDB_HOSTNAME"])
 
     db = server["pre-supernova"]
 
-    startkey = [run_number, subrun]
-    endkey = [run_number, subrun]
-    rows = db.view('_design/presn/_view/presn_by_run', startkey=startkey, endkey=endkey, descending=False, include_docs=True)
+    startkey = run_number
+    endkey = run_number
+    rows = db.view('_design/presn/_view/presn_by_run_only', startkey=startkey, endkey=endkey, descending=False, include_docs=True)
     for row in rows:
         run_id = row.id
         try:

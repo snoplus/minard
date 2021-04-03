@@ -16,8 +16,8 @@ MISSED_COUNT_2 = 256
 MISSED_BURST = 3
 
 # Limits for failing clock jump check
-CLOCK_JUMP_1 = 10
-CLOCK_JUMP_2 = 20
+CLOCK_JUMP_1 = 100
+CLOCK_JUMP_2 = 200
 
 # Limits for muons failing check
 MUONS = 20

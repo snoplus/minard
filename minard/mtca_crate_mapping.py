@@ -14,6 +14,13 @@ owl_choices = [(-1, "None")]
 for label, crate in OWL_LABELS.iteritems():
     owl_choices.append((crate, str(label)))
 
+RETRIGGER_LOGIC = {
+0: "No retrigger logic",
+1: "Lockout",
+2: "DGT",
+3: "DGT and Lockout"
+}
+
 class MTCACrateMappingForm(Form):
     """
     A class for the form to update the crate map for the MTCA+s.
@@ -117,6 +124,30 @@ class OWLCrateMappingForm(Form):
                 crates[field.data] = i
 
         return result
+
+
+def get_mtca_retriggers():
+
+    conn = engine.connect()
+
+    result = conn.execute("SELECT * FROM mtca_retriggers ORDER BY timestamp DESC LIMIT 1")
+
+    keys = result.keys()
+    rows = result.fetchall()
+
+    return [dict(zip(keys, row)) for row in rows]
+
+
+def get_mtca_autoretriggers():
+
+    conn = engine.connect()
+
+    result = conn.execute("SELECT * FROM mtca_auto_retriggers ORDER BY timestamp DESC LIMIT 1")
+
+    keys = result.keys()
+    rows = result.fetchall()
+
+    return [dict(zip(keys, row)) for row in rows]
 
 
 def get_mtca_crate_mapping(mtca):

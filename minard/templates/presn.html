@@ -26,7 +26,6 @@
                                   <div class="col-sm-2">
                                       <select id="search-by" name="search" class="form-control" onchange="update_search()">
                                           <option value="run">Run</option>
-                                          <option value="gtid">GTID</option>
                                           <option value="date">Date</option>
                                       </select>
                                   </div>
@@ -61,6 +60,7 @@
             </div>
 
             <h3>Details</h3>
+	    <h5>flag = 1 (good), 2 (at least 1 run not physics), 3 (bad duration search), 4 (duration less than required), 5 (bad duration), 6 (bad significance), 7 (could not retrieve data)</h5>
             <table class="table table-bordered table-condensed table-striped">
                 <thead>
                     <tr>

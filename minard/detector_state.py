@@ -409,6 +409,8 @@ def get_detector_state_check(run=0):
                     hv_on = detector_state[16]['hv_b_on'] == True
                 except KeyError:
                     hv_on = False
+                except TypeError:
+                    hv_on = False
 
             if detector_state[crate][slot] is None:
                 messages.append("crate %i, slot %i is offline" % (crate, slot))

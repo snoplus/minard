@@ -744,10 +744,12 @@ def get_SH():
         ywindow = redis.get('l2:ywindow')
         ext = redis.get('l2:extwindow')
         high = redis.get('l2:highnhit')
-        settings = [nhit3,nhit5,nhit7,nhit10,window,xwindow,ywindow,ext,high]
+        highEvs = redis.get('l2:highEvs')
+        highSurv = redis.get('l2:highsurv')
+        settings = [nhit3,nhit5,nhit7,nhit10,window,xwindow,ywindow,ext,high,highEvs,highSurv]
     except ValueError:
         # no files
-        settings = [0,0,0,0,0,0,0,0,0]
+        settings = [0,0,0,0,0,0,0,0,0,0,0]
     return jsonify(settings=settings)
 
 @app.route('/graph')
@@ -1811,4 +1813,3 @@ def scint_level():
     av_data = scintillator_level.get_av_z_offset(run_range_low, run_range_high)
     rope_data = scintillator_level.get_av_rope_data(run_range_low, run_range_high)
     return render_template('scint_level.html', scint_data=scint_data, av_data=av_data, rope_data=rope_data, run_range_low=run_range_low, run_range_high=run_range_high)
-

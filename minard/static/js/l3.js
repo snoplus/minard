@@ -27,6 +27,8 @@ function get_SH_settings(interval) {
     var ywindow_td = document.getElementById('post').innerHTML = obj.settings[6];
     var ext_td = document.getElementById('ext').innerHTML = obj.settings[7];
     var high_td = document.getElementById('high').innerHTML = obj.settings[8];
+    var highEvs_td = document.getElementById('highEvs').innerHTML = obj.settings[9];
+    var highSurv_td = document.getElementById('highSurv').innerHTML = obj.settings[10];
     setTimeout(function() {get_SH_settings(interval); }, interval*1000);
   });
 }

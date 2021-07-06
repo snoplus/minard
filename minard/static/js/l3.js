@@ -18,6 +18,9 @@ function get_SH_settings(interval) {
   // update the current stonehenge settings loaded from redis
 
   $.getJSON($SCRIPT_ROOT + '/get_SH').done(function(obj) {
+    var high_td = document.getElementById('high').innerHTML = obj.settings[8];
+    var highEvs_td = document.getElementById('highEvs').innerHTML = obj.settings[9];
+    var highSurv_td = document.getElementById('highSurv').innerHTML = obj.settings[10];
     var nhit3_td = document.getElementById('3Evt').innerHTML = obj.settings[0];
     var nhit5_td = document.getElementById('5Evt').innerHTML = obj.settings[1];
     var nhit7_td = document.getElementById('7Evt').innerHTML = obj.settings[2];
@@ -26,9 +29,6 @@ function get_SH_settings(interval) {
     var xwindow_td = document.getElementById('pre').innerHTML = obj.settings[5];
     var ywindow_td = document.getElementById('post').innerHTML = obj.settings[6];
     var ext_td = document.getElementById('ext').innerHTML = obj.settings[7];
-    var high_td = document.getElementById('high').innerHTML = obj.settings[8];
-    var highEvs_td = document.getElementById('highEvs').innerHTML = obj.settings[9];
-    var highSurv_td = document.getElementById('highSurv').innerHTML = obj.settings[10];
     setTimeout(function() {get_SH_settings(interval); }, interval*1000);
   });
 }

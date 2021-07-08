@@ -14,21 +14,15 @@ VALID_COUNTRIES = [
     ('germany', 'Germany'),
     ('mexico', 'Mexico')
 ]
-FORM_KEYS = ['firstname', 'lastname', 'expert', 'email', 'phone', 'country']
+FORM_KEYS = ['firstname', 'lastname', 'expert', 'supernova_expert', 'email']
 
 class ShifterInfoForm(Form):
-    def validate_phone(form, field):
-        if len(field.data) != 11 and len(field.data) != 12:
-            raise ValidationError("Phone number wrong length")
-        if field.data and not str(field.data).isdigit():
-            raise ValidationError("Phone number must contain only digits")
 
     firstname = StringField('First Name', [validators.DataRequired()])
     lastname = StringField('Last Name', [validators.DataRequired()])
     expert = SelectField('Expert', choices=[])
+    supernova_expert = SelectField('Supernova Expert', choices=[])
     email = EmailField('Email', [validators.Optional(), validators.Email()])
-    phone = StringField('Phone', [validators.Optional()])
-    country = SelectField('Country', choices=VALID_COUNTRIES)
 
 def get_experts():
     """
@@ -36,6 +30,20 @@ def get_experts():
     """
     conn = engine.connect()
     result = conn.execute("SELECT firstname, lastname FROM experts")
+    row = result.fetchall()
+    names = []
+    for first, last in row:
+        name = first + " " + last
+        names.append((name, name))
+
+    return names
+
+def get_supernova_experts():
+    """
+    Returns a list of the names of all on-call experts.
+    """
+    conn = engine.connect()
+    result = conn.execute("SELECT firstname, lastname FROM supernova_experts")
     row = result.fetchall()
     names = []
     for first, last in row:
@@ -53,7 +61,7 @@ def get_shifter_information():
     """
     conn = engine.connect()
 
-    result = conn.execute("SELECT firstname, lastname, email, phonenumber, expert "
+    result = conn.execute("SELECT firstname, lastname, email, expert, supernova_expert "
                           "FROM current_shifter_information")
 
     row = result.fetchone()
@@ -61,33 +69,21 @@ def get_shifter_information():
         return None, None, None
 
     email = row[2]
-    phone = row[3]
-
-    if len(email) and len(phone):
-         updates = "Receiving both email and text alerts."
-    elif len(email):
-        updates = "Receiving only email alerts."
-    elif len(phone):
-        updates = "Receiving only text alerts."
-    else:
-        updates = "Receiving neither text or email alerts."
 
     shifter = ""
     expert = ""
+    supernova_expert = ""
 
     shifter_firstname = row[0]
     shifter_lastname = row[1]
     if shifter_firstname and shifter_lastname:
-        shifter = "Current shifter: %s %s" % \
+        shifter = "%s %s" % \
                   (shifter_firstname.capitalize(), shifter_lastname.capitalize())
 
-    expert_name = row[4]
-    if expert_name:
-        first = expert_name.split()[0]
-        last = expert_name.split()[1]
-        expert  = "Current expert: %s %s" % (first, last)
+    expert_name = row[3]
+    supernova_expert_name = row[4]
 
-    return shifter, expert, updates
+    return shifter, expert_name, supernova_expert_name
 
 def set_shifter_information(form):
     """
@@ -102,6 +98,6 @@ def set_shifter_information(form):
     cursor = conn.cursor()
 
     result = cursor.execute("INSERT INTO shifter_information (firstname, "
-                 "lastname, phonenumber, email, country, expert) "
-                 "VALUES (%(firstname)s, %(lastname)s, %(phone)s, "
-                 "%(email)s, %(country)s, %(expert)s)", form.data)
+                 "lastname, email, expert, supernova_expert) "
+                 "VALUES (%(firstname)s, %(lastname)s, "
+                 "%(email)s, %(expert)s, %(supernova_expert)s)", form.data)

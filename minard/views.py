@@ -37,7 +37,7 @@ import gain_monitor
 import activity
 import scintillator_level
 import burst as burst_f
-from shifter_information import get_shifter_information, set_shifter_information, ShifterInfoForm, get_experts
+from shifter_information import get_shifter_information, set_shifter_information, ShifterInfoForm, get_experts, get_supernova_experts
 from run_list import golden_run_list
 from .polling import polling_runs, polling_info, polling_info_card, polling_check, get_cmos_rate_history, polling_summary, get_most_recent_polling_info, get_vmon, get_base_current_history, get_vmon_history
 from .channeldb import ChannelStatusForm, upload_channel_status, get_channels, get_channel_status, get_channel_status_form, get_channel_history, get_pmt_info, get_nominal_settings, get_discriminator_threshold, get_all_thresholds, get_maxed_thresholds, get_gtvalid_lengths, get_pmt_types, pmt_type_description, get_fec_db_history
@@ -1702,6 +1702,7 @@ def shifter_information():
         form = ShifterInfoForm()
 
     form.expert.choices = get_experts()
+    form.supernova_expert.choices = get_supernova_experts()
 
     if request.method == "POST" and form.validate():
         try:
@@ -1712,8 +1713,8 @@ def shifter_information():
         flash("Successfully submitted", 'success')
         return redirect(url_for("shifter_information"))
 
-    shifter, expert, updates = get_shifter_information()
-    return render_template('shifter_information.html', form=form, shifter=shifter, expert=expert, updates=updates)
+    shifter, expert, supernova_expert = get_shifter_information()
+    return render_template('shifter_information.html', form=form, shifter=shifter, expert=expert, supernova_expert=supernova_expert)
 
 @app.route('/deck_activity')
 def deck_activity():

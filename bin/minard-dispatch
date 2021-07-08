@@ -221,11 +221,10 @@ def pull(host, num_workers, worker):
 
             qhs_sum += pmt.Qhs
 
-        if trig == 0:
-            # orphan
+        # orphan
+        if trig == 0 and gtid == 0:
             cache['DISPATCH_ORPHANS'] += nhit
             continue
-
 
         cache_nhit['all'].append(nhit)
 
@@ -236,6 +235,14 @@ def pull(host, num_workers, worker):
         cache_set['trig']['subrun'] = subrun
         cache_set['trig']['gtid'] = gtid
 
+        # no trigger word, but not an orphan
+        if trig == 0:
+            cache['trig']['NONE'] += 1
+            cache['trig:nhit']['NONE'] += nhit
+            cache['trig:charge']['NONE'] += qhs_sum
+            cache_nhit['NONE'].append(nhit)
+            continue
+
         for i, name in enumerate(TRIGGER_NAMES):
             if trig & (1 << i):
                 cache['trig'][i] += 1
@@ -243,7 +250,7 @@ def pull(host, num_workers, worker):
                 cache['trig:charge'][i] += qhs_sum
                 cache_nhit[name].append(nhit)
 
-        # Unused bit in MTC word marks front-end polling
+        # unused bit in MTC word marks front-end polling
         polling = pev.TriggerCardData.Unused1
 
         if polling:

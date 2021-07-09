@@ -44,66 +44,101 @@
 
     <div class="row">
       <div class="col-md-12">
-        <table class="table table-hover">
-          <thead>
-          <tr>
-          <th width="10%">Status</th>
-          <th width="90%">Cuts</th>
-          </tr>
-          </thead>
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h3 class="panel-title" style="text-align: center">Current cuts</h3>
+          </div>
+          <div class="panel-body">
+            <table class="table table-hover">
+              <thead>
+              <tr>
+              <th width="10%">Status</th>
+              <th width="90%">Cuts</th>
+              </tr>
+              </thead>
 
-          <tr>
-            <td> &#9989; Applied: </td>
-            <td>
-              {% for cut in data[0][:-1] %}
-                {{ cut }},
-              {% endfor %}
-              {{ data[0][-1] }}
-            </td>
-          </tr>
+              <tr>
+                <td> &#9989; Applied: </td>
+                <td>
+                  {% for cut in data[0][:-1] %}
+                    {{ cut }},
+                  {% endfor %}
+                  {{ data[0][-1] }}
+                </td>
+              </tr>
 
-          <tr>
-            <td> &#10060; Not Applied: </td>
-            <td>
-              {% for cut in data[1][:-1] %}
-                {{ cut }},
-              {% endfor %}
-              {{ data[1][-1] }}
-            </td>
-          </tr>
+              <tr>
+                <td> &#10060; Not Applied: </td>
+                <td>
+                  {% for cut in data[1][:-1] %}
+                    {{ cut }},
+                  {% endfor %}
+                  {{ data[1][-1] }}
+                </td>
+              </tr>
 
-        </table>
+            </table>
+          </div>
+        </div>
       </div>
     </div>
 
     <div class="row">
       <div class="col-md-12">
-          <table class="table table-hover">
-              <thead>
-                  <tr>
-                      <th>3Evt [NHit]</th>
-                      <th>5Evt [NHit]</th>
-                      <th>7Evt [NHit]</th>
-                      <th>10Evt [NHit]</th>
-                      <th>Window [s]</th>
-                      <th>Pre [s]</th>
-                      <th>Post [s]</th>
-                      <th>Ext [s]</th>
-                      <th>High NHit</th>
-                  </tr>
-              </thead>
-                  <tr>
-                      <td id="3Evt"> 1 </td>
-                      <td id="5Evt"> 2 </td>
-                      <td id="7Evt"> 3 </td>
-                      <td id="10Evt"> 4 </td>
-                      <td id="window"> 5 </td>
-                      <td id="pre"> 6 </td>
-                      <td id="post"> 7 </td>
-                      <td id="ext"> 8 </td>
-                      <td id="high"> 9 </td>
-                  </tr>
-          </table>
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h3 class="panel-title" style="text-align: center">Stonehenge settings</h3>
+          </div>
+          <div class="panel-body">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>3Evt [NHit]</th>
+                        <th>5Evt [NHit]</th>
+                        <th>7Evt [NHit]</th>
+                        <th>10Evt [NHit]</th>
+                        <th>Window [s]</th>
+                        <th>Pre [s]</th>
+                        <th>Post [s]</th>
+                        <th>Ext [s]</th>
+                    </tr>
+                </thead>
+                    <tr>
+                        <td id="3Evt"> 1 </td>
+                        <td id="5Evt"> 2 </td>
+                        <td id="7Evt"> 3 </td>
+                        <td id="10Evt"> 4 </td>
+                        <td id="window"> 5 </td>
+                        <td id="pre"> 6 </td>
+                        <td id="post"> 7 </td>
+                        <td id="ext"> 8 </td>
+                    </tr>
+            </table>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-12">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h3 class="panel-title" style="text-align: center">Final alarm threshold</h3>
+          </div>
+          <div class="panel-body">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th width="25%">High: NHit</th>
+                        <th width="25%">High: Events</th>
+                        <th width="25%">High: Surviving percentage</th>
+                    </tr>
+                </thead>
+                    <tr>
+                        <td id="high" width="25%"> 9 </td>
+                        <td id="highEvs" width="25%"> 10 </td>
+                        <td id="highSurv" width="25%"> 11 </td>
+                    </tr>
+            </table>
+          </div>
+        </div>
       </div>
     </div>
 

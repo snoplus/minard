@@ -38,12 +38,12 @@ import activity
 import scintillator_level
 import burst as burst_f
 import presn as presn_f
-from shifter_information import get_shifter_information, set_shifter_information, ShifterInfoForm, get_experts
+from shifter_information import get_shifter_information, set_shifter_information, ShifterInfoForm, get_experts, get_supernova_experts
 from run_list import golden_run_list
 from .polling import polling_runs, polling_info, polling_info_card, polling_check, get_cmos_rate_history, polling_summary, get_most_recent_polling_info, get_vmon, get_base_current_history, get_vmon_history
 from .channeldb import ChannelStatusForm, upload_channel_status, get_channels, get_channel_status, get_channel_status_form, get_channel_history, get_pmt_info, get_nominal_settings, get_discriminator_threshold, get_all_thresholds, get_maxed_thresholds, get_gtvalid_lengths, get_pmt_types, pmt_type_description, get_fec_db_history
 from .ecaldb import ecal_state, penn_daq_ccc_by_test, get_penn_daq_tests
-from .mtca_crate_mapping import MTCACrateMappingForm, OWLCrateMappingForm, upload_mtca_crate_mapping, get_mtca_crate_mapping, get_mtca_crate_mapping_form, mtca_relay_status
+from .mtca_crate_mapping import MTCACrateMappingForm, OWLCrateMappingForm, upload_mtca_crate_mapping, get_mtca_crate_mapping, get_mtca_crate_mapping_form, mtca_relay_status, get_mtca_retriggers, get_mtca_autoretriggers, RETRIGGER_LOGIC
 import re
 from .resistor import get_resistors, ResistorValuesForm, get_resistor_values_form, update_resistor_values
 from .pedestalsdb import get_pedestals, bad_pedestals, qhs_by_channel
@@ -382,6 +382,25 @@ def ecal_status():
 
 @app.route('/update-mtca-crate-mapping', methods=["GET", "POST"])
 def update_mtca_crate_mapping():
+
+    # Get the retrigger information
+    retriggers = get_mtca_retriggers()[0]
+    retrigger_status = {}
+    for key in retriggers:
+        if key == "key" or key == "timestamp": continue
+        if retriggers[key] <= 3:
+            status = RETRIGGER_LOGIC[retriggers[key]]
+        else:
+            status = "Unknown retrigger logic"
+        retrigger_status[str(key).upper()] = status
+
+    # Get the retrigger information
+    autoretriggers = get_mtca_autoretriggers()[0]
+    autoretrigger_status = {}
+    for key in autoretriggers:
+        if key == "key" or key == "timestamp": continue
+        autoretrigger_status[str(key).upper()] = autoretriggers[key]
+
     relay_status = None
     if request.form:
         if int(request.form['mtca']) < 4:
@@ -402,7 +421,7 @@ def update_mtca_crate_mapping():
             return render_template('update_mtca_crate_mapping.html', form=form)
         flash("Successfully submitted", 'success')
         return redirect(url_for('update_mtca_crate_mapping', mtca=form.mtca.data))
-    return render_template('update_mtca_crate_mapping.html', form=form, relay_status=relay_status)
+    return render_template('update_mtca_crate_mapping.html', form=form, relay_status=relay_status, retriggers=retrigger_status, autoretriggers=autoretrigger_status)
 
 @app.route('/update-channel-status', methods=["GET", "POST"])
 def update_channel_status():
@@ -764,10 +783,12 @@ def get_SH():
         ywindow = redis.get('l2:ywindow')
         ext = redis.get('l2:extwindow')
         high = redis.get('l2:highnhit')
-        settings = [nhit3,nhit5,nhit7,nhit10,window,xwindow,ywindow,ext,high]
+        highEvs = redis.get('l2:highEvs')
+        highSurv = redis.get('l2:highsurv')
+        settings = [nhit3,nhit5,nhit7,nhit10,window,xwindow,ywindow,ext,high,highEvs,highSurv]
     except ValueError:
         # no files
-        settings = [0,0,0,0,0,0,0,0,0]
+        settings = [0,0,0,0,0,0,0,0,0,0,0]
     return jsonify(settings=settings)
 
 @app.route('/graph')
@@ -1727,6 +1748,7 @@ def shifter_information():
         form = ShifterInfoForm()
 
     form.expert.choices = get_experts()
+    form.supernova_expert.choices = get_supernova_experts()
 
     if request.method == "POST" and form.validate():
         try:
@@ -1737,8 +1759,8 @@ def shifter_information():
         flash("Successfully submitted", 'success')
         return redirect(url_for("shifter_information"))
 
-    shifter, expert, updates = get_shifter_information()
-    return render_template('shifter_information.html', form=form, shifter=shifter, expert=expert, updates=updates)
+    shifter, expert, supernova_expert = get_shifter_information()
+    return render_template('shifter_information.html', form=form, shifter=shifter, expert=expert, supernova_expert=supernova_expert)
 
 @app.route('/deck_activity')
 def deck_activity():
@@ -1836,4 +1858,3 @@ def scint_level():
     av_data = scintillator_level.get_av_z_offset(run_range_low, run_range_high)
     rope_data = scintillator_level.get_av_rope_data(run_range_low, run_range_high)
     return render_template('scint_level.html', scint_data=scint_data, av_data=av_data, rope_data=rope_data, run_range_low=run_range_low, run_range_high=run_range_high)
-

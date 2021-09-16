@@ -42,7 +42,7 @@ from run_list import golden_run_list
 from .polling import polling_runs, polling_info, polling_info_card, polling_check, get_cmos_rate_history, polling_summary, get_most_recent_polling_info, get_vmon, get_base_current_history, get_vmon_history
 from .channeldb import ChannelStatusForm, upload_channel_status, get_channels, get_channel_status, get_channel_status_form, get_channel_history, get_pmt_info, get_nominal_settings, get_discriminator_threshold, get_all_thresholds, get_maxed_thresholds, get_gtvalid_lengths, get_pmt_types, pmt_type_description, get_fec_db_history
 from .ecaldb import ecal_state, penn_daq_ccc_by_test, get_penn_daq_tests
-from .mtca_crate_mapping import MTCACrateMappingForm, OWLCrateMappingForm, upload_mtca_crate_mapping, get_mtca_crate_mapping, get_mtca_crate_mapping_form, mtca_relay_status
+from .mtca_crate_mapping import MTCACrateMappingForm, OWLCrateMappingForm, upload_mtca_crate_mapping, get_mtca_crate_mapping, get_mtca_crate_mapping_form, mtca_relay_status, get_mtca_retriggers, get_mtca_autoretriggers, RETRIGGER_LOGIC
 import re
 from .resistor import get_resistors, ResistorValuesForm, get_resistor_values_form, update_resistor_values
 from .pedestalsdb import get_pedestals, bad_pedestals, qhs_by_channel
@@ -381,6 +381,25 @@ def ecal_status():
 
 @app.route('/update-mtca-crate-mapping', methods=["GET", "POST"])
 def update_mtca_crate_mapping():
+
+    # Get the retrigger information
+    retriggers = get_mtca_retriggers()[0]
+    retrigger_status = {}
+    for key in retriggers:
+        if key == "key" or key == "timestamp": continue
+        if retriggers[key] <= 3:
+            status = RETRIGGER_LOGIC[retriggers[key]]
+        else:
+            status = "Unknown retrigger logic"
+        retrigger_status[str(key).upper()] = status
+
+    # Get the retrigger information
+    autoretriggers = get_mtca_autoretriggers()[0]
+    autoretrigger_status = {}
+    for key in autoretriggers:
+        if key == "key" or key == "timestamp": continue
+        autoretrigger_status[str(key).upper()] = autoretriggers[key]
+
     relay_status = None
     if request.form:
         if int(request.form['mtca']) < 4:
@@ -401,7 +420,7 @@ def update_mtca_crate_mapping():
             return render_template('update_mtca_crate_mapping.html', form=form)
         flash("Successfully submitted", 'success')
         return redirect(url_for('update_mtca_crate_mapping', mtca=form.mtca.data))
-    return render_template('update_mtca_crate_mapping.html', form=form, relay_status=relay_status)
+    return render_template('update_mtca_crate_mapping.html', form=form, relay_status=relay_status, retriggers=retrigger_status, autoretriggers=autoretrigger_status)
 
 @app.route('/update-channel-status', methods=["GET", "POST"])
 def update_channel_status():

@@ -222,7 +222,7 @@ def detector_state_check(run=None):
     if run is None:
         run = detector_state.get_run_state(None)['run']
 
-    messages, channels = detector_state.get_detector_state_check(run)
+    trig_messages, hv_messages, off_messages, fec_messages, channels = detector_state.get_detector_state_check(run)
     alarms = detector_state.get_alarms(run)
 
     if alarms is None:
@@ -244,7 +244,7 @@ def detector_state_check(run=None):
             flash("unable to get daq log for run %i" % run, 'danger')
             warnings = None
 
-    return render_template('detector_state_check.html', run=run, messages=messages, channels=channels, alarms=alarms, warnings=warnings, builder_warnings=builder_warnings)
+    return render_template('detector_state_check.html', run=run, trig_messages=trig_messages, hv_messages=hv_messages, fec_messages=fec_messages, off_messages=off_messages, channels=channels, alarms=alarms, warnings=warnings, builder_warnings=builder_warnings)
 
 @app.route('/channel-database')
 def channel_database():
@@ -387,7 +387,8 @@ def update_mtca_crate_mapping():
     retriggers = get_mtca_retriggers()[0]
     retrigger_status = {}
     for key in retriggers:
-        if key == "key" or key == "timestamp": continue
+        if key == "key" or key == "timestamp" or \
+           key == 'run_begin' or key == 'run_end': continue
         if retriggers[key] <= 3:
             status = RETRIGGER_LOGIC[retriggers[key]]
         else:

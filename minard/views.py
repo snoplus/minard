@@ -399,7 +399,8 @@ def update_mtca_crate_mapping():
     autoretriggers = get_mtca_autoretriggers()[0]
     autoretrigger_status = {}
     for key in autoretriggers:
-        if key == "key" or key == "timestamp": continue
+        if key == "key" or key == "timestamp" or \
+           key == 'run_begin' or key == 'run_end': continue
         autoretrigger_status[str(key).upper()] = autoretriggers[key]
 
     relay_status = None

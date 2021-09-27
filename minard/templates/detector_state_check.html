@@ -33,17 +33,48 @@
         <div class="row">
             <div class="col-md-4">
                 <a href="{{ url_for('state', run=run) }}"><h2>Detector State</h2></a>
-                {% if messages is none %}
+             <p><a href="https://www.snolab.ca/snoplus/private/DocDB/cgi/ShowDocument?docid=4660">What do these messages mean? </a>
+                <h4> Trigger Status </h4>
+                {% if trig_messages is none %}
                     <p> Detector state was not saved to the database!
-                {% elif messages | length == 0 %}
+                {% elif trig_messages | length == 0 %}
                     <p>No issues!
                 {% else %}
                     <ul>
-                    {% for message in messages %}
+                    {% for message in trig_messages %}
                         <li>{{ message }}
                     {% endfor %}
                     </ul>
-                    <p><a href="https://www.snolab.ca/snoplus/private/DocDB/cgi/ShowDocument?docid=4660">What do these messages mean? </a>
+                {% endif %}
+                <h4> FEC Status </h4>
+                {% if fec_messages | length == 0 %}
+                    <p>No issues!
+                {% else %}
+                    <ul>
+                    {% for message in fec_messages %}
+                        <li>{{ message }}
+                    {% endfor %}
+                    </ul>
+                {% endif %}
+                <h4> Crate Status </h4>
+                {% if off_messages | length == 0 %}
+                    <p>No issues!
+                {% else %}
+                    <ul>
+                    {% for message in off_messages %}
+                        <li>{{ message }}
+                    {% endfor %}
+                    </ul>
+                {% endif %}
+                <h4> High Voltage Status </h4>
+                {% if hv_messages | length == 0 %}
+                    <p>No issues!
+                {% else %}
+                    <ul>
+                    {% for message in hv_messages %}
+                        <li>{{ message }}
+                    {% endfor %}
+                    </ul>
                 {% endif %}
             </div>
             <div class="col-md-4">

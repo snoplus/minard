@@ -458,7 +458,7 @@ def get_detector_state_check(run=0):
                     relay_done = True
                     relay_count = 0
 
-                if m:
+                if relay_done:
                     hv_messages.append("HV off for crate %i slot %i PC %i" % (crate, slot, (channel-1)/8))
                     relay_done = False
                 if relay_count == 32:

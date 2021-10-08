@@ -458,10 +458,11 @@ def get_detector_state_check(run=0):
                     relay_done = True
                     relay_count = 0
 
-                if relay_done:
+                # Only warn if the crate is on
+                if relay_done and hv_on:
                     hv_messages.append("HV off for crate %i slot %i PC %i" % (crate, slot, (channel-1)/8))
                     relay_done = False
-                if relay_count == 32:
+                if relay_count == 32 and hv_on:
                     hv_messages.append("HV off for crate %i slot %i" % (crate, slot))
 
                 hv_enabled = hv_relay_mask & relay_closed and hv_on

@@ -51,7 +51,6 @@
                             <ul class='dropdown-menu'>
                                 {{ nav_link('alarms', 'Level 2 Logs') }}
                                 <li><a href="/monitoring/logs">DAQ Logs</a></li>
-                                {{ nav_link('status', 'Software Status') }}
                             </ul>
                         <!-- Dropdown Channel -->
                         <li class='dropdown'>
@@ -81,10 +80,6 @@
                                 {{ nav_link('nearline', 'Job Status') }}
                                 {{ nav_link('nearline_failures', 'Nearline Failures') }}
                                 {{ nav_link('nearline_monitoring_summary', 'Nearline Monitoring') }}
-                                {{ nav_link('pingcrates', 'Ping Crates') }}
-                                {{ nav_link('channelflags', 'Channel Flags') }}
-                                {{ nav_link('trigger_clock_jump', 'Trigger Clock Jumps') }}
-                                {{ nav_link('muon_list', 'Muons and Atmospherics') }}
                             </ul>
                         <!-- Dropdown PMTcal -->
                         <li class='dropdown'>
@@ -94,6 +89,7 @@
                                 {{ nav_link('eca', 'ECA') }}
                                 {{ nav_link('pcatellie', 'PCA Tellie') }}
 				{{ nav_link('noise', 'PMT Noise') }}
+                                {{ nav_link('channelflags', 'Channel Flags') }}
 				{{ nav_link('cssProc', 'CSS Proc') }}
                             </ul>
                         <!-- Dropdown Data Quality -->
@@ -103,6 +99,9 @@
                                 {{ nav_link('physicsdq', 'Physics DQ') }}
                                 {{ nav_link('calibdq_tellie', 'TELLIE  DQ') }}
                                 {{ nav_link('calibdq_smellie', 'SMELLIE DQ') }}
+                                {{ nav_link('pingcrates', 'Ping Crates') }}
+                                {{ nav_link('trigger_clock_jump', 'Trigger Clock Jumps') }}
+                                {{ nav_link('muon_list', 'Muons') }}
                           </ul>
                         <!-- Supernova Dropdown --!>
                         <li class='dropdown'>
@@ -129,6 +128,7 @@
                                 {{ nav_link('shifter_information', 'Shifter Information') }}
                                 {{ nav_link('orca_session_logs', 'Orca') }}
                                 {{ nav_link('remote_network_monitor', 'Network') }}
+                                {{ nav_link('status', 'Software Status') }}
                           </ul>
                     </ul>
                 </div><!--/.navbar-collapse -->

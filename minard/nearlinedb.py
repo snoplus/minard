@@ -12,9 +12,7 @@ def get_nearline_status(run):
 
     rows = result.fetchall()
 
-    programs = {}
-    for name, status in rows:
-        programs[name] = status
+    programs = {name: status for name, status in rows}
 
     return programs
 
@@ -35,15 +33,12 @@ def job_types():
     """
     conn = engine_nl.connect()
 
-    result = conn.execute("SELECT DISTINCT ON (name) name FROM nearline "
+    result = conn.execute("SELECT DISTINCT name FROM nearline "
                           "ORDER BY name DESC")
     rows = result.fetchall()
 
-    names = []
-    names.append("All")
-    names.append("Critical")
-    for name in rows:
-        names.append(str(name[0]))
+    names = ["All", "Critical"]
+    names += [str(name[0]) for name in rows]
 
     return names
 
@@ -54,7 +49,7 @@ def get_failed_runs(run, run_range_low=0, run_range_high=0):
     conn = engine_nl.connect()
 
     if run_range_high:
-        result = conn.execute("SELECT DISTINCT ON (run, name) run, name, status FROM nearline " 
+        result = conn.execute("SELECT DISTINCT ON (run, name) run, name, status FROM nearline "
                               "WHERE run >= %s AND run <= %s ORDER BY run DESC, name DESC, timestamp DESC",
                               (run_range_low, run_range_high,))
     else:
@@ -89,9 +84,7 @@ def reprocessed_runs():
 
     rows = result.fetchall()
 
-    reprocessed_runs = []
-    for run in rows:
-        reprocessed_runs.append(run[0])
+    reprocessed_runs = [run[0] for run in rows]
 
     return reprocessed_runs
 
@@ -108,5 +101,4 @@ def reprocessed_run(run):
     if rows is None:
         return False
 
-    return True 
-
+    return True

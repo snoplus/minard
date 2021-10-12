@@ -27,27 +27,9 @@
         {%- endmacro %}
         <div class="navbar navbar-default navbar-static-top">
             <div class="container">
-                <div class="navbar-header">
-                    <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
-                        <span class="icon-bar"></span>
-                        <span class="icon-bar"></span>
-                        <span class="icon-bar"></span>
-                    </button>
-                    <a class="navbar-brand" href="{{ url_for('index') }}">SNO+ Monitoring</a>
-                </div>
                 <div class="navbar-collapse collapse">
                     <ul class="nav navbar-nav">
-                        {{ nav_link('status', 'Status') }}
                         <!-- Dropdown L2 -->
-                        <li class='dropdown'>
-			<a href='#' class='dropdown-toggle' data-toggle='dropdown'>Supernova <b class='caret'></b></a>
-                            <ul class='dropdown-menu'>
-                                {{ nav_link('l2', 'Level 2') }}
-                                {{ nav_link('burst', 'Level 2 - Bursts') }}
-                                {{ nav_link('l3', 'Level 3') }}
-                                {{ nav_link('burst_l3', 'Level 3 - Bursts') }}
-				{{ nav_link('presn', 'Pre-Supernova') }}
-                            </ul>
                         {{ nav_link('snostream', 'Stream') }}
                         <!-- Dropdown Detector -->
                         <li class='dropdown'>
@@ -55,35 +37,42 @@
                             <ul class='dropdown-menu'>
                                 {{ nav_link('detector', 'Occupancy') }}
                                 {{ nav_link('nhit', 'Nhit Distribution') }}
-                                {{ nav_link('daq', 'CMOS Rates, Base Currents, and Occupancy') }}
                                 {{ nav_link('nhit_monitor_thresholds_nearline', 'Nhit Monitor') }}
                                 {{ nav_link('trigger', 'Trigger Scans') }}
                                 {{ nav_link('state', 'Detector State', run=0) }}
                                 {{ nav_link('detector_state_check', 'Detector State Check', run=0) }}
                                 {{ nav_link('detector_state_diff', 'Detector State Diff') }}
                                 {{ nav_link('ecal_state_diff', 'ECAL State Diff') }}
-                                {{ nav_link('check_rates', 'Check Rates') }}
                                 {{ nav_link('update_mtca_crate_mapping', 'MTCA+ Information') }}
-                                {{ nav_link('alarms', 'Alarms') }}
+                            </ul>
+                        <!-- Dropdown Logs -->
+                        <li class='dropdown'>
+			<a href='#' class='dropdown-toggle' data-toggle='dropdown'>Logs <b class='caret'></b></a>
+                            <ul class='dropdown-menu'>
+                                {{ nav_link('alarms', 'Level 2 Logs') }}
                                 <li><a href="/monitoring/logs">DAQ Logs</a></li>
-                                {{ nav_link('cavity_temp', 'Cavity Temperature') }}
-                                {{ nav_link('deck_activity', 'Deck and DCR Activity') }}
-                                {{ nav_link('shifter_information', 'Shifter Information') }}
-                                {{ nav_link('scint_level', 'Scintillator Level and AV Offset') }}
+                                {{ nav_link('status', 'Software Status') }}
                             </ul>
                         <!-- Dropdown Channel -->
                         <li class='dropdown'>
-			<a href='#' class='dropdown-toggle' data-toggle='dropdown'>Channel DB <b class='caret'></b></a>
+			<a href='#' class='dropdown-toggle' data-toggle='dropdown'>Channels <b class='caret'></b></a>
                             <ul class='dropdown-menu'>
                                 {{ nav_link('channel_database', 'Channel Database') }}
                                 {{ nav_link('channel_status', 'Channel Status') }}
                                 {{ nav_link('update_channel_status', 'Update Channel Status') }}
-                                {{ nav_link('calculate_resistors', 'Calculate Resistors') }}
+                                {{ nav_link('calculate_resistors', 'Calculate PMTIC Resistors') }}
                                 {{ nav_link('update_pmtic_resistors', 'Update PMTIC Resistors') }}
-                                {{ nav_link('polling_history', 'Polling History') }}
                                 {{ nav_link('discriminator_info', 'Discriminator Thresholds') }}
                                 {{ nav_link('ecal_status', 'ECAL Status') }}
                                 {{ nav_link('pedestals', 'Pedestals') }}
+                            </ul>
+                        <!-- Dropdown Polling -->
+                        <li class='dropdown'>
+			<a href='#' class='dropdown-toggle' data-toggle='dropdown'>Polling <b class='caret'></b></a>
+                            <ul class='dropdown-menu'>
+                                {{ nav_link('daq', 'Continuous Polling Data') }}
+                                {{ nav_link('check_rates', 'Check Rates Data') }}
+                                {{ nav_link('polling_history', 'Check Rates Polling By Channel') }}
                             </ul>
                         <!-- Dropdown Nearline -->
                         <li class='dropdown'>
@@ -93,13 +82,9 @@
                                 {{ nav_link('nearline_failures', 'Nearline Failures') }}
                                 {{ nav_link('nearline_monitoring_summary', 'Nearline Monitoring') }}
                                 {{ nav_link('pingcrates', 'Ping Crates') }}
-                                {{ nav_link('crate_gain_monitor', 'PMT Gains by Crate') }}
-                                {{ nav_link('occupancy_by_trigger', 'Occupancy by Trigger') }}
                                 {{ nav_link('channelflags', 'Channel Flags') }}
                                 {{ nav_link('trigger_clock_jump', 'Trigger Clock Jumps') }}
                                 {{ nav_link('muon_list', 'Muons and Atmospherics') }}
-                                {{ nav_link('rathome', 'RAT') }}
-                                {{ nav_link('dropout_overview', 'Dropout') }}
                             </ul>
                         <!-- Dropdown PMTcal -->
                         <li class='dropdown'>
@@ -119,16 +104,32 @@
                                 {{ nav_link('calibdq_tellie', 'TELLIE  DQ') }}
                                 {{ nav_link('calibdq_smellie', 'SMELLIE DQ') }}
                           </ul>
+                        <!-- Supernova Dropdown --!>
+                        <li class='dropdown'>
+			<a href='#' class='dropdown-toggle' data-toggle='dropdown'>Supernova <b class='caret'></b></a>
+                            <ul class='dropdown-menu'>
+                                {{ nav_link('l2', 'Level 2') }}
+                                {{ nav_link('burst', 'Level 2 - Bursts') }}
+                                {{ nav_link('l3', 'Level 3') }}
+                                {{ nav_link('burst_l3', 'Level 3 - Bursts') }}
+				{{ nav_link('presn', 'Pre-Supernova') }}
+                            </ul>
+                        <!-- Dropdown Detector -->
+                        <li class='dropdown'>
+			<a href='#' class='dropdown-toggle' data-toggle='dropdown'>Underground <b class='caret'></b></a>
+                            <ul class='dropdown-menu'>
+                                {{ nav_link('cavity_temp', 'Cavity Temperature') }}
+                                {{ nav_link('deck_activity', 'Deck and DCR Activity') }}
+                                {{ nav_link('scint_level', 'Scintillator Level and AV Offset') }}
+                            </ul>
                         <!-- Remote Control Rooms -->
                         <li class='dropdown'>
                             <a href='#' class='dropdown-toggle' data-toggle='dropdown'>Control Rooms <b class='caret'></b></a>
                             <ul class='dropdown-menu'>
+                                {{ nav_link('shifter_information', 'Shifter Information') }}
                                 {{ nav_link('orca_session_logs', 'Orca') }}
                                 {{ nav_link('remote_network_monitor', 'Network') }}
                           </ul>
-                    </ul>
-                    <ul class="nav navbar-nav navbar-right">
-                        <li><a href="{{ url_for('docs') }}">Docs</a></li>
                     </ul>
                 </div><!--/.navbar-collapse -->
             </div>

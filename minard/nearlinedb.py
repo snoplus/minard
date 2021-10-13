@@ -12,6 +12,7 @@ def get_nearline_status(run):
 
     rows = result.fetchall()
 
+    programs = {}
     for name, status in rows:
         programs[name] = status
 

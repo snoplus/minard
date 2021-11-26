@@ -49,6 +49,7 @@ from .resistor import get_resistors, ResistorValuesForm, get_resistor_values_for
 from .pedestalsdb import get_pedestals, bad_pedestals, qhs_by_channel
 from datetime import datetime
 from functools import wraps, update_wrapper
+from dead_time import get_dead_time, get_dead_time_runs, get_dead_time_run_by_key
 
 TRIGGER_NAMES = \
 ['100L',
@@ -1033,6 +1034,23 @@ def polling_history():
     bdata = convert_timestamp(bdata)
 
     return render_template('polling_history.html', crate=crate, slot=slot, channel=channel, cdata=cdata, bdata=bdata, starting_run=starting_run, ending_run=ending_run)
+
+@app.route('/dead_time_runs')
+def dead_time_runs():
+
+    data = get_dead_time_runs()
+
+    return render_template('dead_time_runs.html', data=data)
+
+@app.route('/dead_time')
+def dead_time():
+
+    key = request.args.get('key',0,type=int)
+
+    dead_time_data = get_dead_time(key)
+    run_data = get_dead_time_run_by_key(key)
+
+    return render_template('dead_time.html', ddata=dead_time_data, rdata=run_data)
 
 @app.route('/daq')
 def daq():

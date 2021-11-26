@@ -1,0 +1,73 @@
+{% extends "layout.html" %}
+{% block title %}Dead Time{% endblock %}
+{% block head %}
+    <!-- metrics-graphics stylesheet goes above super() because we want bootstrap's style
+    (which is linked in super()) to override it. -->
+    <link rel="stylesheet" type="text/css"  href="{{ url_for('static',filename='css/metricsgraphics.css') }}">
+    <link rel="stylesheet" type="text/css"  href="{{ url_for('static',filename='css/mg_line_brushing.css') }}">
+<style>
+.mg-x-axis text, .mg-y-axis text, .mg-histogram .axis text, .mg-y-label text {
+    font-size: 1.5rem;
+}
+</style>
+    {{ super() }}
+{% endblock %}
+{% block body %}
+    {{ super() }}
+<div class="container">
+    <div class="row">
+        <a href="{{ url_for('dead_time_runs') }}">List of dead-time tests</a>
+        <table class="table table-hover">
+          <tr>
+            <th> DGT (ns) </th>
+            <th> Lockout Source </th>
+            <th> Lockout Length (ns) </th>
+            <th> TUBII Pulser Rate (Hz) </th>
+            <th> Trigger </th>
+          </tr>
+          {% for d in rdata %}
+            <tr>
+              <th> {{ d[0]*2 }} </th>
+              <th> {{ d[1] }} </th>
+              {% if d[1] == 'TUBII' %}
+                  <th> {{ d[2]*5 }} </th>
+              {% else %}
+                  <th> {{ d[2] }} </th>
+              {% endif %}
+              <th> {{ d[3] }} </th>
+              <th> {{ d[4] }} </th>
+            </tr>
+          {% endfor %}
+        </table>
+        <div class="col-md-12" id='main'></div>
+    </div>
+</div>
+{% endblock %}
+{% block script %}
+    <script src="{{ url_for('static', filename='js/d3.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/moment.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/moment-timezone-with-data.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/tzscale.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/metricsgraphics.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/mg_line_brushing.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/stream_utilities.js') }}"></script>
+    <script>
+
+        var ddata = {{ ddata | safe }};
+
+        MG.data_graphic({
+            chart_type: 'point',
+            data: ddata,
+            target: '#main',
+            height: 400,
+            left: 100,
+            width: $('#main').width(),
+            x_accessor: 'total_delay',
+            y_accessor: 'trigger_rate',
+            x_label: 'Total Delay (ns)',
+            y_label: 'Trigger Rate (Hz)',
+            point_size: 4.0,
+        });
+
+    </script>
+{% endblock %}

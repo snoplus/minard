@@ -341,6 +341,9 @@ def get_detector_state_check(run=0):
         control_reg = tubii['control_reg']
         if control_reg is not None and (control_reg & (1<<2)):
             trig_messages.append("TUBII ECAL bit set")
+        if control_reg is not None and not (control_reg & (1<<1)):
+            trig_messages.append("Using TUBII LO*")
+
         # TUBII CAEN mapping
         tubii_gain = [1<<0, 1<<2, 1<<7, 1<<5, 1<<1, 1<<3, 1<<6, 1<<4]
         gain_reg = tubii['caen_gain_reg']
@@ -368,6 +371,15 @@ def get_detector_state_check(run=0):
                 else:
                     trig_messages.append("Warning: TUBII channels %s are in non-attentuating mode"\
                         % str(attenuated_channels)[1:-1])
+
+    caen_state = get_caen_state(run)
+
+    if caen_state is None:
+        trig_messages.append("CAEN settings are unknown.")
+    else:
+        window_length = caen_state['custom_size']*4*4
+        if window_length != 416: # Not the standard length
+            trig_messages.append("CAEN window size is %i ns." % window_length)
 
     detector_state = get_detector_state(run)
 

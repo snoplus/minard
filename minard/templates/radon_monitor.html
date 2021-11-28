@@ -1,0 +1,87 @@
+{% extends "layout.html" %}
+{% block title %} Radon Monitor {% endblock %}
+{% block head %}
+    <!-- metrics-graphics stylesheet goes above super() because we want bootstrap's style
+    (which is linked in super()) to override it. -->
+    <link rel="stylesheet" type="text/css"  href="{{ url_for('static',filename='css/metricsgraphics.css') }}">
+    <link rel="stylesheet" type="text/css"  href="{{ url_for('static',filename='css/mg_line_brushing.css') }}">
+    {{ super() }}
+{% endblock %}
+{% block body %}
+    {{ super() }}
+<div class="container">
+    <div class="row">
+        Run Range:
+        <input type="text" id="run_range_low" value={{run_range_low}} style="width:80px;"> - 
+        <input type="text" id="run_range_high" value={{run_range_high}} style="width:80px;"> 
+        <button type=button onclick="history();">Update Plots</button>
+    </div>
+    <h2> Radon Monitor Data </h2>
+    <div class="row">
+        <div class="col-md-12" id="main">
+            {% if not pdata %}
+                <h2 align="left"> No data available </h2>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block script %}
+    <script src="{{ url_for('static', filename='js/d3.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/moment.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/moment-timezone-with-data.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/tzscale.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/metricsgraphics.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/mg_line_brushing.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/stream_utilities.js') }}"></script>
+    <script>
+        if (url_params.run_range_low) {
+            document.getElementById("run_range_low").value = url_params.run_range_low;
+        }
+        if (url_params.run_range_high) {
+            document.getElementById("run_range_high").value = url_params.run_range_high;
+        }
+
+        var ddata = {{ pdata | safe }};
+
+        var dparams = {
+            chart_type: 'point',
+            area: false,
+            data: ddata,
+            width: $('#main').width(),
+            left: 100,
+            right: 100,
+            height: url_params['height'] || 600,
+            target: "#main",
+            x_accessor:'radon_monitor_run',
+            y_accessor:'po210_counts',
+            min_y_from_data: true,
+            point_size: 4.0,
+            y_label: "210Po Counts",
+            x_label: "Radon Monitor Run",
+            yax_count: 10,
+            xax_count: 10,
+            y_mouseover: function(d, i) {
+                return 'Counts:' + format_int(d['po210_counts']);
+            },
+        };
+
+        MG.data_graphic(dparams);
+
+        function history() {
+            var params = {};
+            try {
+                params['run_range_low'] = document.getElementById("run_range_low").value;
+            } catch (e) {
+                params['run_range_low'] = 200000;
+            }
+            try {
+                params['run_range_high'] = document.getElementById("run_range_high").value;
+            } catch (e) {
+                params['run_range_high'] = 200000;
+            }
+            window.location.replace($SCRIPT_ROOT + "/radon_monitor?" + $.param(params));
+        }
+
+    </script>
+{% endblock %}

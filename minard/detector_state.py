@@ -252,6 +252,7 @@ def get_detector_state_check(run=0):
     nominal_settings = get_nominal_settings_for_run(run)
     mtc_key = run_state['mtc']
     tubii_key = run_state['tubii']
+    caen_key = run_state['caen']
 
     channels = []
     trig_messages = []
@@ -372,7 +373,7 @@ def get_detector_state_check(run=0):
                     trig_messages.append("Warning: TUBII channels %s are in non-attentuating mode"\
                         % str(attenuated_channels)[1:-1])
 
-    caen_state = get_caen_state(run)
+    caen_state = get_caen_state(caen_key)
 
     if caen_state is None:
         trig_messages.append("CAEN settings are unknown.")

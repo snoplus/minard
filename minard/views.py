@@ -50,6 +50,7 @@ from .pedestalsdb import get_pedestals, bad_pedestals, qhs_by_channel
 from datetime import datetime
 from functools import wraps, update_wrapper
 from dead_time import get_dead_time, get_dead_time_runs, get_dead_time_run_by_key
+from radon_monitor import get_radon_monitor
 
 TRIGGER_NAMES = \
 ['100L',
@@ -1878,3 +1879,17 @@ def scint_level():
     av_data = scintillator_level.get_av_z_offset(run_range_low, run_range_high)
     rope_data = scintillator_level.get_av_rope_data(run_range_low, run_range_high)
     return render_template('scint_level.html', scint_data=scint_data, av_data=av_data, rope_data=rope_data, run_range_low=run_range_low, run_range_high=run_range_high)
+
+@app.route('/radon_monitor')
+def radon_monitor():
+
+    year_low = request.args.get("year_low", 2018, type=int)
+    month_low = request.args.get("month_low", 1, type=int)
+    day_low = request.args.get("day_low", 1, type=int)
+    year_high = request.args.get("year_high", 2022, type=int)
+    month_high = request.args.get("month_high", 12, type=int)
+    day_high = request.args.get("day_high", 31, type=int)
+
+    pdata = get_radon_monitor(year_low, month_low, day_low, year_high, month_high, day_high)
+
+    return render_template('radon_monitor.html', pdata=pdata)

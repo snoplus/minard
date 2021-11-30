@@ -10,20 +10,144 @@
 {% block body %}
     {{ super() }}
 <div class="container">
-    <div class="row">
-        Run Range:
-        <input type="text" id="run_range_low" value={{run_range_low}} style="width:80px;"> - 
-        <input type="text" id="run_range_high" value={{run_range_high}} style="width:80px;"> 
-        <button type=button onclick="history();">Update Plots</button>
+  <div class="row">
+    <div class="col-xs-3 col-xs-offset-0">
+      Start plot at (Y/M/D): <br>
+      <select name="Year" id="year_low">
+        <option value="2018">2018</option>
+        <option value="2019">2019</option>
+        <option value="2020">2020</option>
+        <option value="2021">2021</option>
+        <option value="2022">2022</option>
+      </select>
+      <select id="month_low">
+        <option value="1">1</option>
+        <option value="2">2</option>
+        <option value="3">3</option>
+        <option value="4">4</option>
+        <option value="5">5</option>
+        <option value="6">6</option>
+        <option value="7">7</option>
+        <option value="8">8</option>
+        <option value="9">9</option>
+        <option value="10">10</option>
+        <option value="11">11</option>
+        <option value="12">12</option>
+      </select>
+      <select id="day_low">
+        <option value="1">1</option>
+        <option value="2">2</option>
+        <option value="3">3</option>
+        <option value="4">4</option>
+        <option value="5">5</option>
+        <option value="6">6</option>
+        <option value="7">7</option>
+        <option value="8">8</option>
+        <option value="9">9</option>
+        <option value="10">10</option>
+        <option value="11">11</option>
+        <option value="12">12</option>
+        <option value="13">13</option>
+        <option value="14">14</option>
+        <option value="15">15</option>
+        <option value="16">16</option>
+        <option value="17">17</option>
+        <option value="18">18</option>
+        <option value="19">19</option>
+        <option value="20">20</option>
+        <option value="21">21</option>
+        <option value="22">22</option>
+        <option value="23">23</option>
+        <option value="24">24</option>
+        <option value="25">25</option>
+        <option value="26">26</option>
+        <option value="27">27</option>
+        <option value="28">28</option>
+        <option value="29">29</option>
+        <option value="30">30</option>
+        <option value="31">31</option>
+      </select>
     </div>
-    <h2> Radon Monitor Data </h2>
-    <div class="row">
-        <div class="col-md-12" id="main">
-            {% if not pdata %}
-                <h2 align="left"> No data available </h2>
-            {% endif %}
-        </div>
+    <div class="col-xs-3 col-xs-offset-0">
+      End plot at (Y/M/D): <br>
+      <select id="year_high">
+        <option value="2022">2022</option>
+        <option value="2021">2021</option>
+        <option value="2020">2020</option>
+        <option value="2019">2019</option>
+        <option value="2018">2018</option>
+      </select>
+      <select id="month_high">
+        <option value="1">1</option>
+        <option value="2">2</option>
+        <option value="3">3</option>
+        <option value="4">4</option>
+        <option value="5">5</option>
+        <option value="6">6</option>
+        <option value="7">7</option>
+        <option value="8">8</option>
+        <option value="9">9</option>
+        <option value="10">10</option>
+        <option value="11">11</option>
+        <option value="12">12</option>
+      </select>
+      <select id="day_high">
+        <option value="1">1</option>
+        <option value="2">2</option>
+        <option value="3">3</option>
+        <option value="4">4</option>
+        <option value="5">5</option>
+        <option value="6">6</option>
+        <option value="7">7</option>
+        <option value="8">8</option>
+        <option value="9">9</option>
+        <option value="10">10</option>
+        <option value="11">11</option>
+        <option value="12">12</option>
+        <option value="13">13</option>
+        <option value="14">14</option>
+        <option value="15">15</option>
+        <option value="16">16</option>
+        <option value="17">17</option>
+        <option value="18">18</option>
+        <option value="19">19</option>
+        <option value="20">20</option>
+        <option value="21">21</option>
+        <option value="22">22</option>
+        <option value="23">23</option>
+        <option value="24">24</option>
+        <option value="25">25</option>
+        <option value="26">26</option>
+        <option value="27">27</option>
+        <option value="28">28</option>
+        <option value="29">29</option>
+        <option value="30">30</option>
+        <option value="31">31</option>
+      </select>
     </div>
+    <div class="col-xs-3 col-xs-offset-0">
+      Y-axis range:
+      <input type="text", id="ylow", value=0.0001 style="width:60px;">
+      <input type="text", id="yhigh", value=0.1 style="width:60px;"> <br>
+      Y-axis scale:
+      <select id="yscale">
+        <option value="linear">Linear</option>
+        <option value="log">Log</option>
+      </select> <br>
+    </div>
+    <div class="col-xs-3 col-xs-offset-0">
+      <button type=button onclick="history();">Update Plots</button>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-md-12" id="main">
+      <br>
+      <center> <h3> Radon Monitor Data </h3> </center> <br>
+      {% if not pdata %}
+        <h2 align="left"> No data available </h2>
+      {% endif %}
+    </div>
+  </div>
 </div>
 {% endblock %}
 {% block script %}
@@ -35,34 +159,77 @@
     <script src="{{ url_for('static', filename='js/mg_line_brushing.js') }}"></script>
     <script src="{{ url_for('static', filename='js/stream_utilities.js') }}"></script>
     <script>
-        if (url_params.run_range_low) {
-            document.getElementById("run_range_low").value = url_params.run_range_low;
+        if (url_params.month_low) {
+            document.getElementById("month_low").value = url_params.month_low;
         }
-        if (url_params.run_range_high) {
-            document.getElementById("run_range_high").value = url_params.run_range_high;
+        if (url_params.month_high) {
+            document.getElementById("month_high").value = url_params.month_high;
+        }
+        if (url_params.year_low) {
+            document.getElementById("year_low").value = url_params.year_low;
+        }
+        if (url_params.year_high) {
+            document.getElementById("year_high").value = url_params.year_high;
+        }
+        if (url_params.day_low) {
+            document.getElementById("day_low").value = url_params.day_low;
+        }
+        if (url_params.day_high) {
+            document.getElementById("day_high").value = url_params.day_high;
+        }
+        if (url_params.ylow) {
+            document.getElementById("ylow").value = url_params.ylow;
+        }
+        if (url_params.yhigh) {
+            document.getElementById("yhigh").value = url_params.yhigh;
+        }
+        if (url_params.yscale) {
+            document.getElementById("yscale").value = url_params.yscale;
         }
 
-        var ddata = {{ pdata | safe }};
+        var pdata = {{ pdata | safe }};
+
+        var dates = new Array();
+        var po210 = new Array();
+        var po212 = new Array();
+        var po214 = new Array();
+        var po218 = new Array();
+        for (var i=0; i < pdata.length; i++)
+        {
+            date_ = moment(pdata[i]['timestamp']).toDate();
+            dates.push(date_);
+            po210.push({'date': date_, 'value': pdata[i]['po210_rate']});
+            po212.push({'date': date_, 'value': pdata[i]['po212_rate']});
+            po214.push({'date': date_, 'value': pdata[i]['po214_rate']});
+            po218.push({'date': date_, 'value': pdata[i]['po218_rate']});
+        }
+        var cscale = tzscale().domain(dates).zone('America/Toronto');
+
+        var time_fmt = 'MMM Do YYYY';
 
         var dparams = {
-            chart_type: 'point',
+            //chart_type: 'point',
             area: false,
-            data: ddata,
+            data: [po210, po212, po214, po218],
             width: $('#main').width(),
             left: 100,
             right: 100,
-            height: url_params['height'] || 600,
+            height: 450,
             target: "#main",
-            x_accessor:'radon_monitor_run',
-            y_accessor:'po210_counts',
-            min_y_from_data: true,
+            time_scale: cscale,
+            //xax_format: cscale.tickFormat(po210.length),
+            min_y: url_params.ylow, 
+            max_y: url_params.yhigh,
+            y_scale_type: url_params.yscale,
+            x_accessor:'date',
+            y_accessor:'value',
             point_size: 4.0,
-            y_label: "210Po Counts",
-            x_label: "Radon Monitor Run",
-            yax_count: 10,
-            xax_count: 10,
+            y_label: "Rate (counts / s / m^-3)",
+            x_label: "Date",
+            legend: ['210Po', '212Po', '214Po', '218Po'],
+            interpolate: 'linear',
             y_mouseover: function(d, i) {
-                return 'Counts:' + format_int(d['po210_counts']);
+                return 'Rate: ' + format_rate(d['value']);
             },
         };
 
@@ -71,14 +238,49 @@
         function history() {
             var params = {};
             try {
-                params['run_range_low'] = document.getElementById("run_range_low").value;
+                params['month_low'] = document.getElementById("month_low").value;
             } catch (e) {
-                params['run_range_low'] = 200000;
+                params['month_low'] = 1;
             }
             try {
-                params['run_range_high'] = document.getElementById("run_range_high").value;
+                params['month_high'] = document.getElementById("month_high").value;
             } catch (e) {
-                params['run_range_high'] = 200000;
+                params['month_high'] = 12;
+            }
+            try {
+                params['year_low'] = document.getElementById("year_low").value;
+            } catch (e) {
+                params['year_low'] = 2018;
+            }
+            try {
+                params['year_high'] = document.getElementById("year_high").value;
+            } catch (e) {
+                params['year_high'] = 2022;
+            }
+            try {
+                params['day_low'] = document.getElementById("day_low").value;
+            } catch (e) {
+                params['day_low'] = 1;
+            }
+            try {
+                params['day_high'] = document.getElementById("day_high").value;
+            } catch (e) {
+                params['day_high'] = 31;
+            }
+            try {
+                params['ylow'] = document.getElementById("ylow").value;
+            } catch (e) {
+                params['ylow'] = 0.0001;
+            }
+            try {
+                params['yhigh'] = document.getElementById("yhigh").value;
+            } catch (e) {
+                params['yhigh'] = 0.1;
+            }
+            try {
+                params['yscale'] = document.getElementById("yscale").value;
+            } catch (e) {
+                params['yscale'] = 0.1;
             }
             window.location.replace($SCRIPT_ROOT + "/radon_monitor?" + $.param(params));
         }

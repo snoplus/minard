@@ -17,7 +17,7 @@
         <option value="2018">2018</option>
         <option value="2019">2019</option>
         <option value="2020">2020</option>
-        <option value="2021">2021</option>
+        <option selected value="2021">2021</option>
         <option value="2022">2022</option>
       </select>
       <select id="month_low">
@@ -71,11 +71,11 @@
     <div class="col-xs-3 col-xs-offset-0">
       End plot at (Y/M/D): <br>
       <select id="year_high">
-        <option value="2022">2022</option>
-        <option value="2021">2021</option>
-        <option value="2020">2020</option>
-        <option value="2019">2019</option>
         <option value="2018">2018</option>
+        <option value="2019">2019</option>
+        <option value="2020">2020</option>
+        <option value="2021">2021</option>
+        <option selected value="2022">2022</option>
       </select>
       <select id="month_high">
         <option value="1">1</option>
@@ -127,12 +127,12 @@
     </div>
     <div class="col-xs-3 col-xs-offset-0">
       Y-axis range:
-      <input type="text", id="ylow", value=0.0001 style="width:60px;">
-      <input type="text", id="yhigh", value=0.1 style="width:60px;"> <br>
+      <input type="text", id="ylow", value=1e-6 style="width:80px;"> - 
+      <input type="text", id="yhigh", value=0.6 style="width:80px;"> <br>
       Y-axis scale:
       <select id="yscale">
+        <option selected value="log">Log</option>
         <option value="linear">Linear</option>
-        <option value="log">Log</option>
       </select> <br>
     </div>
     <div class="col-xs-3 col-xs-offset-0">
@@ -193,6 +193,7 @@
         var po210 = new Array();
         var po212 = new Array();
         var po214 = new Array();
+        var po216 = new Array();
         var po218 = new Array();
         for (var i=0; i < pdata.length; i++)
         {
@@ -201,6 +202,7 @@
             po210.push({'date': date_, 'value': pdata[i]['po210_rate']});
             po212.push({'date': date_, 'value': pdata[i]['po212_rate']});
             po214.push({'date': date_, 'value': pdata[i]['po214_rate']});
+            po216.push({'date': date_, 'value': pdata[i]['po216_rate']});
             po218.push({'date': date_, 'value': pdata[i]['po218_rate']});
         }
         var cscale = tzscale().domain(dates).zone('America/Toronto');
@@ -208,28 +210,27 @@
         var time_fmt = 'MMM Do YYYY';
 
         var dparams = {
-            //chart_type: 'point',
             area: false,
-            data: [po210, po212, po214, po218],
+            data: [po210, po212, po214, po216, po218],
             width: $('#main').width(),
             left: 100,
             right: 100,
-            height: 450,
+            height: 500,
             target: "#main",
             time_scale: cscale,
-            //xax_format: cscale.tickFormat(po210.length),
-            min_y: url_params.ylow, 
-            max_y: url_params.yhigh,
-            y_scale_type: url_params.yscale,
+            min_y: {{ ylow }}, 
+            max_y: {{ yhigh }},
+            y_scale_type: "{{ yscale }}",
             x_accessor:'date',
             y_accessor:'value',
             point_size: 4.0,
-            y_label: "Rate (counts / s / m^-3)",
+            y_label: "Rate (Hz)",
             x_label: "Date",
-            legend: ['210Po', '212Po', '214Po', '218Po'],
+            decimals: 5,
+            legend: ['210Po', '212Po', '214Po', '216Po', '218Po'],
             interpolate: 'linear',
             y_mouseover: function(d, i) {
-                return 'Rate: ' + format_rate(d['value']);
+                return 'Rate: ' + format_rate(d['value']) + ' (Hz)';
             },
         };
 
@@ -245,12 +246,12 @@
             try {
                 params['month_high'] = document.getElementById("month_high").value;
             } catch (e) {
-                params['month_high'] = 12;
+                params['month_high'] = 1;
             }
             try {
                 params['year_low'] = document.getElementById("year_low").value;
             } catch (e) {
-                params['year_low'] = 2018;
+                params['year_low'] = 2021;
             }
             try {
                 params['year_high'] = document.getElementById("year_high").value;
@@ -265,22 +266,22 @@
             try {
                 params['day_high'] = document.getElementById("day_high").value;
             } catch (e) {
-                params['day_high'] = 31;
+                params['day_high'] = 1;
             }
             try {
                 params['ylow'] = document.getElementById("ylow").value;
             } catch (e) {
-                params['ylow'] = 0.0001;
+                params['ylow'] = 1e-6;
             }
             try {
                 params['yhigh'] = document.getElementById("yhigh").value;
             } catch (e) {
-                params['yhigh'] = 0.1;
+                params['yhigh'] = 0.6;
             }
             try {
                 params['yscale'] = document.getElementById("yscale").value;
             } catch (e) {
-                params['yscale'] = 0.1;
+                params['yscale'] = "log";
             }
             window.location.replace($SCRIPT_ROOT + "/radon_monitor?" + $.param(params));
         }

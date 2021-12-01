@@ -1883,13 +1883,16 @@ def scint_level():
 @app.route('/radon_monitor')
 def radon_monitor():
 
-    year_low = request.args.get("year_low", 2018, type=int)
+    year_low = request.args.get("year_low", 2021, type=int)
     month_low = request.args.get("month_low", 1, type=int)
     day_low = request.args.get("day_low", 1, type=int)
     year_high = request.args.get("year_high", 2022, type=int)
-    month_high = request.args.get("month_high", 12, type=int)
-    day_high = request.args.get("day_high", 31, type=int)
+    month_high = request.args.get("month_high", 1, type=int)
+    day_high = request.args.get("day_high", 1, type=int)
+    yscale = request.args.get("yscale", "log", type=str)
+    ylow = request.args.get("ylow", 1e-6, type=float)
+    yhigh = request.args.get("yhigh", 0.6, type=float)
 
     pdata = get_radon_monitor(year_low, month_low, day_low, year_high, month_high, day_high)
 
-    return render_template('radon_monitor.html', pdata=pdata)
+    return render_template('radon_monitor.html', pdata=pdata, yscale=yscale, ylow=ylow, yhigh=yhigh)

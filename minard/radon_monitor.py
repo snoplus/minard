@@ -20,6 +20,8 @@ def get_radon_monitor(yr_low, mn_low, d_low, yr_high, mn_high, d_high):
     data = []
 
     for po210, po212, po214, po216, po218, livetime, start_time in rows:
+        # Add a 4 hour calibration
+        livetime += 4*3600.0
         rm = {}
         rm['po210_rate'] = int(po210)/float(livetime)     
         rm['po212_rate'] = int(po212)/float(livetime)     

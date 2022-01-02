@@ -132,6 +132,16 @@
                       {% endif %}
                       <td># of clean high NHit events, % of surviving events</td>
                     </tr>
+                    <tr>
+                      <td>Time of first HN event</td>
+                      <td>{{ data["firstHighUTC"] }}</td>
+                      <td>Time of first event above high NHit threshold (SN alarm)</td>
+                    </tr>
+                    <tr>
+                      <td>Nanoseconds of first HN event</td>
+                      <td>{{ data["nanos"] }}</td>
+                      <td>Nanoseconds (SN alarm)</td>
+                    </tr>
                   </tbody>
                 </table>
               </div>

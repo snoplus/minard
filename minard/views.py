@@ -7,6 +7,7 @@ from redis import Redis
 from os.path import join
 import json
 import HLDQTools
+import RSTools
 import requests
 from .tools import parseiso, total_seconds
 from collections import deque, namedtuple
@@ -1812,3 +1813,32 @@ def scint_level():
     rope_data = scintillator_level.get_av_rope_data(run_range_low, run_range_high)
     return render_template('scint_level.html', scint_data=scint_data, av_data=av_data, rope_data=rope_data, run_range_low=run_range_low, run_range_high=run_range_high)
 
+@app.route('/runselection')
+def runselection():
+    limit = request.args.get("limit", 10, type=int)
+    offset = request.args.get("offset", 0, type=int)
+    runs = HLDQTools.import_HLDQ_runnumbers(limit=limit, offset=offset)
+    run_info, criteria_info = RSTools.import_RS_ratdb(runs, limit, offset)
+    criteria = request.args.get("criteria", "scintillator", type=str)
+    return render_template('runselection.html', physics_run_numbers=runs, run_info=run_info, criteria=criteria, limit=limit, offset=offset)
+
+@app.route('/runselection/<int:run_number>', methods=["GET", "POST"])
+def runselection_run_number(run_number):
+    run_info, criteria_info = RSTools.import_RS_ratdb(run_number, 1, 0)
+    lists = RSTools.get_run_lists()
+    list_data = RSTools.get_current_lists_run(run_number)
+    if request.form:
+        form = RSTools.file_list_form_builder(request.form, lists, list_data)
+    else:
+        form = RSTools.file_list_form_builder(-1, lists, list_data)
+
+    if request.method == "POST" and form.validate():
+        try:
+            RSTools.update_run_lists(form, run_number, lists, list_data)
+        except Exception as e:
+            flash(str(e), 'danger')
+            return redirect(url_for('runselection_run_number', run_number=run_number))
+        flash("Successfully submitted", 'success')
+        return redirect(url_for('runselection_run_number', run_number=run_number))
+
+    return render_template('runselection_run.html', run_number=run_number, run_info=run_info, criteria_info=criteria_info, lists=lists.keys(), form=form)

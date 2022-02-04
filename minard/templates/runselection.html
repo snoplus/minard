@@ -1,0 +1,94 @@
+{% extends "layout.html" %}
+{% block title %}Run Selection {% endblock %}
+{% block head %}
+    {{ super() }}
+{% endblock %}
+{% block body %}
+    {{ super() }}
+    <div class="container">
+        <div class="row">
+            <h1>Run Selection</h1>
+            <div class="col-md-10">
+                {% if offset == 0 %}
+                <button class="btn btn-outline-primary btn-lg" disabled>Back</button>
+                <a class="btn btn-outline-primary btn-lg" href="{{ url_for("runselection", limit=limit, offset=offset+limit, criteria=criteria) }}">Next</a>
+                {% else %}
+                    {% if limit > offset %}
+                    <a class="btn btn-outline-primary btn-lg" href="{{ url_for("runselection", limit=limit, offset=0, criteria=criteria) }}">Back</a>
+                    {% else %}
+                    <a class="btn btn-outline-primary btn-lg" href="{{ url_for("runselection", limit=limit, offset=offset-limit, criteria=criteria) }}">Back</a>
+                    {% endif %}
+                    <a class="btn btn-outline-primary btn-lg" href="{{ url_for("runselection", limit=limit, offset=offset+limit, criteria=criteria) }}">Next</a>
+                {% endif %}
+            </div>
+            <div class="col-md-2 text-middle">
+                Criteria:
+                <select onchange="location=this.options[this.selectedIndex].value;">
+                    {% for i, text in [("scintillator", "scintillator"), ("partial_fill_antinu", "partial_fill_antinu"), ("partial_fill", "partial_fill"), ("water", "water")] %} <!-- FIXME: make this dynamic !-->
+                        <option {% if criteria == i %}selected="selected" {% endif %}value="{{url_for("runselection", limit=limit, offset=offset, criteria=i)}}">{{ text }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2 text-right">
+                Runs per page:
+                <select onchange="location=this.options[this.selectedIndex].value;">
+                    {% for i, text in [(10,"10"), (25, "25"), (50, "50"), (100, "100")] %}
+                        <option {% if limit == i %}selected="selected" {% endif %}value="{{url_for("runselection", limit=i, offset=offset, criteria=criteria)}}">{{ text }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Run</th>
+                            <th>Result</th>
+                            <th>Criteria</th>
+                            <th>Overlord</th>
+                            <th>Last review</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for i in range(physics_run_numbers|length) %}
+                        {% if run_info[physics_run_numbers[i]] == -1 or criteria not in run_info[physics_run_numbers[i]].keys() %}
+                        <tr class="bg-danger" >
+                            <td>
+                                {{physics_run_numbers[i]}}
+                            </td>
+                            <td colspan="10" style="text-align:center;">
+                                <b> No RS result present for run. </b>
+                            </td>
+                        </tr>
+                        {% elif run_info[physics_run_numbers[i]][criteria] == -1%}
+                        <tr class="bg-danger" >
+                            <td>
+                                {{physics_run_numbers[i]}}
+                            </td>
+                            <td colspan="10" style="text-align:center;">
+                                <b> No RS result present for run. </b>
+                            </td>
+                        </tr> 
+                        {% else %}
+                        <tr>
+                            <td><a href="{{ url_for('runselection_run_number', run_number=physics_run_numbers[i])}}">{{physics_run_numbers[i]}}</a></td>
+                            {% if run_info[physics_run_numbers[i]][criteria]["decision"]["result"] == true %}
+                            <td><font color="green">Pass</font></td>
+                            {% elif run_info[physics_run_numbers[i]][criteria]["decision"]["result"] == none %}
+                            <td>Purgatory</td>
+                            {% else %}
+                            <td><font color="red">Fail</font></td>
+                            {% endif %}
+                            <td>{{ run_info[physics_run_numbers[i]][criteria]["index"] }}</td>
+                            <td>{{ run_info[physics_run_numbers[i]][criteria]["name"] }}</td>
+                            <td>{{ run_info[physics_run_numbers[i]][criteria]["time"] }}</td>
+                        </tr> 
+                        {% endif %}
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+{% endblock %}

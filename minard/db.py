@@ -14,3 +14,9 @@ engine_nl = sqlalchemy.create_engine('postgresql://%s:%s@%s:%i/%s' %
                                      app.config['DB_NAME_NEARLINE']),
                                      pool_recycle=3600)
 
+engine_ratdb = sqlalchemy.create_engine('postgresql://%s:%s@%s:%i/%s' %
+                                    (app.config['DB_USER'], app.config['DB_PASS'],
+                                     app.config['DB_HOST_RATDB'], 
+                                     app.config['DB_PORT_RATDB'],
+                                     app.config['DB_NAME_RATDB']),
+                                     pool_recycle=3600)

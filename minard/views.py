@@ -1451,6 +1451,10 @@ def pcatellie_processing():
 def pca_set(first_run):
     return render_template('pca_set.html', data=pcaprocessing_f.load_set(first_run))
 
+@app.route('/pca_proc/<int:first_run>')
+def pca_proc(first_run):
+    return render_template('pca_proc.html', data=first_run, run=str(first_run))
+
 @app.route('/pca_tellie_run_val1/<int:run>')
 def pca_tellie_run_val1(run):
     o = request.args.get('o',type=int)

@@ -24,7 +24,7 @@
                   <td style="text-align: center; vertical-align: middle;">{{ runlist['name'] }}</td>
                   <td style="text-align: center; vertical-align: middle;"><a href="{{ url_for('pca_set', first_run=runlist['runrange'][0]) }}">{{  runlist["runrange"] }}</a></td>
                   <td style="text-align: center; vertical-align: middle;"><a href="{{ url_for('pca_tellie_table', run=runlist['runrange'][0]) }}">{{  runlist['runrange'][0] }} table</a></td>
-                  <td style="text-align: center; vertical-align: middle;">PCA processor</td>
+                  <td style="text-align: center; vertical-align: middle;"><a href="{{ url_for('pca_proc', first_run=runlist['runrange'][0]) }}">{{  runlist['runrange'][0] }}</a></td>
                   <td style="text-align: center; vertical-align: middle;"><a href="{{ url_for('pca_set_bench', run=201389) }}">{{  runlist["runrange"] }}</a></td>
                 </tr>
                 {% endfor %}

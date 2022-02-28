@@ -1,0 +1,809 @@
+{% extends "layout.html" %}
+{% block title %}Burst Trigger L2{% endblock %}
+{% block head %}
+  {{ super() }}
+{% endblock %}
+{% block body %}
+  {{ super() }}
+
+  {% macro print_flag(flag) -%}
+    {% if flag == 0 %}
+    <span style="color:red">0</span>
+    {% endif %}
+    {% if flag == 1 %}
+    <span style="color:green">1</span>
+    {% endif %}
+  {%- endmacro %}
+
+  <div class="container">
+    <div class="row">
+      <div class="col-md-12">
+        <h1 style="text-align:center">TELLIE PCA Run: {{ run }}</h1>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-12">
+        <h2 style="text-align:center">Validation #1</h2>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-12">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h1 class="panel-title"><b>General</b></h1>
+          </div>
+          <div class="panel-body">
+            <div class="row">
+              <div class="col-md-12">
+                <table class="table table-striped">
+                  <thead>
+                    <tr>
+                      <th width="25.0%">Parameter</th>
+                      <th width="25.0%">Value</th>
+                      <th width="50.0%">Note</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>Fibre</td>
+                      <td>{{ data["fibre"] }}</td>
+                      <td>Run number where burst occured</td>
+                    </tr>
+                    <tr>
+                      <td>Channel</td>
+                      <td>{{ data["channel"] }}</td>
+                      <td>Run number where burst occured</td>
+                    </tr>
+                    <tr>
+                      <td>Mode</td>
+                      <td>{{ data["mode"] }}</td>
+                      <td>Run number where burst occured</td>
+                    </tr>
+                    <tr>
+                      <td>Subruns</td>
+                      <td>{{ data["Subruns"] }} | {{ data["subs"] }} | {{ data["Subruns (loop)"] }}</td>
+                      <td>Run number where burst occured</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-12">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h1 class="panel-title"><b>Events / Hits / Times</b></h1>
+          </div>
+          <div class="panel-body">
+            <div class="row">
+              <div class="col-md-12">
+                <table class="table table-striped">
+                  <thead>
+                    <tr>
+                      <th width="25.0%">Parameter</th>
+                      <th width="25.0%">Value</th>
+                      <th width="50.0%">Note</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>Total events</td>
+                      <td>{{ data["Total events"] }}</td>
+                      <td>Run number where burst occured</td>
+                    </tr>
+                    <tr>
+                      <td>CouchDB events</td>
+                      <td>{{ data["CouchDB events"] }} | {{ data["Events DB"] }}</td>
+                      <td>Run number where burst occured</td>
+                    </tr>
+                    <tr>
+                      <td>EXTA events</td>
+                      <td>{{ data["EXTA events"] }}</td>
+                      <td>Run number where burst occured</td>
+                    </tr>
+                    <tr>
+                      <td>Passed events</td>
+                      <td>{{ data["Passed events"] }} | {{ data["Passed evs"] }}</td>
+                      <td>Run number where burst occured</td>
+                    </tr>
+                    <tr>
+                      <td>Total hits</td>
+                      <td>{{ data["Total hits"] }} | {{ data["All hits"] }}</td>
+                      <td>Run number where burst occured</td>
+                    </tr>
+                    <tr>
+                      <td>Passed hits</td>
+                      <td>{{ data["Passed hits"] }}</td>
+                      <td>Run number where burst occured</td>
+                    </tr>
+                    <tr>
+                      <td>Hits - peaks</td>
+                      <td>{{ data["Direct hits, peaks"] }}</td>
+                      <td>Run number where burst occured</td>
+                    </tr>
+                    <tr>
+                      <td>Peak time</td>
+                      <td>{{ data["Hit peak"] }}</td>
+                      <td>Run number where burst occured</td>
+                    </tr>
+                    <tr>
+                      <td>Direct hit time</td>
+                      <td>{{ data["Direct hits, peak time"] }}</td>
+                      <td>Run number where burst occured</td>
+                    </tr>
+                    <tr>
+                      <td>Time over event - mean</td>
+                      <td>{{ data["Mean of the time over event distribution"] }}</td>
+                      <td>Run number where burst occured</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-12">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h1 class="panel-title"><b>NHIT</b></h1>
+          </div>
+          <div class="panel-body">
+            <div class="row">
+              <div class="col-md-12">
+                <table class="table table-striped">
+                  <thead>
+                    <tr>
+                      <th width="25.0%">Parameter</th>
+                      <th width="25.0%">Value</th>
+                      <th width="50.0%">Note</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>Rolling NHit min</td>
+                      <td>{{ data["Rolling NHit min"] }}</td>
+                      <td>Run number where burst occured</td>
+                    </tr>
+                    <tr>
+                      <td>Rolling NHit max</td>
+                      <td>{{ data["Rolling NHit max"] }}</td>
+                      <td>Run number where burst occured</td>
+                    </tr>
+                    <tr>
+                      <td>Rolling NHit mean</td>
+                      <td>{{ data["Rolling NHit mean"] }}</td>
+                      <td>Run number where burst occured</td>
+                    </tr>
+                    <tr>
+                      <td>NHit distribution - mean</td>
+                      <td>{{ data["NHit distribution, mean"] }}</td>
+                      <td>Run number where burst occured</td>
+                    </tr>
+                    <tr>
+                      <td>NHit distribution - rms</td>
+                      <td>{{ data["NHit distribution, rms"] }}</td>
+                      <td>Run number where burst occured</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-12">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h1 class="panel-title"><b>PMTs</b></h1>
+          </div>
+          <div class="panel-body">
+            <div class="row">
+              <div class="col-md-12">
+                <table class="table table-striped">
+                  <thead>
+                    <tr>
+                      <th width="25.0%">Parameter</th>
+                      <th width="25.0%">Value</th>
+                      <th width="50.0%">Note</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>Good PMTs</td>
+                      <td>{{ data["Good PMTs"] }}</td>
+                      <td>Run number where burst occured</td>
+                    </tr>
+                    <tr>
+                      <td>PMTs in beamspot</td>
+                      <td>{{ data["PMTs in BS"][0] }} | {{ data["PMTs in BS"][1] }}</td>
+                      <td>Run number where burst occured</td>
+                    </tr>
+                    <tr>
+                      <td>PMTs in BS, good occupancy</td>
+                      <td>{{ data["PMTs in BS, good occup"][0] }} | {{ data["PMTs in BS, good occup"][1] }}</td>
+                      <td>Run number where burst occured</td>
+                    </tr>
+                    <tr>
+                      <td>Occupancy 1-5 to all</td>
+                      <td>{{ data["Occup 1-5 to all"] }}</td>
+                      <td>Run number where burst occured</td>
+                    </tr>
+                    <tr>
+                      <td>Occupancy 1-5 to all - beamspot</td>
+                      <td>{{ data["Occup BM 1-5 to all"] }}</td>
+                      <td>Run number where burst occured</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-12">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h1 class="panel-title"><b>Other</b></h1>
+          </div>
+          <div class="panel-body">
+            <div class="row">
+              <div class="col-md-12">
+                <table class="table table-striped">
+                  <thead>
+                    <tr>
+                      <th width="25.0%">Parameter</th>
+                      <th width="25.0%">Value</th>
+                      <th width="50.0%">Note</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>EXTA length</td>
+                      <td>{{ data["EXTAlength"] }}</td>
+                      <td>Run number where burst occured</td>
+                    </tr>
+                    <tr>
+                      <td>Frequency (from length)</td>
+                      <td>{{ data["Frequency from length"] }}</td>
+                      <td>Run number where burst occured</td>
+                    </tr>
+                    <tr>
+                      <td>PIN RMS</td>
+                      <td>{{ data["PIN RMS"][0] }}</td>
+                      <td>Run number where burst occured</td>
+                    </tr>
+                    <tr>
+                      <td>Correlation factor</td>
+                      <td>{{ data["Correlation factor"] }}</td>
+                      <td>Run number where burst occured</td>
+                    </tr>
+                    <tr>
+                      <td>Covariance</td>
+                      <td>{{ data["Covariance"] }}</td>
+                      <td>Run number where burst occured</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-12">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h1 class="panel-title"><b>Cuts</b></h1>
+          </div>
+          <div class="panel-body">
+            <div class="row">
+              <div class="col-md-12">
+                <table class="table table-striped">
+                  <thead>
+                    <tr>
+                      <th width="25.0%">Parameter</th>
+                      <th width="25.0%">Value</th>
+                      <th width="50.0%">Note</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>CDAQ</td>
+                      <td>{{ data["CDAQ"][0] }} | {{ '%0.2f' | format(data["CDAQ"][1]|float) }} %</td>
+                      <td>Run number where burst occured</td>
+                    </tr>
+                    <tr>
+                      <td>CECA</td>
+                      <td>{{ data["CECA"][0] }} | {{ '%0.2f' | format(data["CECA"][1]|float) }} %</td>
+                      <td>Run number where burst occured</td>
+                    </tr>
+                    <tr>
+                      <td>CANG</td>
+                      <td>{{ data["CANG"][0] }} | {{ '%0.2f' | format(data["CANG"][1]|float) }} %</td>
+                      <td>Run number where burst occured</td>
+                    </tr>
+                    <tr>
+                      <td>CCO</td>
+                      <td>{{ data["CCO"][0] }} | {{ '%0.2f' | format(data["CCO"][1]|float) }} %</td>
+                      <td>Run number where burst occured</td>
+                    </tr>
+                    <tr>
+                      <td>CPV</td>
+                      <td>{{ data["CPV"][0] }} | {{ '%0.2f' | format(data["CPV"][1]|float) }} %</td>
+                      <td>Run number where burst occured</td>
+                    </tr>
+                    <tr>
+                      <td>CPCA</td>
+                      <td>{{ data["CPCA"][0] }} | {{ '%0.2f' | format(data["CPCA"][1]|float) }} %</td>
+                      <td>Run number where burst occured</td>
+                    </tr>
+                    <tr>
+                      <td>CXT</td>
+                      <td>{{ data["CXT"][0] }} | {{ '%0.2f' | format(data["CXT"][1]|float) }} %</td>
+                      <td>Run number where burst occured</td>
+                    </tr>
+                    <tr>
+                      <td>COFF</td>
+                      <td>{{ data["COFF"][0] }} | {{ '%0.2f' | format(data["COFF"][1]|float) }} %</td>
+                      <td>Run number where burst occured</td>
+                    </tr>
+                    <tr>
+                      <td>CTIR</td>
+                      <td>{{ data["CTIR"][0] }} | {{ '%0.2f' | format(data["CTIR"][1]|float) }} %</td>
+                      <td>Run number where burst occured</td>
+                    </tr>
+                    <tr>
+                      <td>CRH</td>
+                      <td>{{ data["CRH"][0] }} | {{ '%0.2f' | format(data["CRH"][1]|float) }} %</td>
+                      <td>Run number where burst occured</td>
+                    </tr>
+                    <tr>
+                      <td>CMAG</td>
+                      <td>{{ data["CMAG"][0] }} | {{ '%0.2f' | format(data["CMAG"][1]|float) }} %</td>
+                      <td>Run number where burst occured</td>
+                    </tr>
+                    <tr>
+                      <td>CNEXTA</td>
+                      <td>{{ data["CNEXTA"][0] }} | {{ '%0.2f' | format(data["CNEXTA"][1]|float) }} %</td>
+                      <td>Run number where burst occured</td>
+                    </tr>
+                    <tr>
+                      <td>CE</td>
+                      <td>{{ data["CE"][0] }} | {{ '%0.2f' | format(data["CE"][1]|float) }} %</td>
+                      <td>Run number where burst occured</td>
+                    </tr>
+                    <tr>
+                      <td>CDIST</td>
+                      <td>{{ data["CDIST"][0] }} | {{ '%0.2f' | format(data["CDIST"][1]|float) }} %</td>
+                      <td>Run number where burst occured</td>
+                    </tr>
+                    <tr>
+                      <td>CNN</td>
+                      <td>{{ data["CNN"][0] }} | {{ '%0.2f' | format(data["CNN"][1]|float) }} %</td>
+                      <td>Run number where burst occured</td>
+                    </tr>
+                    <tr>
+                      <td>CCHS</td>
+                      <td>{{ data["CCHS"][0] }} | {{ '%0.2f' | format(data["CCHS"][1]|float) }} %</td>
+                      <td>Run number where burst occured</td>
+                    </tr>
+                    <tr>
+                      <td>CDAV</td>
+                      <td>{{ data["CDAV"][0] }} | {{ '%0.2f' | format(data["CDAV"][1]|float) }} %</td>
+                      <td>Run number where burst occured</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-12">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h1 class="panel-title"><b>Flags</b></h1>
+          </div>
+          <div class="panel-body">
+            <div class="row">
+              <div class="col-md-12">
+                <table class="table table-striped">
+                  <thead>
+                    <tr>
+                      <th width="25.0%">Parameter</th>
+                      <th width="25.0%">Value</th>
+                      <th width="50.0%">Note</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>Not DAQ enabled</td>
+                      <td>{{ print_flag(data["Not DAQ enabled flag"]) }}</td>
+                      <td>Run number where burst occured</td>
+                    </tr>
+                    <tr>
+                      <td>NHit distribution</td>
+                      <td>{{ print_flag(data["NHit distribution flag"]) }}</td>
+                      <td>Run number where burst occured</td>
+                    </tr>
+                    <tr>
+                      <td>Peak check flag</td>
+                      <td>{{ print_flag(data["Peak check flag"]) }}</td>
+                      <td>Run number where burst occured</td>
+                    </tr>
+                    <tr>
+                      <td>Stable NHit</td>
+                      <td>{{ print_flag(data["Stable NHit flag"]) }}</td>
+                      <td>Run number where burst occured</td>
+                    </tr>
+                    <tr>
+                      <td>Bad PMT position</td>
+                      <td>{{ print_flag(data["Bad PMT position flag"]) }}</td>
+                      <td>Run number where burst occured</td>
+                    </tr>
+                    <tr>
+                      <td>Occupancy all"</td>
+                      <td>{{ print_flag(data["Occupancy all flag"]) }}</td>
+                      <td>Run number where burst occured</td>
+                    </tr>
+                    <tr>
+                      <td>Trigger delay dev</td>
+                      <td>{{ print_flag(data["Trigger delay dev flag"]) }}</td>
+                      <td>Run number where burst occured</td>
+                    </tr>
+                    <tr>
+                      <td>Time over event</td>
+                      <td>{{ print_flag(data["Time over event flag"]) }}</td>
+                      <td>Run number where burst occured</td>
+                    </tr>
+                    <tr>
+                      <td>Offline channel</td>
+                      <td>{{ print_flag(data["Offline channel flag"]) }}</td>
+                      <td>Run number where burst occured</td>
+                    </tr>
+                    <tr>
+                      <td>Beamspot PMTs</td>
+                      <td>{{ print_flag(data["Beamspot PMTs flag"]) }}</td>
+                      <td>Run number where burst occured</td>
+                    </tr>
+                    <tr>
+                      <td>Frequency"</td>
+                      <td>{{ print_flag(data["Frequency flag"]) }}</td>
+                      <td>Run number where burst occured</td>
+                    </tr>
+                    <tr>
+                      <td>Event</td>
+                      <td>{{ print_flag(data["Event flag"]) }}</td>
+                      <td>Run number where burst occured</td>
+                    </tr>
+                    <tr>
+                      <td>PIN RMS</td>
+                      <td>{{ print_flag(data["PIN RMS flag"]) }}</td>
+                      <td>Run number where burst occured</td>
+                    </tr>
+                    <tr>
+                      <td>Bad channel</td>
+                      <td>{{ print_flag(data["Bad channel flag"]) }}</td>
+                      <td>Run number where burst occured</td>
+                    </tr>
+                    <tr>
+                      <td>NHit distribution over subruns</td>
+                      <td>{{ print_flag(data["NHit distribution over subruns flag"]) }}</td>
+                      <td>Run number where burst occured</td>
+                    </tr>
+                    <tr>
+                      <td>Offline PMT</td>
+                      <td>{{ print_flag(data["Offline PMT flag"]) }}</td>
+                      <td>Run number where burst occured</td>
+                    </tr>
+                    <tr>
+                      <td>Bad ECA</td>
+                      <td>{{ print_flag(data["Bad ECA flag"]) }}</td>
+                      <td>Run number where burst occured</td>
+                    </tr>
+                    <tr>
+                      <td>LPC locality</td>
+                      <td>{{ print_flag(data["LPC locality flag"]) }}</td>
+                      <td>Run number where burst occured</td>
+                    </tr>
+                    <tr>
+                      <td>PIN-NHit cov and corr</td>
+                      <td>{{ print_flag(data["PIN-NHit cov and corr flag"]) }}</td>
+                      <td>Run number where burst occured</td>
+                    </tr>
+                    <tr>
+                      <td>Check on PMTs (beamspot / occupancy)</td>
+                      <td>{{ print_flag(data["Check on PMTs (beamspot / occupancy) flag"]) }}</td>
+                      <td>Run number where burst occured</td>
+                    </tr>
+                    <tr>
+                      <td>LPC weird path (not AV)</td>
+                      <td>{{ print_flag(data["LPC weird path (not AV) flag"]) }}</td>
+                      <td>Run number where burst occured</td>
+                    </tr>
+                    <tr>
+                      <td>Runtime</td>
+                      <td>{{ print_flag(data["Runtime flag"]) }}</td>
+                      <td>Run number where burst occured</td>
+                    </tr>
+                    <tr>
+                      <td>Not enabled flag</td>
+                      <td>{{ print_flag(data["Not enabled flag"]) }}</td>
+                      <td>Run number where burst occured</td>
+                    </tr>
+                    <tr>
+                      <td>Not normal PMT</td>
+                      <td>{{ print_flag(data["Not normal PMT flag"]) }}</td>
+                      <td>Run number where burst occured</td>
+                    </tr>
+                    <tr>
+                      <td>EXTA</td>
+                      <td>{{ print_flag(data["EXTA flag"]) }}</td>
+                      <td>Run number where burst occured</td>
+                    </tr>
+                    <tr>
+                      <td>X-talk</td>
+                      <td>{{ print_flag(data["X-talk flag"]) }}</td>
+                      <td>Run number where burst occured</td>
+                    </tr>
+                    <tr>
+                      <td>LPC TIR</td>
+                      <td>{{ print_flag(data["LPC TIR flag"]) }}</td>
+                      <td>Run number where burst occured</td>
+                    </tr>
+                    <tr>
+                      <td>LPC invalid path</td>
+                      <td>{{ print_flag(data["LPC invalid path flag"]) }}</td>
+                      <td>Run number where burst occured</td>
+                    </tr>
+                    <tr>
+                      <td>Subruns</td>
+                      <td>{{ print_flag(data["Subruns flag"]) }}</td>
+                      <td>Run number where burst occured</td>
+                    </tr>
+                    <tr>
+                      <td>Bad PCA</td>
+                      <td>{{ print_flag(data["BAD PCA flag"]) }}</td>
+                      <td>Run number where burst occured</td>
+                    </tr>
+                    <tr>
+                      <td>Hit</td>
+                      <td>{{ print_flag(data["Hit flag"]) }}</td>
+                      <td>Run number where burst occured</td>
+                    </tr>
+                    <tr>
+                      <td>Angular cut</td>
+                      <td>{{ print_flag(data["Angular cut flag"]) }}</td>
+                      <td>Run number where burst occured</td>
+                    </tr>
+                    <tr>
+                      <td>Near reflection</td>
+                      <td>{{ print_flag(data["Near reflection flag"]) }}</td>
+                      <td>Run number where burst occured</td>
+                    </tr>
+                    <tr>
+                      <td>Fibre delay dev"</td>
+                      <td>{{ print_flag(data["Fibre delay dev flag"]) }}</td>
+                      <td>Run number where burst occured</td>
+                    </tr>
+                    <tr>
+                      <td>Hit peak</td>
+                      <td>{{ print_flag(data["Hit peak flag"]) }}</td>
+                      <td>Run number where burst occured</td>
+                    </tr>
+                    <tr>
+                      <td>Occupancy beamspot</td>
+                      <td>{{ print_flag(data["Occupancy beamspot flag"]) }}</td>
+                      <td>Run number where burst occured</td>
+                    </tr>
+                    <tr>
+                      <td>Check on evens in subruns</td>
+                      <td>{{ print_flag(data["Check on evens in subruns"]) }}</td>
+                      <td>Run number where burst occured</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-12">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h3 class="panel-title"><b>Occupancy</b></h3>
+          </div>
+          <div class="panel-body">
+            <div class="row">
+              <div class="col-md-4">
+                <img src="{{ url_for('static', filename="pcatellie/" + run + "/" + run + "_val1_fOccup.png") }}" alt="alt" class="img-responsive">
+              </div>
+              <div class="col-md-4">
+                <img src="{{ url_for('static', filename="pcatellie/" + run + "/" + run + "_val1_fOccupBeamSpot.png") }}" alt="alt" class="img-responsive">
+              </div>
+              <div class="col-md-4">
+                <img src="{{ url_for('static', filename="pcatellie/" + run + "/" + run + "_val1_fOccupCut.png") }}" alt="alt" class="img-responsive">
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-12">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h3 class="panel-title"><b>NHit</b></h3>
+          </div>
+          <div class="panel-body">
+            <div class="row">
+              <div class="col-md-4">
+                <img src="{{ url_for('static', filename="pcatellie/" + run + "/" + run + "_val1_fNHitHist.png") }}" alt="alt" class="img-responsive">
+              </div>
+              <div class="col-md-4">
+                <img src="{{ url_for('static', filename="pcatellie/" + run + "/" + run + "_val1_fNHitvsEvent.png") }}" alt="alt" class="img-responsive">
+              </div>
+              <div class="col-md-4">
+                <img src="{{ url_for('static', filename="pcatellie/" + run + "/" + run + "_val1_fNHitvsEventZOOM.png") }}" alt="alt" class="img-responsive">
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-12">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h3 class="panel-title"><b>Hit times</b></h3>
+          </div>
+          <div class="panel-body">
+            <div class="row">
+              <div class="col-md-4">
+                <img src="{{ url_for('static', filename="pcatellie/" + run + "/" + run + "_val1_fDirectHits.png") }}" alt="alt" class="img-responsive">
+              </div>
+              <div class="col-md-4">
+                <img src="{{ url_for('static', filename="pcatellie/" + run + "/" + run + "_val1_fTimevsEvent.png") }}" alt="alt" class="img-responsive">
+              </div>
+              <div class="col-md-4">
+                <img src="{{ url_for('static', filename="pcatellie/" + run + "/" + run + "_val1_fTimevsAngle.png") }}" alt="alt" class="img-responsive">
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-12">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h3 class="panel-title"><b>PIN & NHit</b></h3>
+          </div>
+          <div class="panel-body">
+            <div class="row">
+              <div class="col-md-6">
+                <img src="{{ url_for('static', filename="pcatellie/" + run + "/" + run + "_val1_fPINHist.png") }}" alt="alt" class="img-responsive">
+              </div>
+              <div class="col-md-6">
+                <img src="{{ url_for('static', filename="pcatellie/" + run + "/" + run + "_val1_fPIN.png") }}" alt="alt" class="img-responsive">
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-md-6">
+                <img src="{{ url_for('static', filename="pcatellie/" + run + "/" + run + "_val1_favgNHitHist.png") }}" alt="alt" class="img-responsive">
+              </div>
+              <div class="col-md-6">
+                <img src="{{ url_for('static', filename="pcatellie/" + run + "/" + run + "_val1_favgNHit.png") }}" alt="alt" class="img-responsive">
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-md-3"></div>
+              <div class="col-md-6">
+                <img src="{{ url_for('static', filename="pcatellie/" + run + "/" + run + "_val1_fPINvsNHit.png") }}" alt="alt" class="img-responsive">
+              </div>
+              <div class="col-md-3"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-12">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h3 class="panel-title"><b>Delays</b></h3>
+          </div>
+          <div class="panel-body">
+            <div class="row">
+              <div class="col-md-6">
+                <img src="{{ url_for('static', filename="pcatellie/" + run + "/" + run + "_val1_fFibreDelays.png") }}" alt="alt" class="img-responsive">
+              </div>
+              <div class="col-md-6">
+                <img src="{{ url_for('static', filename="pcatellie/" + run + "/" + run + "_val1_fTriggerDelays.png") }}" alt="alt" class="img-responsive">
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-12">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h3 class="panel-title"><b>Flatmaps</b></h3>
+          </div>
+          <div class="panel-body">
+            <div class="row">
+              <div class="col-md-6">
+                <img src="{{ url_for('static', filename="pcatellie/" + run + "/" + run + "_val1_fXYTheta.png") }}" alt="alt" class="img-responsive">
+              </div>
+              <div class="col-md-6">
+                <img src="{{ url_for('static', filename="pcatellie/" + run + "/" + run + "_val1_fXYThetaAtPMT.png") }}" alt="alt" class="img-responsive">
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-md-6">
+                <img src="{{ url_for('static', filename="pcatellie/" + run + "/" + run + "_val1_fXYOccupAll.png") }}" alt="alt" class="img-responsive">
+              </div>
+              <div class="col-md-6">
+                <img src="{{ url_for('static', filename="pcatellie/" + run + "/" + run + "_val1_fXYOccupBeamSpot.png") }}" alt="alt" class="img-responsive">
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-12">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h3 class="panel-title"><b>Other</b></h3>
+          </div>
+          <div class="panel-body">
+            <div class="row">
+              <div class="col-md-6">
+                <img src="{{ url_for('static', filename="pcatellie/" + run + "/" + run + "_val1_fEvsSubrun.png") }}" alt="alt" class="img-responsive">
+              </div>
+              <div class="col-md-6">
+                <img src="{{ url_for('static', filename="pcatellie/" + run + "/" + run + "_val1_fEXTADelta.png") }}" alt="alt" class="img-responsive">
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+{% endblock %}

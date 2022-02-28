@@ -1,0 +1,685 @@
+{% extends "layout.html" %}
+{% block title %}Burst Trigger L2{% endblock %}
+{% block head %}
+  {{ super() }}
+{% endblock %}
+{% block body %}
+  {{ super() }}
+
+  {% set data = [275158, 275082, 275141] %}
+
+  <div class="container">
+    <div class="row">
+      <div class="col-md-12">
+        <h1 style="text-align:center">TELLIE PCA Run: {{ run }}</h1>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-12">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h3 class="panel-title"><b>c2</b></h3>
+          </div>
+          <div class="panel-body">
+            {% for run in data %}
+            {% if loop.index is divisibleby 2 %}
+            <div class="row">
+            {% endif %}
+              <div class="col-md-6">
+                <img src="{{ url_for('static', filename="pcatellie/" + run|string + "/" + run|string + "_c2.png") }}" alt="alt" class="img-responsive">
+              </div>
+            {% if loop.index is divisibleby 2 %}
+            </div>
+            {% endif %}
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-12">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h3 class="panel-title"><b>c3</b></h3>
+          </div>
+          <div class="panel-body">
+            {% for run in data %}
+            {% if loop.index is divisibleby 2 %}
+            <div class="row">
+            {% endif %}
+              <div class="col-md-6">
+                <img src="{{ url_for('static', filename="pcatellie/" + run|string + "/" + run|string + "_c3.png") }}" alt="alt" class="img-responsive">
+              </div>
+            {% if loop.index is divisibleby 2 %}
+            </div>
+            {% endif %}
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-12">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h3 class="panel-title"><b>c4</b></h3>
+          </div>
+          <div class="panel-body">
+            {% for run in data %}
+            {% if loop.index is divisibleby 2 %}
+            <div class="row">
+            {% endif %}
+              <div class="col-md-6">
+                <img src="{{ url_for('static', filename="pcatellie/" + run|string + "/" + run|string + "_c4.png") }}" alt="alt" class="img-responsive">
+              </div>
+            {% if loop.index is divisibleby 2 %}
+            </div>
+            {% endif %}
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-12">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h3 class="panel-title"><b>pad0</b></h3>
+          </div>
+          <div class="panel-body">
+            {% for run in data %}
+            {% if loop.index is divisibleby 2 %}
+            <div class="row">
+            {% endif %}
+              <div class="col-md-6">
+                <img src="{{ url_for('static', filename="pcatellie/" + run|string + "/" + run|string + "_pad0.png") }}" alt="alt" class="img-responsive">
+              </div>
+            {% if loop.index is divisibleby 2 %}
+            </div>
+            {% endif %}
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-12">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h3 class="panel-title"><b>pad1</b></h3>
+          </div>
+          <div class="panel-body">
+            {% for run in data %}
+            {% if loop.index is divisibleby 2 %}
+            <div class="row">
+            {% endif %}
+              <div class="col-md-6">
+                <img src="{{ url_for('static', filename="pcatellie/" + run|string + "/" + run|string + "_pad1.png") }}" alt="alt" class="img-responsive">
+              </div>
+            {% if loop.index is divisibleby 2 %}
+            </div>
+            {% endif %}
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-12">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h3 class="panel-title"><b>pad2</b></h3>
+          </div>
+          <div class="panel-body">
+            {% for run in data %}
+            {% if loop.index is divisibleby 2 %}
+            <div class="row">
+            {% endif %}
+              <div class="col-md-6">
+                <img src="{{ url_for('static', filename="pcatellie/" + run|string + "/" + run|string + "_pad2.png") }}" alt="alt" class="img-responsive">
+              </div>
+            {% if loop.index is divisibleby 2 %}
+            </div>
+            {% endif %}
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-12">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h3 class="panel-title"><b>pad3</b></h3>
+          </div>
+          <div class="panel-body">
+            {% for run in data %}
+            {% if loop.index is divisibleby 2 %}
+            <div class="row">
+            {% endif %}
+              <div class="col-md-6">
+                <img src="{{ url_for('static', filename="pcatellie/" + run|string + "/" + run|string + "_pad3.png") }}" alt="alt" class="img-responsive">
+              </div>
+            {% if loop.index is divisibleby 2 %}
+            </div>
+            {% endif %}
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-12">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h3 class="panel-title"><b>pad4</b></h3>
+          </div>
+          <div class="panel-body">
+            {% for run in data %}
+            {% if loop.index is divisibleby 2 %}
+            <div class="row">
+            {% endif %}
+              <div class="col-md-6">
+                <img src="{{ url_for('static', filename="pcatellie/" + run|string + "/" + run|string + "_pad4.png") }}" alt="alt" class="img-responsive">
+              </div>
+            {% if loop.index is divisibleby 2 %}
+            </div>
+            {% endif %}
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-12">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h3 class="panel-title"><b>pad5</b></h3>
+          </div>
+          <div class="panel-body">
+            {% for run in data %}
+            {% if loop.index is divisibleby 2 %}
+            <div class="row">
+            {% endif %}
+              <div class="col-md-6">
+                <img src="{{ url_for('static', filename="pcatellie/" + run|string + "/" + run|string + "_pad5.png") }}" alt="alt" class="img-responsive">
+              </div>
+            {% if loop.index is divisibleby 2 %}
+            </div>
+            {% endif %}
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-12">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h3 class="panel-title"><b>pad6</b></h3>
+          </div>
+          <div class="panel-body">
+            {% for run in data %}
+            {% if loop.index is divisibleby 2 %}
+            <div class="row">
+            {% endif %}
+              <div class="col-md-6">
+                <img src="{{ url_for('static', filename="pcatellie/" + run|string + "/" + run|string + "_pad6.png") }}" alt="alt" class="img-responsive">
+              </div>
+            {% if loop.index is divisibleby 2 %}
+            </div>
+            {% endif %}
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-12">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h3 class="panel-title"><b>res2</b></h3>
+          </div>
+          <div class="panel-body">
+            {% for run in data %}
+            {% if loop.index is divisibleby 2 %}
+            <div class="row">
+            {% endif %}
+              <div class="col-md-6">
+                <img src="{{ url_for('static', filename="pcatellie/" + run|string + "/" + run|string + "_res2.png") }}" alt="alt" class="img-responsive">
+              </div>
+            {% if loop.index is divisibleby 2 %}
+            </div>
+            {% endif %}
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-12">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h3 class="panel-title"><b>fAngSys</b></h3>
+          </div>
+          <div class="panel-body">
+            {% for run in data %}
+            {% if loop.index is divisibleby 2 %}
+            <div class="row">
+            {% endif %}
+              <div class="col-md-6">
+                <img src="{{ url_for('static', filename="pcatellie/" + run|string + "/" + run|string + "_val2_fAngSys.png") }}" alt="alt" class="img-responsive">
+              </div>
+            {% if loop.index is divisibleby 2 %}
+            </div>
+            {% endif %}
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-12">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h3 class="panel-title"><b>fBucket</b></h3>
+          </div>
+          <div class="panel-body">
+            {% for run in data %}
+            {% if loop.index is divisibleby 2 %}
+            <div class="row">
+            {% endif %}
+              <div class="col-md-6">
+                <img src="{{ url_for('static', filename="pcatellie/" + run|string + "/" + run|string + "_val2_fBucket.png") }}" alt="alt" class="img-responsive">
+              </div>
+            {% if loop.index is divisibleby 2 %}
+            </div>
+            {% endif %}
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-12">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h3 class="panel-title"><b>fToF</b></h3>
+          </div>
+          <div class="panel-body">
+            {% for run in data %}
+            {% if loop.index is divisibleby 2 %}
+            <div class="row">
+            {% endif %}
+              <div class="col-md-6">
+                <img src="{{ url_for('static', filename="pcatellie/" + run|string + "/" + run|string + "_val2_fToF.png") }}" alt="alt" class="img-responsive">
+              </div>
+            {% if loop.index is divisibleby 2 %}
+            </div>
+            {% endif %}
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-12">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h3 class="panel-title"><b>fDirectHits</b></h3>
+          </div>
+          <div class="panel-body">
+            {% for run in data %}
+            {% if loop.index is divisibleby 2 %}
+            <div class="row">
+            {% endif %}
+              <div class="col-md-6">
+                <img src="{{ url_for('static', filename="pcatellie/" + run|string + "/" + run|string + "_val1_fDirectHits.png") }}" alt="alt" class="img-responsive">
+              </div>
+            {% if loop.index is divisibleby 2 %}
+            </div>
+            {% endif %}
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-12">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h3 class="panel-title"><b>fTimes</b></h3>
+          </div>
+          <div class="panel-body">
+            {% for run in data %}
+            {% if loop.index is divisibleby 2 %}
+            <div class="row">
+            {% endif %}
+              <div class="col-md-6">
+                <img src="{{ url_for('static', filename="pcatellie/" + run|string + "/" + run|string + "_val2_fTimes.png") }}" alt="alt" class="img-responsive">
+              </div>
+            {% if loop.index is divisibleby 2 %}
+            </div>
+            {% endif %}
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-12">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h3 class="panel-title"><b>fTimevsEvent</b></h3>
+          </div>
+          <div class="panel-body">
+            {% for run in data %}
+            {% if loop.index is divisibleby 2 %}
+            <div class="row">
+            {% endif %}
+              <div class="col-md-6">
+                <img src="{{ url_for('static', filename="pcatellie/" + run|string + "/" + run|string + "_val1_fTimevsEvent.png") }}" alt="alt" class="img-responsive">
+              </div>
+            {% if loop.index is divisibleby 2 %}
+            </div>
+            {% endif %}
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-12">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h3 class="panel-title"><b>fTimevsAngle</b></h3>
+          </div>
+          <div class="panel-body">
+            {% for run in data %}
+            {% if loop.index is divisibleby 2 %}
+            <div class="row">
+            {% endif %}
+              <div class="col-md-6">
+                <img src="{{ url_for('static', filename="pcatellie/" + run|string + "/" + run|string + "_val1_fTimevsAngle.png") }}" alt="alt" class="img-responsive">
+              </div>
+            {% if loop.index is divisibleby 2 %}
+            </div>
+            {% endif %}
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-12">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h3 class="panel-title"><b>fHitTimesAng</b></h3>
+          </div>
+          <div class="panel-body">
+            {% for run in data %}
+            {% if loop.index is divisibleby 2 %}
+            <div class="row">
+            {% endif %}
+              <div class="col-md-6">
+                <img src="{{ url_for('static', filename="pcatellie/" + run|string + "/" + run|string + "_val2_fHitTimesAng.png") }}" alt="alt" class="img-responsive">
+              </div>
+            {% if loop.index is divisibleby 2 %}
+            </div>
+            {% endif %}
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-12">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h3 class="panel-title"><b>fResidTimesAng</b></h3>
+          </div>
+          <div class="panel-body">
+            {% for run in data %}
+            {% if loop.index is divisibleby 2 %}
+            <div class="row">
+            {% endif %}
+              <div class="col-md-6">
+                <img src="{{ url_for('static', filename="pcatellie/" + run|string + "/" + run|string + "_val2_fResidTimesAng.png") }}" alt="alt" class="img-responsive">
+              </div>
+            {% if loop.index is divisibleby 2 %}
+            </div>
+            {% endif %}
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-12">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h3 class="panel-title"><b>fHitTimesRel</b></h3>
+          </div>
+          <div class="panel-body">
+            {% for run in data %}
+            {% if loop.index is divisibleby 2 %}
+            <div class="row">
+            {% endif %}
+              <div class="col-md-6">
+                <img src="{{ url_for('static', filename="pcatellie/" + run|string + "/" + run|string + "_val2_fHitTimesRel.png") }}" alt="alt" class="img-responsive">
+              </div>
+            {% if loop.index is divisibleby 2 %}
+            </div>
+            {% endif %}
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-12">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h3 class="panel-title"><b>fNHitHist</b></h3>
+          </div>
+          <div class="panel-body">
+            {% for run in data %}
+            {% if loop.index is divisibleby 2 %}
+            <div class="row">
+            {% endif %}
+              <div class="col-md-6">
+                <img src="{{ url_for('static', filename="pcatellie/" + run|string + "/" + run|string + "_val1_fNHitHist.png") }}" alt="alt" class="img-responsive">
+              </div>
+            {% if loop.index is divisibleby 2 %}
+            </div>
+            {% endif %}
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-12">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h3 class="panel-title"><b>fNHitvsEvent</b></h3>
+          </div>
+          <div class="panel-body">
+            {% for run in data %}
+            {% if loop.index is divisibleby 2 %}
+            <div class="row">
+            {% endif %}
+              <div class="col-md-6">
+                <img src="{{ url_for('static', filename="pcatellie/" + run|string + "/" + run|string + "_val1_fNHitvsEvent.png") }}" alt="alt" class="img-responsive">
+              </div>
+            {% if loop.index is divisibleby 2 %}
+            </div>
+            {% endif %}
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-12">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h3 class="panel-title"><b>fFibreDelays</b></h3>
+          </div>
+          <div class="panel-body">
+            {% for run in data %}
+            {% if loop.index is divisibleby 2 %}
+            <div class="row">
+            {% endif %}
+              <div class="col-md-6">
+                <img src="{{ url_for('static', filename="pcatellie/" + run|string + "/" + run|string + "_val1_fFibreDelays.png") }}" alt="alt" class="img-responsive">
+              </div>
+            {% if loop.index is divisibleby 2 %}
+            </div>
+            {% endif %}
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-12">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h3 class="panel-title"><b>fTriggerDelays</b></h3>
+          </div>
+          <div class="panel-body">
+            {% for run in data %}
+            {% if loop.index is divisibleby 2 %}
+            <div class="row">
+            {% endif %}
+              <div class="col-md-6">
+                <img src="{{ url_for('static', filename="pcatellie/" + run|string + "/" + run|string + "_val1_fTriggerDelays.png") }}" alt="alt" class="img-responsive">
+              </div>
+            {% if loop.index is divisibleby 2 %}
+            </div>
+            {% endif %}
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-12">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h3 class="panel-title"><b>fXYOccupAll</b></h3>
+          </div>
+          <div class="panel-body">
+            {% for run in data %}
+            {% if loop.index is divisibleby 2 %}
+            <div class="row">
+            {% endif %}
+              <div class="col-md-6">
+                <img src="{{ url_for('static', filename="pcatellie/" + run|string + "/" + run|string + "_val1_fXYOccupAll.png") }}" alt="alt" class="img-responsive">
+              </div>
+            {% if loop.index is divisibleby 2 %}
+            </div>
+            {% endif %}
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-12">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h3 class="panel-title"><b>fXYOccupBeamSpot</b></h3>
+          </div>
+          <div class="panel-body">
+            {% for run in data %}
+            {% if loop.index is divisibleby 2 %}
+            <div class="row">
+            {% endif %}
+              <div class="col-md-6">
+                <img src="{{ url_for('static', filename="pcatellie/" + run|string + "/" + run|string + "_val1_fXYOccupBeamSpot.png") }}" alt="alt" class="img-responsive">
+              </div>
+            {% if loop.index is divisibleby 2 %}
+            </div>
+            {% endif %}
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-12">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h3 class="panel-title"><b>fXYTheta</b></h3>
+          </div>
+          <div class="panel-body">
+            {% for run in data %}
+            {% if loop.index is divisibleby 2 %}
+            <div class="row">
+            {% endif %}
+              <div class="col-md-6">
+                <img src="{{ url_for('static', filename="pcatellie/" + run|string + "/" + run|string + "_val1_fXYTheta.png") }}" alt="alt" class="img-responsive">
+              </div>
+            {% if loop.index is divisibleby 2 %}
+            </div>
+            {% endif %}
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-12">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h3 class="panel-title"><b>fXYThetaAtPMT</b></h3>
+          </div>
+          <div class="panel-body">
+            {% for run in data %}
+            {% if loop.index is divisibleby 2 %}
+            <div class="row">
+            {% endif %}
+              <div class="col-md-6">
+                <img src="{{ url_for('static', filename="pcatellie/" + run|string + "/" + run|string + "_val1_fXYThetaAtPMT.png") }}" alt="alt" class="img-responsive">
+              </div>
+            {% if loop.index is divisibleby 2 %}
+            </div>
+            {% endif %}
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+{% endblock %}

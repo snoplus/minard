@@ -1,0 +1,75 @@
+{% extends "layout.html" %}
+{% block title %}Burst Trigger L2{% endblock %}
+{% block head %}
+  {{ super() }}
+{% endblock %}
+{% block body %}
+  {{ super() }}
+
+  <div class="container">
+
+    <div class="row">
+      <div class="col-md-12">
+        <h1 style="text-align:center">TELLIE PCA tables comparison</h1>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-12">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h3 class="panel-title"><b>Internal pulse width</b></h3>
+          </div>
+          <div class="panel-body">
+            <div class="row">
+              <div class="col-md-12">
+                <img src="{{ url_for('static', filename="pcatellie/tables/all/" + "all_ipw.png") }}" alt="alt" class="img-responsive">
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-12">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h3 class="panel-title"><b>PCA offsets</b></h3>
+          </div>
+          <div class="panel-body">
+            <div class="row">
+              <div class="col-md-12">
+                <img src="{{ url_for('static', filename="pcatellie/tables/all/" + "all_pca.png") }}" alt="alt" class="img-responsive">
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-12">
+              <img src="{{ url_for('static', filename="pcatellie/tables/all/" + "all_pca_rel.png") }}" alt="alt" class="img-responsive">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-12">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h3 class="panel-title"><b>Angular systematic effect</b></h3>
+          </div>
+          <div class="panel-body">
+            <div class="row">
+              <div class="col-md-12">
+                <img src="{{ url_for('static', filename="pcatellie/tables/all/" + "all_angb.png") }}" alt="alt" class="img-responsive">
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  {% endblock %}

@@ -1,0 +1,45 @@
+{% extends "layout.html" %}
+{% block title %}Burst Trigger L2{% endblock %}
+{% block head %}
+  {{ super() }}
+{% endblock %}
+{% block body %}
+  {{ super() }}
+
+  <div class="container">
+    <div class="row">
+      <div class="col-md-12">
+          <h2 style="text-align: center">TELLIE PCA dataset: {{ data["name"] }}</h2>
+            <table class="table table-bordered table-condensed table-striped">
+              <thead>
+                <th style="text-align: center; vertical-align: middle;">Fibre</th>
+                <th style="text-align: center; vertical-align: middle;">Run</th>
+                <th style="text-align: center; vertical-align: middle;">Validation 1</th>
+                <th style="text-align: center; vertical-align: middle;">Fitting</th>
+                <th style="text-align: center; vertical-align: middle;">Validation 2</th>
+              </thead>
+              <tbody>
+
+                {% for i in range( 0, data[0]['fibres'] | length ) %}
+                <tr>
+                  <td style="text-align: center; vertical-align: middle;"> <a href="{{ url_for('pca_tellie_fibre', fibre=data[0]['fibres'][i]) }}">{{ data[0]['fibres'][i] }}</a></td>
+                  <td style="text-align: center; vertical-align: middle;">{{ data[1][i] }}</td>
+                  {% if data[1][i] == "N/A" %}
+                    <td style="text-align: center; vertical-align: middle;">bitword</td>
+                    <td style="text-align: center; vertical-align: middle;">fits</td>
+                    <td style="text-align: center; vertical-align: middle;">bitword</td>
+                  {% else %}
+                    <td style="text-align: center; vertical-align: middle;"><a href="{{ url_for('pca_tellie_run_val1', run=data[1][i], o=1) }}">{{ data[2][i] }}</a></td>
+                    <td style="text-align: center; vertical-align: middle;"><a href="{{ url_for('pca_tellie_run_fits', run=data[1][i], o=2) }}">{{ '%0.2f' | format(data[3][i][0]|float) }} &#177; {{ '%0.3f' | format(data[3][i][1]|float) }} | {{ '%0.2f' | format(data[4][i][0]|float) }} &#177; {{ '%0.3f' | format(data[4][i][1]|float) }}</a></td>
+                    <td style="text-align: center; vertical-align: middle;"><a href="{{ url_for('pca_tellie_run_val2', run=data[1][i], o=3) }}">{{ data[5][i] }}</a></td>
+                    {% endif %}
+                </tr>
+                {% endfor %}
+
+              </tbody>
+            </table>
+      </div>
+    </div>
+  </div>
+
+{% endblock %}

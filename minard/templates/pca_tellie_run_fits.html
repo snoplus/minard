@@ -1,0 +1,355 @@
+{% extends "layout.html" %}
+{% block title %}Burst Trigger L2{% endblock %}
+{% block head %}
+  {{ super() }}
+{% endblock %}
+{% block body %}
+  {{ super() }}
+
+  {% macro print_flag(flag) -%}
+    {% if flag == 0 %}
+    <span style="color:red">0</span>
+    {% endif %}
+    {% if flag == 1 %}
+    <span style="color:green">1</span>
+    {% endif %}
+  {%- endmacro %}
+
+  <div class="container">
+
+    <div class="row">
+      <div class="col-md-12">
+        <h1 style="text-align:center">TELLIE PCA Run: {{ run }}</h1>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-12">
+        <h2 style="text-align:center">Fits to data</h2>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-12">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h1 class="panel-title"><b>General</b></h1>
+          </div>
+          <div class="panel-body">
+            <div class="row">
+              <div class="col-md-12">
+                <table class="table table-striped">
+                  <thead>
+                    <tr>
+                      <th width="25.0%">Parameter</th>
+                      <th width="25.0%">Value</th>
+                      <th width="50.0%">Note</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>Fibre</td>
+                      <td>{{ data["Fibre"] }}</td>
+                      <td>Run number where burst occured</td>
+                    </tr>
+                    <tr>
+                      <td>Correct fibre ?</td>
+                      <td>{{ print_flag(data["Correct fibre?"]) }}</td>
+                      <td>Run number where burst occured</td>
+                    </tr>
+                    <tr>
+                      <td>Affected by belly plate ?</td>
+                      <td>{{ data["Is affected by belly plate?"] }}</td>
+                      <td>Run number where burst occured</td>
+                    </tr>
+                    <tr>
+                      <td>RATDB position</td>
+                      <td>{{ '%0.2f' | format(data["RATDB pos"][0]|float) }} | {{ '%0.2f' | format(data["RATDB pos"][1]|float) }} | {{ '%0.2f' | format(data["RATDB pos"][2]|float) }}</td>
+                      <td>Run number where burst occured</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-12">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h1 class="panel-title"><b>Direct and Reflect lightspots</b></h1>
+          </div>
+          <div class="panel-body">
+            <div class="row">
+              <div class="col-md-12">
+                <table class="table table-striped">
+                  <thead>
+                    <tr>
+                      <th width="25.0%">Parameter</th>
+                      <th width="25.0%">Value</th>
+                      <th width="50.0%">Note</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>Final DIR fit</td>
+                      <td>{{ '%0.2f' | format(data["Final DIR fit"][0]|float) }} | {{ '%0.2f' | format(data["Final DIR fit"][1]|float) }} | {{ '%0.2f' | format(data["Final DIR fit"][2]|float) }}</td>
+                      <td>Run number where burst occured</td>
+                    </tr>
+                    <tr>
+                      <td>Direct fit deviation</td>
+                      <td>{{ data["DIR fit angular deviation from expected"] }}</td>
+                      <td>Run number where burst occured</td>
+                    </tr>
+                    <tr>
+                      <td>Final REF fit</td>
+                      <td>{{ '%0.2f' | format(data["Final REF fit"][0]|float) }} | {{ '%0.2f' | format(data["Final REF fit"][1]|float) }} | {{ '%0.2f' | format(data["Final REF fit"][2]|float) }}</td>
+                      <td>Run number where burst occured</td>
+                    </tr>
+                    <tr>
+                      <td>Reflected fit deviation</td>
+                      <td>{{ data["REF fit angular deviation from expected"] }}</td>
+                      <td>Run number where burst occured</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-12">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h1 class="panel-title"><b>Fibre direction</b></h1>
+          </div>
+          <div class="panel-body">
+            <div class="row">
+              <div class="col-md-12">
+                <table class="table table-striped">
+                  <thead>
+                    <tr>
+                      <th width="25.0%">Parameter</th>
+                      <th width="25.0%">Value</th>
+                      <th width="50.0%">Note</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>RATDB dir</td>
+                      <td>{{ '%0.2f' | format(data["RATDB dir"][0]|float) }} | {{ '%0.2f' | format(data["RATDB dir"][1]|float) }} | {{ '%0.2f' | format(data["RATDB dir"][2]|float) }}</td>
+                      <td>Run number where burst occured</td>
+                    </tr>
+                    <tr>
+                      <td>New fitted fibre direction</td>
+                      <td>{{ '%0.2f' | format(data["New fitted fibre direction"][0]|float) }} | {{ '%0.2f' | format(data["New fitted fibre direction"][1]|float) }} | {{ '%0.2f' | format(data["New fitted fibre direction"][2]|float) }}</td>
+                      <td>Run number where burst occured</td>
+                    </tr>
+                    <tr>
+                      <td>Angular difference</td>
+                      <td>{{ data["Angular difference"] }}</td>
+                      <td>Run number where burst occured</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-12">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h1 class="panel-title"><b>Angular systematic effect</b></h1>
+          </div>
+          <div class="panel-body">
+            <div class="row">
+              <div class="col-md-12">
+                <table class="table table-striped">
+                  <thead>
+                    <tr>
+                      <th width="25.0%">Parameter</th>
+                      <th width="25.0%">Value</th>
+                      <th width="50.0%">Note</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>Ang a</td>
+                      <td>{{ '%0.2f' | format(data["Ang a"][0]|float) }} &#177; {{ '%0.3f' | format(data["Ang a"][1]|float) }}</td>
+                      <td>Run number where burst occured</td>
+                    </tr>
+                    <tr>
+                      <td>Ang b</td>
+                      <td>{{ '%0.2f' | format(data["Ang b"][0]|float) }} &#177; {{ '%0.3f' | format(data["Ang b"][1]|float) }}</td>
+                      <td>Run number where burst occured</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-12">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h1 class="panel-title"><b>Injection time</b></h1>
+          </div>
+          <div class="panel-body">
+            <div class="row">
+              <div class="col-md-12">
+                <table class="table table-striped">
+                  <thead>
+                    <tr>
+                      <th width="25.0%">Parameter</th>
+                      <th width="25.0%">Value</th>
+                      <th width="50.0%">Note</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>Mean hit time and RMS</td>
+                      <td>{{ '%0.2f' | format(data["Mean hit time and RMS"][0]|float) }} &#177; {{ '%0.3f' | format(data["Mean hit time and RMS"][1]|float) }}</td>
+                      <td>Run number where burst occured</td>
+                    </tr>
+                    <tr>
+                      <td>Injection time</td>
+                      <td>{{ '%0.2f' | format(data["Injection time"][0]|float) }} &#177; {{ '%0.3f' | format(data["Injection time"][1]|float) }}</td>
+                      <td>Run number where burst occured</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-12">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h3 class="panel-title"><b>Position and direction</b></h3>
+          </div>
+          <div class="panel-body">
+            <div class="row">
+              <div class="col-md-3"></div>
+              <div class="col-md-6">
+                <img src="{{ url_for('static', filename="pcatellie/" + run + "/" + run + "_c0.png") }}" alt="alt" class="img-responsive">
+              </div>
+              <div class="col-md-3"></div>
+            </div>
+            <div class="row">
+              <div class="col-md-6">
+                <img src="{{ url_for('static', filename="pcatellie/" + run + "/" + run + "_c1.png") }}" alt="alt" class="img-responsive">
+              </div>
+              <div class="col-md-6">
+                <img src="{{ url_for('static', filename="pcatellie/" + run + "/" + run + "_c2.png") }}" alt="alt" class="img-responsive">
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-md-6">
+                <img src="{{ url_for('static', filename="pcatellie/" + run + "/" + run + "_c3.png") }}" alt="alt" class="img-responsive">
+              </div>
+              <div class="col-md-6">
+                <img src="{{ url_for('static', filename="pcatellie/" + run + "/" + run + "_c4.png") }}" alt="alt" class="img-responsive">
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-12">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h3 class="panel-title"><b>Angular systematic - evaluation</b></h3>
+          </div>
+          <div class="panel-body">
+            <div class="row">
+              <div class="col-md-6">
+                <img src="{{ url_for('static', filename="pcatellie/" + run + "/" + run + "_pad0.png") }}" alt="alt" class="img-responsive">
+              </div>
+              <div class="col-md-6">
+                <img src="{{ url_for('static', filename="pcatellie/" + run + "/" + run + "_pad1.png") }}" alt="alt" class="img-responsive">
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-md-6">
+                <img src="{{ url_for('static', filename="pcatellie/" + run + "/" + run + "_pad2.png") }}" alt="alt" class="img-responsive">
+              </div>
+              <div class="col-md-6">
+                <img src="{{ url_for('static', filename="pcatellie/" + run + "/" + run + "_pad3.png") }}" alt="alt" class="img-responsive">
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-md-6">
+                <img src="{{ url_for('static', filename="pcatellie/" + run + "/" + run + "_pad4.png") }}" alt="alt" class="img-responsive">
+              </div>
+              <div class="col-md-6">
+                <img src="{{ url_for('static', filename="pcatellie/" + run + "/" + run + "_pad5.png") }}" alt="alt" class="img-responsive">
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-12">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h3 class="panel-title"><b>Hit times, injection time</b></h3>
+          </div>
+          <div class="panel-body">
+            <div class="row">
+              <div class="col-md-6">
+                <img src="{{ url_for('static', filename="pcatellie/" + run + "/" + run + "_hits.png") }}" alt="alt" class="img-responsive">
+              </div>
+              <div class="col-md-6">
+                <img src="{{ url_for('static', filename="pcatellie/" + run + "/" + run + "_hitsrms.png") }}" alt="alt" class="img-responsive">
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-md-6">
+                <img src="{{ url_for('static', filename="pcatellie/" + run + "/" + run + "_res1.png") }}" alt="alt" class="img-responsive">
+              </div>
+              <div class="col-md-6">
+                <img src="{{ url_for('static', filename="pcatellie/" + run + "/" + run + "_res2.png") }}" alt="alt" class="img-responsive">
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-md-3"></div>
+              <div class="col-md-6">
+                <img src="{{ url_for('static', filename="pcatellie/" + run + "/" + run + "_pad6.png") }}" alt="alt" class="img-responsive">
+              </div>
+              <div class="col-md-3"></div>
+            </div>
+            <div class="row">
+              <div class="col-md-12">
+                <img src="{{ url_for('static', filename="pcatellie/" + run + "/" + run + "_angular_singlePMTs.png") }}" alt="alt" class="img-responsive">
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+{% endblock %}

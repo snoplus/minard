@@ -50,22 +50,22 @@
                     <tr>
                       <td>Fibre</td>
                       <td>{{ data["Fibre"] }}</td>
-                      <td>Run number where burst occured</td>
+                      <td>The TELLIE fibre used</td>
                     </tr>
                     <tr>
                       <td>Correct fibre ?</td>
                       <td>{{ print_flag(data["Correct fibre?"]) }}</td>
-                      <td>Run number where burst occured</td>
+                      <td>Was the correct fibre firring (based on fit)</td>
                     </tr>
                     <tr>
                       <td>Affected by belly plate ?</td>
                       <td>{{ data["Is affected by belly plate?"] }}</td>
-                      <td>Run number where burst occured</td>
+                      <td>Is this fibre affected by belly plates?</td>
                     </tr>
                     <tr>
-                      <td>RATDB position</td>
+                      <td>RATDB position [mm]</td>
                       <td>{{ '%0.2f' | format(data["RATDB pos"][0]|float) }} | {{ '%0.2f' | format(data["RATDB pos"][1]|float) }} | {{ '%0.2f' | format(data["RATDB pos"][2]|float) }}</td>
-                      <td>Run number where burst occured</td>
+                      <td>The position of the fibre as stored in RATDB</td>
                     </tr>
                   </tbody>
                 </table>
@@ -97,22 +97,22 @@
                     <tr>
                       <td>Final DIR fit</td>
                       <td>{{ '%0.2f' | format(data["Final DIR fit"][0]|float) }} | {{ '%0.2f' | format(data["Final DIR fit"][1]|float) }} | {{ '%0.2f' | format(data["Final DIR fit"][2]|float) }}</td>
-                      <td>Run number where burst occured</td>
+                      <td>The position of the direct light spot</td>
                     </tr>
                     <tr>
                       <td>Direct fit deviation</td>
-                      <td>{{ data["DIR fit angular deviation from expected"] }}</td>
-                      <td>Run number where burst occured</td>
+                      <td>{{ data["DIR fit angular deviation from expected"] }} &#176; </td>
+                      <td>Angular deviation from expected position of the direct light spot</td>
                     </tr>
                     <tr>
                       <td>Final REF fit</td>
                       <td>{{ '%0.2f' | format(data["Final REF fit"][0]|float) }} | {{ '%0.2f' | format(data["Final REF fit"][1]|float) }} | {{ '%0.2f' | format(data["Final REF fit"][2]|float) }}</td>
-                      <td>Run number where burst occured</td>
+                      <td>The position of the reflected light spot</td>
                     </tr>
                     <tr>
                       <td>Reflected fit deviation</td>
-                      <td>{{ data["REF fit angular deviation from expected"] }}</td>
-                      <td>Run number where burst occured</td>
+                      <td>{{ data["REF fit angular deviation from expected"] }} &#176; </td>
+                      <td>Angular deviation from expected position of the reflected light spot</td>
                     </tr>
                   </tbody>
                 </table>
@@ -144,17 +144,17 @@
                     <tr>
                       <td>RATDB dir</td>
                       <td>{{ '%0.2f' | format(data["RATDB dir"][0]|float) }} | {{ '%0.2f' | format(data["RATDB dir"][1]|float) }} | {{ '%0.2f' | format(data["RATDB dir"][2]|float) }}</td>
-                      <td>Run number where burst occured</td>
+                      <td>The direction of the fibre as stored in RATDB</td>
                     </tr>
                     <tr>
                       <td>New fitted fibre direction</td>
                       <td>{{ '%0.2f' | format(data["New fitted fibre direction"][0]|float) }} | {{ '%0.2f' | format(data["New fitted fibre direction"][1]|float) }} | {{ '%0.2f' | format(data["New fitted fibre direction"][2]|float) }}</td>
-                      <td>Run number where burst occured</td>
+                      <td>The direction obtained from the fit to beamspot</td>
                     </tr>
                     <tr>
                       <td>Angular difference</td>
-                      <td>{{ data["Angular difference"] }}</td>
-                      <td>Run number where burst occured</td>
+                      <td>{{ data["Angular difference"] }} &#176; </td>
+                      <td>Angular deviation from expected direction</td>
                     </tr>
                   </tbody>
                 </table>
@@ -185,13 +185,13 @@
                   <tbody>
                     <tr>
                       <td>Ang a</td>
-                      <td>{{ '%0.2f' | format(data["Ang a"][0]|float) }} &#177; {{ '%0.3f' | format(data["Ang a"][1]|float) }}</td>
-                      <td>Run number where burst occured</td>
+                      <td>{{ '%0.2f' | format(data["Ang a"][0]|float) }} &#177; {{ '%0.3f' | format(data["Ang a"][1]|float) }} ns</td>
+                      <td>Fitted angular a parameter: y-axis intersection (injection)</td>
                     </tr>
                     <tr>
                       <td>Ang b</td>
                       <td>{{ '%0.2f' | format(data["Ang b"][0]|float) }} &#177; {{ '%0.3f' | format(data["Ang b"][1]|float) }}</td>
-                      <td>Run number where burst occured</td>
+                      <td>Fitted angular b parameter: the rate of change of slope</td>
                     </tr>
                   </tbody>
                 </table>
@@ -222,13 +222,13 @@
                   <tbody>
                     <tr>
                       <td>Mean hit time and RMS</td>
-                      <td>{{ '%0.2f' | format(data["Mean hit time and RMS"][0]|float) }} &#177; {{ '%0.3f' | format(data["Mean hit time and RMS"][1]|float) }}</td>
-                      <td>Run number where burst occured</td>
+                      <td>{{ '%0.2f' | format(data["Mean hit time and RMS"][0]|float) }} &#177; {{ '%0.3f' | format(data["Mean hit time and RMS"][1]|float) }} ns</td>
+                      <td>Mean and RMS of the residual hit time distribution</td>
                     </tr>
                     <tr>
                       <td>Injection time</td>
-                      <td>{{ '%0.2f' | format(data["Injection time"][0]|float) }} &#177; {{ '%0.3f' | format(data["Injection time"][1]|float) }}</td>
-                      <td>Run number where burst occured</td>
+                      <td>{{ '%0.2f' | format(data["Injection time"][0]|float) }} &#177; {{ '%0.3f' | format(data["Injection time"][1]|float) }} ns</td>
+                      <td>The injection time (light leaving the fibre)</td>
                     </tr>
                   </tbody>
                 </table>

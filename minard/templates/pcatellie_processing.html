@@ -6,6 +6,11 @@
 {% block body %}
   {{ super() }}
 
+  <style>
+    .tpar { color: blue}
+    .tval { color: red}
+  </style>
+
   <div class="container">
     <div class="row">
       <div class="col-md-12">
@@ -14,7 +19,7 @@
               <thead>
                 <th style="text-align: center; vertical-align: middle;">Name</th>
                 <th style="text-align: center; vertical-align: middle;">Run range</th>
-                <th style="text-align: center; vertical-align: middle;"><a href="{{ url_for('pca_tellie_tables') }}">PCA tables</th>
+                <th style="text-align: center; vertical-align: middle;"><a href="{{ url_for('pca_tellie_tables') }}">PCA tables</a></th>
                 <th style="text-align: center; vertical-align: middle;">PCA processor</th>
                 <th style="text-align: center; vertical-align: middle;">Benchmarking</th>
               </thead>
@@ -25,11 +30,39 @@
                   <td style="text-align: center; vertical-align: middle;"><a href="{{ url_for('pca_set', first_run=runlist['runrange'][0]) }}">{{  runlist["runrange"] }}</a></td>
                   <td style="text-align: center; vertical-align: middle;"><a href="{{ url_for('pca_tellie_table', run=runlist['runrange'][0]) }}">{{  runlist['runrange'][0] }} table</a></td>
                   <td style="text-align: center; vertical-align: middle;"><a href="{{ url_for('pca_proc', first_run=runlist['runrange'][0]) }}">{{  runlist['runrange'][0] }}</a></td>
-                  <td style="text-align: center; vertical-align: middle;"><a href="{{ url_for('pca_set_bench', run=201389) }}">{{  runlist["runrange"] }}</a></td>
+                  <td style="text-align: center; vertical-align: middle;"><a href="{{ url_for('pca_set_bench', run=runlist['runrange'][0]) }}">{{  runlist["runrange"] }}</a></td>
                 </tr>
                 {% endfor %}
               </tbody>
             </table>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-12">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h1 class="panel-title"><b>PMT search:</b></h1>
+          </div>
+          <div class="panel-body">
+            <p><center>See the progression of cable delay for particular PMT. Use PMT ID.</center></p>
+            <form class="form-horizontal" style="text-align:center" role="form" method="get" action="{{ url_for("pca_tellie_pmt_all") }}">
+                <div class="form-group form-group-sm">
+                  <div class="col-sm-4"></div>
+                  <div class="col-sm-2">
+                    <input name="pmt"
+                     id="pmt"
+                     type="number"
+                     min=0
+                     class="form-control">
+                  </div>
+                <div class="col-sm-2">
+                  <input type="submit" value="Go"></input>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -46,365 +79,334 @@
                   <thead>
                     <tr>
                       <th width="25.0%">Parameter</th>
-                      <th width="25.0%">Value</th>
-                      <th width="50.0%">Note</th>
+                      <th width="10.0%">Value</th>
+                      <th width="65.0%">Note</th>
                     </tr>
                   </thead>
                   <tbody>
+                    <!--GENERAL-->
                     <tr>
-                      <td>DIR_LIGHT_ANG</td>
-                      <td>{{ limits["DIR_LIGHT_ANG"] }}</td>
-                      <td>Run number where burst occured</td>
+                      <td class="tpar">RUNTIME</td>
+                      <td class="tval">{{ limits["RUNTIME"] }}</td>
+                      <td>[<i>s</i>]: allowed length of run </td>
                     </tr>
                     <tr>
-                      <td>REF_LIGHT_ANG</td>
-                      <td>{{ limits["REF_LIGHT_ANG"] }}</td>
-                      <td></td>
+                      <td class="tpar">FREQ &#177; FREQ_DEV</td>
+                      <td class="tval">{{ limits["FREQ"] }} &#177; {{ limits["FREQ_DEV"] }}</td>
+                      <td>[<i>Hz</i>]: expected frequency + dev </td>
                     </tr>
                     <tr>
-                      <td>LOCALITY</td>
-                      <td>{{ limits["LOCALITY"] }}</td>
-                      <td></td>
+                      <td class="tpar">TOT_EVS &#177; DEV</td>
+                      <td class="tval" class="tval">{{ limits["TOT_EVS"] }} &#177; {{ limits["TOT_EVS_DEV"] }}</td>
+                      <td>[<i>N</i>]: expected number of events + dev </td>
                     </tr>
                     <tr>
-                      <td>ANG_SYS_ANG</td>
-                      <td>{{ limits["ANG_SYS_ANG"] }}</td>
-                      <td></td>
+                      <td class="tpar">TH_EXTA</td>
+                      <td class="tval" class="tval">{{ limits["TH_EXTA"] }}</td>
+                      <td>[<i>%</i>]: <i>threshold</i> = maximal allowed percentage of NON-EXTA events</td>
                     </tr>
                     <tr>
-                      <td>MIN_DIST</td>
-                      <td>{{ limits["MIN_DIST"] }}</td>
-                      <td></td>
+                      <td class="tpar">TOT_HITS</td>
+                      <td class="tval" class="tval">{{ limits["TOT_HITS"] }}</td>
+                      <td>[<i>%</i>]: <i>threshold</i> = minimal allowed percentage of passed hits</td>
                     </tr>
                     <tr>
-                      <td>TOT_EVS</td>
-                      <td>{{ limits["TOT_EVS"] }}</td>
-                      <td></td>
+                      <td class="tpar">N_SUBS</td>
+                      <td class="tval">{{ limits["N_SUBS"] }}</td>
+                      <td>[<i>N</i>]: number of allowed subruns </td>
                     </tr>
                     <tr>
-                      <td>TOT_EVS_DEV</td>
-                      <td>{{ limits["TOT_EVS_DEV"] }}</td>
-                      <td></td>
+                      <td class="tpar">EV_SUB &#177; EV_SUB_DEV</td>
+                      <td class="tval">{{ limits["EV_SUB"] }} &#177; {{ limits["EV_SUB_DEV"] }}</td>
+                      <td>[<i>N</i>]: expected events in subrun + dev </td>
                     </tr>
+                    <!--FIBRE-->
                     <tr>
-                      <td>TOT_HITS</td>
-                      <td>{{ limits["TOT_HITS"] }}</td>
-                      <td></td>
+                      <td class="tpar">MIN_DIST</td>
+                      <td class="tval" class="tval">{{ limits["MIN_DIST"] }}</td>
+                      <td>[<i>mm</i>]: allowed distance to evaluate the fibre that was firring (light fit to fibre db position)</td>
                     </tr>
                     <tr>
-                      <td>TH_EXTA</td>
-                      <td>{{ limits["TH_EXTA"] }}</td>
-                      <td></td>
+                      <td class="tpar">DIR_LIGHT_ANG</td>
+                      <td class="tval">{{ limits["DIR_LIGHT_ANG"] }}</td>
+                      <td>[<i>&#176;</i>]: angular limits for the cone of direct light</td>
                     </tr>
                     <tr>
-                      <td>TH_BADCHAN</td>
-                      <td>{{ limits["TH_BADCHAN"] }}</td>
-                      <td></td>
+                      <td class="tpar">REF_LIGHT_ANG</td>
+                      <td class="tval" class="tval">{{ limits["REF_LIGHT_ANG"] }}</td>
+                      <td>[<i>&#176;</i>]: angular limits for the cone of reflected light</td>
                     </tr>
+                    <!--NHIT/PIN-->
                     <tr>
-                      <td>TH_BADECA</td>
-                      <td>{{ limits["TH_BADECA"] }}</td>
-                      <td></td>
+                      <td class="tpar">NHIT_DIV</td>
+                      <td class="tval">{{ limits["NHIT_DIV"] }}</td>
+                      <td>[<i>R</i>]: allowed deviation for the ratio of rolling average to global average of the NHit distribution (fibre stability) </td>
                     </tr>
                     <tr>
-                      <td>TH_BADPCA</td>
-                      <td>{{ limits["TH_BADPCA"] }}</td>
-                      <td></td>
+                      <td class="tpar">NHIT_MEAN &#177; NHIT_MEAN_DEV </td>
+                      <td class="tval">{{ limits["NHIT_MEAN"] }} &#177; {{ limits["NHIT_MEAN_DEV"] }}</td>
+                      <td>[<i>NHit</i>]: expected mean of the NHit distribution + dev </td>
                     </tr>
                     <tr>
-                      <td>TH_XTALK</td>
-                      <td>{{ limits["TH_XTALK"] }}</td>
-                      <td></td>
+                      <td class="tpar">NHIT_RMS</td>
+                      <td class="tval">{{ limits["NHIT_RMS"] }}</td>
+                      <td>[<i>NHit</i>]: allowed RMS for the cleaned NHit dist </td>
                     </tr>
                     <tr>
-                      <td>TH_NOTEN</td>
-                      <td>{{ limits["TH_NOTEN"] }}</td>
-                      <td></td>
+                      <td class="tpar">SUB_NHIT &#177; SUB_DEV</td>
+                      <td class="tval">{{ limits["SUB_NHIT"] }} &#177; {{ limits["SUB_DEV"] }}</td>
+                      <td>[<i>NHit</i>]: expected mean of the cleaned NHit distribution (subrun) + dev </td>
                     </tr>
                     <tr>
-                      <td>TH_OFFPMT</td>
-                      <td>{{ limits["TH_OFFPMT"] }}</td>
-                      <td></td>
+                      <td class="tpar">PIN_RMS</td>
+                      <td class="tval">{{ limits["PIN_RMS"] }}</td>
+                      <td>[<i>PIN</i>]: maximal allowed RMS of the pin distribution </td>
                     </tr>
                     <tr>
-                      <td>TH_OFFCHAN</td>
-                      <td>{{ limits["TH_OFFCHAN"] }}</td>
-                      <td></td>
+                      <td class="tpar">COV</td>
+                      <td class="tval">{{ limits["COV"] }}</td>
+                      <td>[<i></i>]: minimal covariance </td>
                     </tr>
                     <tr>
-                      <td>TH_DAQEN</td>
-                      <td>{{ limits["TH_DAQEN"] }}</td>
-                      <td></td>
+                      <td class="tpar">CORF</td>
+                      <td class="tval">{{ limits["CORF"] }}</td>
+                      <td>[<i></i>]: minimal correlation factor </td>
                     </tr>
+                    <!--TIME-->
                     <tr>
-                      <td>TH_NNORM</td>
-                      <td>{{ limits["TH_NNORM"] }}</td>
-                      <td></td>
+                      <td class="tpar">HIT_PEAK &#177; HIT_PEAK_DEV </td>
+                      <td class="tval">{{ limits["HIT_PEAK"] }} &#177; {{ limits["HIT_PEAK_DEV"] }}</td>
+                      <td>[<i>ns</i>]: assumed mean of the direct hit time distribution + dev </td>
                     </tr>
                     <tr>
-                      <td>TH_BADPOS</td>
-                      <td>{{ limits["TH_BADPOS"] }}</td>
-                      <td></td>
+                      <td class="tpar">TIME_DIV</td>
+                      <td class="tval">{{ limits["TIME_DIV"] }}</td>
+                      <td>[<i>R</i>]: allowed deviation for the ratio of rolling average to global average of the time distribution (fibre stability) </td>
                     </tr>
                     <tr>
-                      <td>TH_LPCTIR</td>
-                      <td>{{ limits["TH_LPCTIR"] }}</td>
-                      <td></td>
+                      <td class="tpar">RESID_PEAK &#177; RESID_PEAK_DEV</td>
+                      <td class="tval">{{ limits["RESID_PEAK"] }} &#177; {{ limits["RESID_PEAK_DEV"] }}</td>
+                      <td>[<i>ns</i>]: assumed mean of the residual hit time distribution </td>
                     </tr>
                     <tr>
-                      <td>TH_LPCIP</td>
-                      <td>{{ limits["TH_LPCIP"] }}</td>
-                      <td></td>
+                      <td class="tpar">DIR_RESID_0</td>
+                      <td class="tval">{{ limits["DIR_RESID_0"] }}</td>
+                      <td>[<i>ns</i>]: fit (pol1) direct-residual time relation, par0: y-intercept </td>
                     </tr>
                     <tr>
-                      <td>TH_LPCLOC</td>
-                      <td>{{ limits["TH_LPCLOC"] }}</td>
-                      <td></td>
+                      <td class="tpar">DIR_RESID_1</td>
+                      <td class="tval">{{ limits["DIR_RESID_1"] }}</td>
+                      <td>[<i></i>]: fit (pol1) direct-residual time relation, par1: slope </td>
                     </tr>
                     <tr>
-                      <td>TH_LPCPATH</td>
-                      <td>{{ limits["TH_LPCPATH"] }}</td>
-                      <td></td>
+                      <td class="tpar">FIT_SLOPE &#177; FIT_SLOPE_DEV</td>
+                      <td class="tval">{{ limits["FIT_SLOPE"] }} &#177; {{ limits["FIT_SLOPE_DEV"] }}</td>
+                      <td>[<i></i>]: fit (pol1) time vs angle, par1: slope </td>
                     </tr>
+                    <!--PMTS/OCCUP-->
                     <tr>
-                      <td>TH_ANG</td>
-                      <td>{{ limits["TH_ANG"] }}</td>
-                      <td></td>
+                      <td class="tpar">PMTS_BS</td>
+                      <td class="tval">{{ limits["PMTS_BS"] }}</td>
+                      <td>[<i>N</i>]: minimal allowed number of PMTs in beamspot </td>
                     </tr>
                     <tr>
-                      <td>TH_NEARREF</td>
-                      <td>{{ limits["TH_NEARREF"] }}</td>
-                      <td></td>
+                      <td class="tpar">PMTS_BSP</td>
+                      <td class="tval">{{ limits["PMTS_BSP"] }}</td>
+                      <td>[<i>%</i>]: mininal allowed percentage of PMTs in beamspot (to all) </td>
                     </tr>
                     <tr>
-                      <td>NHIT_DIV</td>
-                      <td>{{ limits["NHIT_DIV"] }}</td>
-                      <td></td>
+                      <td class="tpar">PMTS_BS_GO</td>
+                      <td class="tval">{{ limits["PMTS_BS_GO"] }}</td>
+                      <td>[<i>N</i>]: minimal allowed number of PMTs in beamspot with good occupancy </td>
                     </tr>
                     <tr>
-                      <td>NHIT_MEAN</td>
-                      <td>{{ limits["NHIT_MEAN"] }}</td>
-                      <td></td>
+                      <td class="tpar">PMTS_BS_GOP</td>
+                      <td class="tval">{{ limits["PMTS_BS_GOP"] }}</td>
+                      <td>[<i>%</i>]: mininal allowed percentage of PMTs in beamspot with good occupancy (to all) </td>
                     </tr>
                     <tr>
-                      <td>NHIT_MEAN_DEV</td>
-                      <td>{{ limits["NHIT_MEAN_DEV"] }}</td>
-                      <td></td>
+                      <td class="tpar">PMTS_BS_RAT</td>
+                      <td class="tval">{{ limits["PMTS_BS_RAT"] }}</td>
+                      <td>[<i>R</i>]: minimal allowed percentage of PMTs in beamspot with good occupancy (to beamspot PMTs) </td>
                     </tr>
                     <tr>
-                      <td>NHIT_RMS</td>
-                      <td>{{ limits["NHIT_RMS"] }}</td>
-                      <td></td>
+                      <td class="tpar">BS_PMTS</td>
+                      <td class="tval">{{ limits["BS_PMTS"] }}</td>
+                      <td>[<i>N</i>]: minimal allowed number of PMTs with good occupancy in the beamspot (histo) </td>
                     </tr>
                     <tr>
-                      <td>SUB_NHIT</td>
-                      <td>{{ limits["SUB_NHIT"] }}</td>
-                      <td></td>
+                      <td class="tpar">INTEG_ALL</td>
+                      <td class="tval">{{ limits["INTEG_ALL"] }}</td>
+                      <td>[<i>%</i>]: minimal allowed integral of PMTs with good occupancy (to all PMTs, histo) </td>
                     </tr>
                     <tr>
-                      <td>SUB_DEV</td>
-                      <td>{{ limits["SUB_DEV"] }}</td>
-                      <td></td>
+                      <td class="tpar">INTEG_BS</td>
+                      <td class="tval">{{ limits["INTEG_BS"] }}</td>
+                      <td>[<i>%</i>]: minimal allowed integral of PMTs with good occupancy (to beamspot PMTs, histo) </td>
                     </tr>
+                    <!--CORRECTIONS-->
                     <tr>
-                      <td>HIT_PEAK</td>
-                      <td>{{ limits["HIT_PEAK"] }}</td>
-                      <td></td>
+                      <td class="tpar">TOF_MEAN</td>
+                      <td class="tval">{{ limits["TOF_MEAN"] }}</td>
+                      <td>[<i>ns</i>]: expected mean for time of flight [ns] </td>
                     </tr>
                     <tr>
-                      <td>HIT_PEAK_DEV</td>
-                      <td>{{ limits["HIT_PEAK_DEV"] }}</td>
-                      <td></td>
+                      <td class="tpar">TOF_RMS</td>
+                      <td class="tval">{{ limits["TOF_RMS"] }}</td>
+                      <td>[<i>ns</i>]: maximal allowed RMS for time of flight distribution </td>
                     </tr>
                     <tr>
-                      <td>TIME_DIV</td>
-                      <td>{{ limits["TIME_DIV"] }}</td>
-                      <td></td>
+                      <td class="tpar">TOF_MIN</td>
+                      <td class="tval">{{ limits["TOF_MIN"] }}</td>
+                      <td>[<i>ns</i>]: minimal allowed value for ToF </td>
                     </tr>
                     <tr>
-                      <td>PMTS_BS</td>
-                      <td>{{ limits["PMTS_BS"] }}</td>
-                      <td></td>
+                      <td class="tpar">TOF_MAX</td>
+                      <td class="tval">{{ limits["TOF_MAX"] }}</td>
+                      <td>[<i>ns</i>]: maximal allowed value for ToF </td>
                     </tr>
                     <tr>
-                      <td>PMTS_BSP</td>
-                      <td>{{ limits["PMTS_BSP"] }}</td>
-                      <td></td>
+                      <td class="tpar">BUCK_MEAN</td>
+                      <td class="tval">{{ limits["BUCK_MEAN"] }}</td>
+                      <td>[<i>ns</i>]: expected mean for bucket time distribution </td>
                     </tr>
                     <tr>
-                      <td>PMTS_BS_GO</td>
-                      <td>{{ limits["PMTS_BS_GO"] }}</td>
-                      <td></td>
+                      <td class="tpar">BUCK_RMS</td>
+                      <td class="tval">{{ limits["BUCK_RMS"] }}</td>
+                      <td>[<i>ns</i>]: maximal allowed RMS for above </td>
                     </tr>
                     <tr>
-                      <td>PMTS_BS_GOP</td>
-                      <td>{{ limits["PMTS_BS_GOP"] }}</td>
-                      <td></td>
+                      <td class="tpar">BUC_MIN</td>
+                      <td class="tval">{{ limits["BUC_MIN"] }}</td>
+                      <td>[<i>ns</i>]: minimal allowed value for ToF  </td>
                     </tr>
                     <tr>
-                      <td>PMTS_BS_RAT</td>
-                      <td>{{ limits["PMTS_BS_RAT"] }}</td>
-                      <td></td>
+                      <td class="tpar">BUC_MAX</td>
+                      <td class="tval">{{ limits["BUC_MAX"] }}</td>
+                      <td>[<i>ns</i>]: maximal allowed value for bucket time correction </td>
                     </tr>
                     <tr>
-                      <td>RUNTIME</td>
-                      <td>{{ limits["RUNTIME"] }}</td>
-                      <td></td>
+                      <td class="tpar">AS_MEAN_MIN</td>
+                      <td class="tval">{{ limits["AS_MEAN_MIN"] }}</td>
+                      <td>[<i>ns</i>]: minimal allowed mean for AngSys distribution  </td>
                     </tr>
                     <tr>
-                      <td>FREQ</td>
-                      <td>{{ limits["FREQ"] }}</td>
-                      <td></td>
+                      <td class="tpar">AS_MEAN_MAX</td>
+                      <td class="tval">{{ limits["AS_MEAN_MAX"] }}</td>
+                      <td>[<i>ns</i>]: maximal allowed mean for AngSys distribution </td>
                     </tr>
                     <tr>
-                      <td>FREQ_DEV</td>
-                      <td>{{ limits["FREQ_DEV"] }}</td>
-                      <td></td>
+                      <td class="tpar">AS_RMS</td>
+                      <td class="tval">{{ limits["AS_RMS"] }}</td>
+                      <td>[<i>ns</i>]: maximal allowed RMS for above </td>
                     </tr>
                     <tr>
-                      <td>EV_SUB</td>
-                      <td>{{ limits["EV_SUB"] }}</td>
-                      <td></td>
+                      <td class="tpar">AS_MIN</td>
+                      <td class="tval">{{ limits["AS_MIN"] }}</td>
+                      <td>[<i>ns</i>]: minimal allowed value for AngSys correction </td>
                     </tr>
                     <tr>
-                      <td>EV_SUB_DEV</td>
-                      <td>{{ limits["EV_SUB_DEV"] }}</td>
-                      <td></td>
+                      <td class="tpar">AS_MAX</td>
+                      <td class="tval">{{ limits["AS_MAX"] }}</td>
+                      <td>[<i>ns</i>]: maximal allowed value for AngSys correction </td>
                     </tr>
                     <tr>
-                      <td>N_SUBS</td>
-                      <td>{{ limits["N_SUBS"] }}</td>
-                      <td></td>
+                      <td class="tpar">ANG_SYS_ANG</td>
+                      <td class="tval" class="tval">{{ limits["ANG_SYS_ANG"] }}</td>
+                      <td>[<i>&#176;</i>]: angular limit for PMTs to be considered for angular systematic evaluation</td>
                     </tr>
                     <tr>
-                      <td>INTEG_ALL</td>
-                      <td>{{ limits["INTEG_ALL"] }}</td>
-                      <td></td>
+                      <td class="tpar">COR_DEV</td>
+                      <td class="tval">{{ limits["COR_DEV"] }}</td>
+                      <td>[<i>%</i>]: maximal allowed percentage deviation for the means (ToF, Buc, AngSys)</td>
                     </tr>
+                    <!--TH_HITS-->
                     <tr>
-                      <td>INTEG_BS</td>
-                      <td>{{ limits["INTEG_BS"] }}</td>
-                      <td></td>
+                      <td class="tpar">TH_ANG</td>
+                      <td class="tval">{{ limits["TH_ANG"] }}</td>
+                      <td>[<i>%</i>]: <i>threshold</i> = maximal allowed percentage of hits cut due to angular cut (0 - 12 deg) </td>
                     </tr>
                     <tr>
-                      <td>BS_PMTS</td>
-                      <td>{{ limits["BS_PMTS"] }}</td>
-                      <td></td>
+                      <td class="tpar">TH_OFFPMT</td>
+                      <td class="tval" class="tval">{{ limits["TH_OFFPMT"] }}</td>
+                      <td>[<i>%</i>]: <i>threshold</i> = maximal allowed percentage of offline PMT hits </td>
                     </tr>
                     <tr>
-                      <td>PIN_RMS</td>
-                      <td>{{ limits["PIN_RMS"] }}</td>
-                      <td></td>
+                      <td class="tpar">TH_OFFCHAN</td>
+                      <td class="tval" class="tval">{{ limits["TH_OFFCHAN"] }}</td>
+                      <td>[<i>%</i>]: <i>threshold</i> = maximal allowed percentage of offline channel hits </td>
                     </tr>
                     <tr>
-                      <td>COV</td>
-                      <td>{{ limits["COV"] }}</td>
-                      <td></td>
+                      <td class="tpar">TH_BADCHAN</td>
+                      <td class="tval" class="tval">{{ limits["TH_BADCHAN"] }}</td>
+                      <td>[<i>%</i>]: <i>threshold</i> = maximal allowed percentage of bad channel hits</td>
                     </tr>
                     <tr>
-                      <td>CORF</td>
-                      <td>{{ limits["CORF"] }}</td>
-                      <td></td>
+                      <td class="tpar">TH_BADECA</td>
+                      <td class="tval" class="tval">{{ limits["TH_BADECA"] }}</td>
+                      <td>[<i>%</i>]: <i>threshold</i> = maximal allowed percentage of bad ECA hits </td>
                     </tr>
                     <tr>
-                      <td>TOF_MEAN</td>
-                      <td>{{ limits["TOF_MEAN"] }}</td>
-                      <td></td>
+                      <td class="tpar">TH_BADPCA</td>
+                      <td class="tval" class="tval">{{ limits["TH_BADPCA"] }}</td>
+                      <td>[<i>%</i>]: <i>threshold</i> = maximal allowed percentage of bad PCA hits </td>
                     </tr>
                     <tr>
-                      <td>TOF_RMS</td>
-                      <td>{{ limits["TOF_RMS"] }}</td>
-                      <td></td>
+                      <td class="tpar">TH_XTALK</td>
+                      <td class="tval" class="tval">{{ limits["TH_XTALK"] }}</td>
+                      <td>[<i>%</i>]: <i>threshold</i> = maximal allowed percentage of cross-talk hits </td>
                     </tr>
                     <tr>
-                      <td>BUCK_MEAN</td>
-                      <td>{{ limits["BUCK_MEAN"] }}</td>
-                      <td></td>
+                      <td class="tpar">TH_NOTEN</td>
+                      <td class="tval" class="tval">{{ limits["TH_NOTEN"] }}</td>
+                      <td>[<i>%</i>]: <i>threshold</i> = maximal allowed percentage of not enabled channel hits </td>
                     </tr>
+
                     <tr>
-                      <td>BUCK_RMS</td>
-                      <td>{{ limits["BUCK_RMS"] }}</td>
-                      <td></td>
+                      <td class="tpar">TH_DAQEN</td>
+                      <td class="tval" class="tval">{{ limits["TH_DAQEN"] }}</td>
+                      <td>[<i>%</i>]: <i>threshold</i> = maximal allowed percentage of not DAQ enabled hits </td>
                     </tr>
                     <tr>
-                      <td>AS_MEAN_MIN</td>
-                      <td>{{ limits["AS_MEAN_MIN"] }}</td>
-                      <td></td>
+                      <td class="tpar">TH_NNORM</td>
+                      <td class="tval" class="tval">{{ limits["TH_NNORM"] }}</td>
+                      <td>[<i>%</i>]: <i>threshold</i> = maximal allowd percentage of NOT normal PMT hits </td>
                     </tr>
                     <tr>
-                      <td>AS_MEAN_MAX</td>
-                      <td>{{ limits["AS_MEAN_MAX"] }}</td>
-                      <td></td>
+                      <td class="tpar">TH_BADPOS</td>
+                      <td class="tval">{{ limits["TH_BADPOS"] }}</td>
+                      <td>[<i>%</i>]: <i>threshold</i> = maximal allowed percentage of bad position PMT hits </td>
                     </tr>
+                    <!--TH_LPC-->
                     <tr>
-                      <td>AS_RMS</td>
-                      <td>{{ limits["AS_RMS"] }}</td>
-                      <td></td>
+                      <td class="tpar">LOCALITY</td>
+                      <td class="tval" class="tval">{{ limits["LOCALITY"] }}</td>
+                      <td>[<i>cm</i>]: allowance for LPC, how close a light path needs to be to required position</td>
                     </tr>
                     <tr>
-                      <td>COR_DEV</td>
-                      <td>{{ limits["COR_DEV"] }}</td>
-                      <td></td>
+                      <td class="tpar">TH_LPCLOC</td>
+                      <td class="tval">{{ limits["TH_LPCLOC"] }}</td>
+                      <td>[<i>%</i>]: <i>threshold</i> = maximal allowed percentage of LPC-locality hits </td>
                     </tr>
                     <tr>
-                      <td>TOF_MIN</td>
-                      <td>{{ limits["TOF_MIN"] }}</td>
-                      <td></td>
+                      <td class="tpar">TH_LPCIP</td>
+                      <td class="tval">{{ limits["TH_LPCIP"] }}</td>
+                      <td>[<i>%</i>]: <i>threshold</i> = maximal allowed percentage of LPC-invalid path hits </td>
                     </tr>
                     <tr>
-                      <td>TOF_MAX</td>
-                      <td>{{ limits["TOF_MAX"] }}</td>
-                      <td></td>
+                      <td class="tpar">TH_LPCTIR</td>
+                      <td class="tval">{{ limits["TH_LPCTIR"] }}</td>
+                      <td>[<i>%</i>]: <i>threshold</i> = maximal allowed percentage of LPC-total internal reflection hits </td>
                     </tr>
                     <tr>
-                      <td>BUC_MIN</td>
-                      <td>{{ limits["BUC_MIN"] }}</td>
-                      <td></td>
+                      <td class="tpar">TH_LPCPATH</td>
+                      <td class="tval">{{ limits["TH_LPCPATH"] }}</td>
+                      <td>[<i>%</i>]: <i>threshold</i> = maximl allowed percentage of LPC-weird path (not throught AV) hits </td>
                     </tr>
                     <tr>
-                      <td>BUC_MAX</td>
-                      <td>{{ limits["BUC_MAX"] }}</td>
-                      <td></td>
-                    </tr>
-                    <tr>
-                      <td>AS_MIN</td>
-                      <td>{{ limits["AS_MIN"] }}</td>
-                      <td></td>
-                    </tr>
-                    <tr>
-                      <td>AS_MAX</td>
-                      <td>{{ limits["AS_MAX"] }}</td>
-                      <td></td>
-                    </tr>
-                    <tr>
-                      <td>RESID_PEAK</td>
-                      <td>{{ limits["RESID_PEAK"] }}</td>
-                      <td></td>
-                    </tr>
-                    <tr>
-                      <td>RESID_PEAK_DEV</td>
-                      <td>{{ limits["RESID_PEAK_DEV"] }}</td>
-                      <td></td>
-                    </tr>
-                    <tr>
-                      <td>DIR_RESID_0</td>
-                      <td>{{ limits["DIR_RESID_0"] }}</td>
-                      <td></td>
-                    </tr>
-                    <tr>
-                      <td>DIR_RESID_1</td>
-                      <td>{{ limits["DIR_RESID_1"] }}</td>
-                      <td></td>
-                    </tr>
-                    <tr>
-                      <td>FIT_SLOPE</td>
-                      <td>{{ limits["FIT_SLOPE"] }}</td>
-                      <td></td>
-                    </tr>
-                    <tr>
-                      <td>FIT_SLOPE_DEV</td>
-                      <td>{{ limits["FIT_SLOPE_DEV"] }}</td>
-                      <td></td>
+                      <td class="tpar">TH_NEARREF</td>
+                      <td class="tval">{{ limits["TH_NEARREF"] }}</td>
+                      <td>[<i>%</i>]: <i>threshold</i> = maximal allowed percentage of near relfection hits </td>
                     </tr>
                   </tbody>
                 </table>

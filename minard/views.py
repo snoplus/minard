@@ -1482,6 +1482,15 @@ def pca_tellie_table(run):
 def pca_tellie_tables():
     return render_template('pca_tellie_tables.html')
 
+@app.route('/pca_tellie_pmt/<int:set>/<int:pmt>')
+def pca_tellie_pmt(set, pmt):
+    return render_template('pca_tellie_pmt.html', pmt=pmt, set=set)
+
+@app.route('/pca_tellie_pmt_all/', methods=['GET'])
+def pca_tellie_pmt_all():
+    pmt = request.args.get("pmt", 5)
+    return render_template('pca_tellie_pmt_all.html', pmt=pmt, data=pcaprocessing_f.load_sets())
+
 @app.route('/pca_set_bench/<int:run>')
 def pca_set_bench(run):
     return render_template('pca_set_bench.html', data=pcaprocessing_f.load_bench(run), run=str(run) )

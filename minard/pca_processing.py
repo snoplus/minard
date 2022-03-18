@@ -204,3 +204,17 @@ def load_bench(run):
             except KeyError:
                 app.logger.warning("Code returned KeyError searching for runlist information in the couchDB. Dod ID: %d" % doc_id)
     return result
+
+def load_sets():
+    """
+    Fill this in :)
+    """
+    server = couchdb.Server("http://snoplus:"+app.config["COUCHDB_PASSWORD"]+"@"+app.config["COUCHDB_HOSTNAME"])
+    db = server["tellie_auto"]
+    view_string = "runlist"
+
+    result = []
+    for row in db.view('_design/'+view_string+'/_view/'+view_string):
+        first_run = row.key[0]
+        result.append( first_run )
+    return result

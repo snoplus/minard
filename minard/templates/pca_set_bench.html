@@ -27,40 +27,40 @@
                   <thead>
                     <tr>
                       <th width="25.0%">Parameter</th>
-                      <th width="25.0%">Value</th>
-                      <th width="50.0%">Note</th>
+                      <th width="10.0%">Value</th>
+                      <th width="65.0%">Note</th>
                     </tr>
                   </thead>
                   <tbody>
                     <tr>
                       <td>Run1</td>
                       <td>{{ data["Run1"] }}</td>
-                      <td>Run number where burst occured</td>
+                      <td>First run of the new PCA dataset</td>
                     </tr>
                     <tr>
                       <td>Run2</td>
                       <td>{{ data["Run2"] }}</td>
-                      <td>Run number where burst occured</td>
+                      <td>First run of the previous PCA dataset</td>
                     </tr>
                     <tr>
                       <td>Offline PMTs</td>
                       <td>{{ data["PMTOff"] }}</td>
-                      <td>Run number where burst occured</td>
+                      <td>Number of offline PMTs (new dataset)</td>
                     </tr>
                     <tr>
                       <td>PMTs with ZERO occupancy</td>
                       <td><span style="color:red">{{ data["PMTZeroOc"] }}</span></td>
-                      <td>Run number where burst occured</td>
+                      <td>Number of PMTs reporting 0 valid hits</td>
                     </tr>
                     <tr>
                       <td>PMTs with LOW occupancy</td>
                       <td>{{ data["PMTLowOc"] }}</td>
-                      <td>Run number where burst occured</td>
+                      <td>Number of PMTs reporting low number of valid hits</td>
                     </tr>
                     <tr>
                       <td>Succesfully calibrated PMTs</td>
                       <td><span style="color:green">{{ data["PMTGoodCal"] }}</span></td>
-                      <td>Run number where burst occured</td>
+                      <td>Number of PMTs with valid calibration</td>
                     </tr>
                   </tbody>
                 </table>
@@ -83,41 +83,43 @@
                 <table class="table table-striped">
                   <thead>
                     <tr>
-                      <th width="25.0%">Parameter</th>
-                      <th width="50.0%">Value</th>
+                      <th width="10.0%">Parameter</th>
+                      <th width="65.0%">Value</th>
                       <th width="25.0%">Note</th>
                     </tr>
                   </thead>
                   <tbody>
                     <tr>
                       <td>Outliers: ID</td>
-                      <td>{{ data["out_ID"] }}</td>
-                      <td>Run number where burst occured</td>
+                      <td><span style="color:purple">{{ data["out_ID"] }}</span></td>
+                      <td>PMTs with calibration very different to previous</td>
                     </tr>
                     <tr>
                       <td>Outliers: cable delay</td>
-                      <td>{{ data["out_diff"] }}</td>
-                      <td>Run number where burst occured</td>
+                      <td><span style="color:red">{{ data["out_diff"] }}</span></td>
+                      <td>The values of cable delay for outlier PMTs</td>
                     </tr>
                     <tr>
                       <td>Newly calibrated</td>
-                      <td>{{ data["nowGood"] }}</td>
-                      <td>Run number where burst occured</td>
+                      <td>{% for pmt in data["nowGood"] %}
+                      <a href="{{ url_for('pca_tellie_pmt', pmt=pmt, set=data['Run1'] ) }}">{{pmt}}, </a>
+                      {% endfor %}</td>
+                      <td>PMTs that have valid calibration now (didn't have previously)</td>
                     </tr>
                     <tr>
                       <td>Previously calibrated</td>
                       <td>{{ data["nowBad"] }}</td>
-                      <td>Run number where burst occured</td>
+                      <td>PMTs that were previously calibrated, but cannot be now</td>
                     </tr>
                     <tr>
                       <td>Minimal change</td>
                       <td>{{ data["minDiff"] }}</td>
-                      <td>Run number where burst occured</td>
+                      <td>The most negative change to single cable delay</td>
                     </tr>
                     <tr>
                       <td>Maximal change</td>
                       <td>{{ data["maxDiff"] }}</td>
-                      <td>Run number where burst occured</td>
+                      <td>The most positive change to single cable delay</td>
                     </tr>
                   </tbody>
                 </table>
@@ -141,60 +143,60 @@
                   <thead>
                     <tr>
                       <th width="25.0%">Parameter</th>
-                      <th width="50.0%">Value</th>
-                      <th width="25.0%">Note</th>
+                      <th width="25.0%">Value</th>
+                      <th width="50.0%">Note</th>
                     </tr>
                   </thead>
                   <tbody>
                     <tr>
                       <td>IDs1</td>
-                      <td>{{ data["IDs1"] }}</td>
-                      <td>Run number where burst occured</td>
+                      <td><span style="color:green">{{ data["IDs1"] }}</span></td>
+                      <td>Number of valid PMTs for new dataset</td>
                     </tr>
                     <tr>
                       <td>IDs2</td>
-                      <td>{{ data["IDs2"] }}</td>
-                      <td>Run number where burst occured</td>
+                      <td><span style="color:green">{{ data["IDs2"] }}</span></td>
+                      <td>Number of valid PMTs for previous dataset</td>
                     </tr>
                     <tr>
                       <td>off1</td>
-                      <td>{{ data["off1"] }}</td>
-                      <td>Run number where burst occured</td>
+                      <td><span style="color:red">{{ data["off1"] }}</span></td>
+                      <td>Number of offline PMTs for new dataset</td>
                     </tr>
                     <tr>
                       <td>off2</td>
-                      <td>{{ data["off2"] }}</td>
-                      <td>Run number where burst occured</td>
+                      <td><span style="color:red">{{ data["off2"] }}</span></td>
+                      <td>Number of offline PMTs for previous dataset</td>
                     </tr>
                     <tr>
                       <td>goodCount</td>
-                      <td>{{ data["goodCount"] }}</td>
-                      <td>Run number where burst occured</td>
+                      <td><span style="color:blue">{{ data["goodCount"] }}</span></td>
+                      <td>PMTs that were succesfully calibrated in both datasets</td>
                     </tr>
                     <tr>
                       <td>badCount</td>
-                      <td>{{ data["badCount"] }}</td>
-                      <td>Run number where burst occured</td>
+                      <td><span style="color:purple">{{ data["badCount"] }}</span></td>
+                      <td>PMTs that were only calibrated in one dataset</td>
                     </tr>
                     <tr>
                       <td>min_grad</td>
                       <td>{{ data["min_grad"] }}</td>
-                      <td>Run number where burst occured</td>
+                      <td>Minimum value of gradient (fit)</td>
                     </tr>
                     <tr>
                       <td>max_grad</td>
                       <td>{{ data["max_grad"] }}</td>
-                      <td>Run number where burst occured</td>
+                      <td>Maximum value of gradient (fit)</td>
                     </tr>
                     <tr>
                       <td>min_inter</td>
                       <td>{{ data["min_inter"] }}</td>
-                      <td>Run number where burst occured</td>
+                      <td>Minimum value of intercept (fit)</td>
                     </tr>
                     <tr>
                       <td>max_inter</td>
                       <td>{{ data["max_inter"] }}</td>
-                      <td>Run number where burst occured</td>
+                      <td>Maximum value of intercept (fit)</td>
                     </tr>
                   </tbody>
                 </table>
@@ -217,21 +219,21 @@
                 <table class="table table-striped">
                   <thead>
                     <tr>
-                      <th width="25.0%">Parameter</th>
+                      <th width="10.0%">Parameter</th>
                       <th width="50.0%">Value</th>
-                      <th width="25.0%">Note</th>
+                      <th width="40.0%">Note</th>
                     </tr>
                   </thead>
                   <tbody>
                     <tr>
                       <td>root1</td>
                       <td>{{ data["root1"] }}</td>
-                      <td>Run number where burst occured</td>
+                      <td>The location of the bechmarking root file (new dataset)</td>
                     </tr>
                     <tr>
                       <td>root2</td>
                       <td>{{ data["root2"] }}</td>
-                      <td>Run number where burst occured</td>
+                      <td>The location of the bechmarking root file (previous dataset)</td>
                     </tr>
                   </tbody>
                 </table>

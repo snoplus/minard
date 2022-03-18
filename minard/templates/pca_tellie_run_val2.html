@@ -48,23 +48,23 @@
                   <tbody>
                     <tr>
                       <td>TOF mean</td>
-                      <td>{{ '%0.2f' | format(data["TOF mean"]|float) }}</td>
-                      <td>Run number where burst occured</td>
+                      <td>{{ '%0.2f' | format(data["TOF mean"]|float) }} ns</td>
+                      <td>The mean of the time of flight distribution</td>
                     </tr>
                     <tr>
                       <td>TOF RMS</td>
-                      <td>{{ '%0.3f' | format(data["TOF RMS"]|float) }}</td>
-                      <td>Run number where burst occured</td>
+                      <td>{{ '%0.3f' | format(data["TOF RMS"]|float) }} ns</td>
+                      <td>The RMS of the time of flight distribution</td>
                     </tr>
                     <tr>
-                      <td>TOF min"</td>
-                      <td>{{ '%0.2f' | format(data["TOF min"]|float) }}</td>
-                      <td>Run number where burst occured</td>
+                      <td>TOF min</td>
+                      <td>{{ '%0.2f' | format(data["TOF min"]|float) }} ns</td>
+                      <td>Minimum value of the time of flight distribution</td>
                     </tr>
                     <tr>
                       <td>TOF max</td>
-                      <td>{{ '%0.2f' | format(data["TOF max"]|float) }}</td>
-                      <td>Run number where burst occured</td>
+                      <td>{{ '%0.2f' | format(data["TOF max"]|float) }} ns</td>
+                      <td>Maximum value of the time of flight distribution</td>
                     </tr>
                   </tbody>
                 </table>
@@ -95,23 +95,23 @@
                   <tbody>
                     <tr>
                       <td>Ang sys mean</td>
-                      <td>{{ '%0.2f' | format(data["Ang sys mean"]|float) }}</td>
-                      <td>Run number where burst occured</td>
+                      <td>{{ '%0.2f' | format(data["Ang sys mean"]|float) }} ns</td>
+                      <td>The mean of the AngSys distribution</td>
                     </tr>
                     <tr>
                       <td>Ang sys RMS</td>
-                      <td>{{ '%0.3f' | format(data["Ang sys RMS"]|float) }}</td>
-                      <td>Run number where burst occured</td>
+                      <td>{{ '%0.3f' | format(data["Ang sys RMS"]|float) }} ns</td>
+                      <td>The RMS of the AngSys distribution</td>
                     </tr>
                     <tr>
                       <td>Ang sys min</td>
-                      <td>{{ '%0.2f' | format(data["Ang sys min"]|float) }}</td>
-                      <td>Run number where burst occured</td>
+                      <td>{{ '%0.2f' | format(data["Ang sys min"]|float) }} ns</td>
+                      <td>Minimum value of the AngSys distribution</td>
                     </tr>
                     <tr>
                       <td>Ang sys max</td>
-                      <td>{{ '%0.2f' | format(data["Ang sys max"]|float) }}</td>
-                      <td>Run number where burst occured</td>
+                      <td>{{ '%0.2f' | format(data["Ang sys max"]|float) }} ns</td>
+                      <td>Maximum value of the AngSys distribution</td>
                     </tr>
                   </tbody>
                 </table>
@@ -142,23 +142,23 @@
                   <tbody>
                     <tr>
                       <td>Bucket mean</td>
-                      <td>{{ '%0.2f' | format(data["Bucket mean"]|float) }}</td>
-                      <td>Run number where burst occured</td>
+                      <td>{{ '%0.2f' | format(data["Bucket mean"]|float) }} ns</td>
+                      <td>The mean of the bucket time distribution</td>
                     </tr>
                     <tr>
                       <td>Bucket RMS</td>
-                      <td>{{ '%0.3f' | format(data["Bucket RMS"]|float) }}</td>
-                      <td>Run number where burst occured</td>
+                      <td>{{ '%0.3f' | format(data["Bucket RMS"]|float) }} ns</td>
+                      <td>The RMS of the bucket time distribution</td>
                     </tr>
                     <tr>
                       <td>Bucket min</td>
-                      <td>{{ '%0.2f' | format(data["Bucket min"]|float) }}</td>
-                      <td>Run number where burst occured</td>
+                      <td>{{ '%0.2f' | format(data["Bucket min"]|float) }} ns</td>
+                      <td>Minimum value of the bucket time distribution</td>
                     </tr>
                     <tr>
                       <td>Bucket max</td>
-                      <td>{{ '%0.2f' | format(data["Bucket max"]|float) }}</td>
-                      <td>Run number where burst occured</td>
+                      <td>{{ '%0.2f' | format(data["Bucket max"]|float) }} ns</td>
+                      <td>Maximum value of the bucket time distribution</td>
                     </tr>
                   </tbody>
                 </table>
@@ -189,38 +189,38 @@
                   <tbody>
                     <tr>
                       <td>Direct peaktime</td>
-                      <td>{{ data["Direct peaktime"] }}</td>
-                      <td>Run number where burst occured</td>
+                      <td>{{ data["Direct peaktime"] }} ns</td>
+                      <td>The peak of the direct time distribution</td>
                     </tr>
                     <tr>
                       <td>Direct peaks</td>
                       <td>{{ data["Direct peaks"] }}</td>
-                      <td>Run number where burst occured</td>
+                      <td>The number of peaks in the direct time distribution</td>
                     </tr>
                     <tr>
                       <td>Residual peaktime</td>
-                      <td>{{ data["Residual peaktime"] }}</td>
-                      <td>Run number where burst occured</td>
+                      <td>{{ data["Residual peaktime"] }} ns</td>
+                      <td>The peak of the residual time distribution</td>
                     </tr>
                     <tr>
                       <td>Residual peaks</td>
                       <td>{{ data["Residual peaks"] }}</td>
-                      <td>Run number where burst occured</td>
+                      <td>The number of peaks in the residual time distribution</td>
                     </tr>
                     <tr>
                       <td>Direct vs Angle fit</td>
-                      <td>{{ '%0.2f' | format(data["Direct vs Angle fit"][0]|float) }} &#177; {{ '%0.3f' | format(data["Direct vs Angle fit"][1]|float) }}</td>
-                      <td>Run number where burst occured</td>
+                      <td>{{ '%0.2f' | format(data["Direct vs Angle fit"][0]|float) }} &#177; {{ '%0.3f' | format(data["Direct vs Angle fit"][1]|float) }} ns</td>
+                      <td>Average of the direct time distribution as a function of angle</td>
                     </tr>
                     <tr>
                       <td>Residual vs Angle fit</td>
-                      <td>{{ '%0.2f' | format(data["Residual vs Angle fit"][0]|float) }} &#177; {{ '%0.3f' | format(data["Residual vs Angle fit"][1]|float) }}</td>
-                      <td>Run number where burst occured</td>
+                      <td>{{ '%0.2f' | format(data["Residual vs Angle fit"][0]|float) }} &#177; {{ '%0.3f' | format(data["Residual vs Angle fit"][1]|float) }} ns</td>
+                      <td>Average of the residual time distribution as a function of angle</td>
                     </tr>
                     <tr>
                       <td>Dir-Resid fit</td>
                       <td>{{ '%0.2f' | format(data["Dir-Resid fit"][0]|float) }} &#177; {{ '%0.3f' | format(data["Dir-Resid fit"][1]|float) }}</td>
-                      <td>Run number where burst occured</td>
+                      <td>Straight line fit to the direct vs residual time distributions</td>
                     </tr>
                   </tbody>
                 </table>
@@ -252,62 +252,62 @@
                     <tr>
                       <td>TOF flag</td>
                       <td>{{ print_flag(data["TOF flag"]) }}</td>
-                      <td>Run number where burst occured</td>
+                      <td>Is the TOF distribution sensible (mean and RMS)?</td>
                     </tr>
                     <tr>
                       <td>TOF min-max flag</td>
                       <td>{{ print_flag(data["TOF min-max flag"]) }}</td>
-                      <td>Run number where burst occured</td>
+                      <td>Are the min and max of TOF distribution ok?</td>
                     </tr>
                     <tr>
                       <td>TOF progression flag</td>
                       <td>{{ print_flag(data["TOF progression flag"]) }}</td>
-                      <td>Run number where burst occured</td>
+                      <td>Is the TOF descreasing with angle?</td>
                     </tr>
                     <tr>
                       <td>Ang sys flag</td>
                       <td>{{ print_flag(data["Ang sys flag"]) }}</td>
-                      <td>Run number where burst occured</td>
+                      <td>Is the AngSys distribution sensible (mean and RMS)?</td>
                     </tr>
                     <tr>
                       <td>Ang sys min-max flag</td>
                       <td>{{ print_flag(data["Ang sys min-max flag"]) }}</td>
-                      <td>Run number where burst occured</td>
+                      <td>Are the min and max of AngSys distribution ok?</td>
                     </tr>
                     <tr>
                       <td>Ang sys progression flag</td>
                       <td>{{ print_flag(data["Ang sys progression flag"]) }}</td>
-                      <td>Run number where burst occured</td>
+                      <td>Is the AngSys increasing with angle?</td>
                     </tr>
                     <tr>
                       <td>Bucket flag</td>
                       <td>{{ print_flag(data["Bucket flag"]) }}</td>
-                      <td>Run number where burst occured</td>
+                      <td>Is the bucket distribution sensible (mean and RMS)?</td>
                     </tr>
                     <tr>
                       <td>Bucket min-max flag</td>
                       <td>{{ print_flag(data["Bucket min-max flag"]) }}</td>
-                      <td>Run number where burst occured</td>
+                      <td>Are the min and max of bucket distribution ok?</td>
                     </tr>
                     <tr>
                       <td>Resid peak flag</td>
                       <td>{{ print_flag(data["Resid peak flag"]) }}</td>
-                      <td>Run number where burst occured</td>
+                      <td>Is there only one peak in the residual time distribution? Is it close to expected value?</td>
                     </tr>
                     <tr>
                       <td>Direct vs Angle fit flag</td>
                       <td>{{ print_flag(data["Direct vs Angle fit flag"]) }}</td>
-                      <td>Run number where burst occured</td>
+                      <td>Is the average of direct light reasonable? Is the distribution flat?</td>
                     </tr>
                     <tr>
                       <td>Residual vs Angle fit flag</td>
                       <td>{{ print_flag(data["Residual vs Angle fit flag"]) }}</td>
-                      <td>Run number where burst occured</td>
+                      <td>Is the average of residual light reasonable? Is the distribution flat?</td>
                     </tr>
                     <tr>
                       <td>Dir-Resid fit flag</td>
                       <td>{{ print_flag(data["Dir-Resid fit flag"]) }}</td>
-                      <td>Run number where burst occured</td>
+                      <td>Is the straight line fit within limits?</td>
                     </tr>
                   </tbody>
                 </table>

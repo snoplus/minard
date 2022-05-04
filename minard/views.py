@@ -1822,7 +1822,7 @@ def runselection():
     criteria = request.args.get("criteria", "scintillator", type=str)
     return render_template('runselection.html', physics_run_numbers=runs, run_info=run_info, criteria=criteria, limit=limit, offset=offset)
 
-@app.route('/runselection/<int:run_number>', methods=["GET", "POST"])
+@app.route('/runselection/<int:run_number>', methods=['GET', 'POST'])
 def runselection_run_number(run_number):
     run_info, criteria_info = RSTools.import_RS_ratdb(run_number, 1, 0)
     lists = RSTools.get_run_lists()
@@ -1832,13 +1832,16 @@ def runselection_run_number(run_number):
     else:
         form = RSTools.file_list_form_builder(-1, lists, list_data)
 
-    if request.method == "POST" and form.validate():
-        try:
-            RSTools.update_run_lists(form, run_number, lists, list_data)
-        except Exception as e:
-            flash(str(e), 'danger')
+    if request.method == 'POST':
+        if form.validate():
+            try:
+                RSTools.update_run_lists(form, run_number, lists, list_data)
+            except Exception as e:
+                flash(str(e), 'danger')
+                return redirect(url_for('runselection_run_number', run_number=run_number))
+            flash('Successfully submitted', 'success')
             return redirect(url_for('runselection_run_number', run_number=run_number))
-        flash("Successfully submitted", 'success')
-        return redirect(url_for('runselection_run_number', run_number=run_number))
+        else:
+            flash("Unsuccessful: error submitting form", 'danger')
 
     return render_template('runselection_run.html', run_number=run_number, run_info=run_info, criteria_info=criteria_info, lists=lists.keys(), form=form)

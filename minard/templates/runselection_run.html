@@ -28,9 +28,9 @@
                               <thead>
                                 <tr>
                                   <th width=25.0%>Check</th>
-                                  <th width=25.0%>Threshold</th>
-                                  <th width=25.0%>Value</th>
-                                  <th width=25.0%>Result</th>
+                                  <th width=30.0%>Threshold</th>
+                                  <th width=30.0%>Value</th>
+                                  <th width=15.0%>Result</th>
                                 </tr>
                               </thead>
                               <tbody>
@@ -81,7 +81,7 @@
                                             <td>
                                               {% for subsubkey in criteria_data[title][key] %}
                                                 {% if subsubkey in run_data[title][key]["notes"][subkey] %}
-                                                  <li>{{ subsubkey }} : {{ criteria_data[title][key][subsubkey] }} </li>
+                                                  <li>{{ subsubkey }} : {{'%0.2f' % criteria_data[title][key][subsubkey]|float }} </li>
                                                 {% endif %}
                                               {% endfor %}
                                             </td>
@@ -111,13 +111,13 @@
                                                       {% if subkey == "alarms" %}
                                                         <li>{{ run_data[title][key]["notes"][subkey][subsubkey]["description"] }}</li>
                                                       {% else %}
-                                                        <li>{{ subsubkey }} : {{ run_data[title][key]["notes"][subkey][subsubkey] }}</li>
+                                                        <li>{{ subsubkey }} : {{'%0.2f' % run_data[title][key]["notes"][subkey][subsubkey]|float }}</li>
                                                       {% endif %}
                                                     {% else %}
                                                       {% if subkey == "alarms" %}
                                                         <li>{{ run_data[title][key]["notes"][subkey][subsubkey]["description"] }}</li>
                                                       {% else %}
-                                                        <li>{{ subsubkey }} : {{ run_data[title][key]["notes"][subkey][subsubkey] }}</li>
+                                                        <li>{{ subsubkey }} : {{'%0.2f' % run_data[title][key]["notes"][subkey][subsubkey]|float }}</li>
                                                       {% endif %}
                                                     {% endif %}
                                                   {% endfor %}
@@ -131,7 +131,7 @@
                                                 {% endif %}
                                               {% endif %}
                                             {% else %}
-                                              <td>0 / True</td>
+                                              <td>0</td>
                                             {% endif %}
                                           {% else %}
                                             <td>0</td>
@@ -176,7 +176,7 @@
                                             <td>
                                               {% for subsubkey in criteria_data[title][key] %}
                                                 {% if subsubkey in run_data[title][key]["notes"][subkey] %}
-                                                  <li>{{ subsubkey }} : {{ criteria_data[title][key][subsubkey] }} </li>
+                                                  <li>{{ subsubkey }} : {{'%0.2f' % criteria_data[title][key][subsubkey]|float }} </li>
                                                 {% endif %}
                                               {% endfor %}
                                             </td>
@@ -205,13 +205,13 @@
                                                       {% if subkey == "alarms" %}
                                                         <li>{{ run_data[title][key]["notes"][subkey][subsubkey]["description"] }}</li>
                                                       {% else %}
-                                                        <li>{{ subsubkey }} : {{ run_data[title][key]["notes"][subkey][subsubkey] }}</li>
+                                                        <li>{{ subsubkey }} : {{'%0.2f' % run_data[title][key]["notes"][subkey][subsubkey]|float }}</li>
                                                       {% endif %}
                                                     {% else %}
                                                       {% if subkey == "alarms" %}
                                                         <li>{{ run_data[title][key]["notes"][subkey][subsubkey]["description"] }}</li>
                                                       {% else %}
-                                                        <li>{{ subsubkey }} : {{ run_data[title][key]["notes"][subkey][subsubkey] }}</li>
+                                                        <li>{{ subsubkey }} : {{'%0.2f' % run_data[title][key]["notes"][subkey][subsubkey]|float }}</li>
                                                       {% endif %}
                                                     {% endif %}
                                                   {% endfor %}
@@ -225,7 +225,7 @@
                                                 {% endif %}
                                               {% endif %}
                                             {% else %}
-                                              <td>0 / True</td>
+                                              <td>0</td>
                                             {% endif %}
                                           {% else %}
                                             <td>0</td>

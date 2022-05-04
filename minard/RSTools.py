@@ -15,9 +15,9 @@ def file_list_form_builder(formobj, runlists, data):
         else:
             setattr(FileListForm, '%s' % listname, BooleanField(label=listname))
 
-        setattr(FileListForm, 'name', StringField('Name', [validators.Length(min=1)]))
-        setattr(FileListForm, 'comment', StringField('Comment'))
-        setattr(FileListForm, 'password', PasswordField('Password'))
+        setattr(FileListForm, 'name', StringField('Name', [validators.Length(min=1), validators.InputRequired(), validators.Regexp('[A-Za-z0-9\s]{1,}', message='First and second name required.')]))
+        setattr(FileListForm, 'comment', StringField('Comment', [validators.InputRequired()]))
+        setattr(FileListForm, 'password', PasswordField('Password', [validators.InputRequired()]))
 
     if formobj != -1:
         return FileListForm(formobj)
@@ -112,8 +112,7 @@ def import_RS_ratdb(runs, limit, offset):
         AND run_max <= {}
         AND type='RS_REPORT'
         ORDER BY run_min DESC
-        OFFSET {};
-        """.format(int(first_run), first_run + limit, offset)
+        """.format(int(first_run + offset), first_run + limit + offset)
 
     parameters = None
     c = None

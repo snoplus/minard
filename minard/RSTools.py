@@ -1,5 +1,5 @@
 from wtforms import Form, BooleanField, StringField, PasswordField, validators
-from .db import engine
+from .db import engine, engine_nl
 import psycopg2
 from .views import app
 
@@ -35,6 +35,7 @@ def get_run_lists():
     data = {}
     for entry in result.fetchall():
         data[str(entry[0])] = int(entry[1])
+    conn.close()
     return data
 
 def update_run_lists(form, run, lists, data):
@@ -59,9 +60,9 @@ def update_run_lists(form, run, lists, data):
     # Now, update the nearlineDB with the name and time
     # """
 
-    conn_nl = psycopg2.connect(dbname=app.config['DB_NAME_RATDB'],
-                               user=app.config['DB_EXPERT_RATDB'],
-                               host=app.config['DB_HOST_RATDB'],
+    conn_nl = psycopg2.connect(dbname=app.config['DB_NAME'],
+                               user=app.config['DB_EXPERT'],
+                               host=app.config['DB_HOST'],
                                password=form.password.data)
     conn_nl.set_isolation_level(psycopg2.extensions.ISOLATION_LEVEL_AUTOCOMMIT)
 
@@ -80,30 +81,12 @@ def update_run_lists(form, run, lists, data):
     for i in lists_to_update:
         print(i)
 
-def import_RS_ratdb(runs, limit, offset):
-    connection_details = ''
-    connection_details += 'host=' + app.config['DB_HOST_RATDB']
-    connection_details += ' port=' + str(app.config['DB_PORT_RATDB'])
-    connection_details += ' dbname=' + app.config['DB_NAME_RATDB']
-    connection_details += ' user=' + app.config['DB_USER']
-    connection_details += ' password=' + app.config['DB_PASS']
-    connection_details += ' connect_timeout=20'
+def import_RS_ratdb(runs, result, limit, offset):
 
     if type(runs) == list:
         first_run = runs[0]
-
     else:
         first_run = runs
-
-    # query_string = """
-    #     SELECT d.data
-    #     FROM ratdb_data AS d, ratdb_header_v2 AS h
-    #     WHERE d.key = h.key
-    #     AND h.run_begin <= {}
-    #     AND h.type='RS_REPORT'
-    #     ORDER BY h.run_begin DESC
-    #     LIMIT {} OFFSET {};
-    #     """.format(int(first_run), limit, offset)
 
     query_string = """
         SELECT meta_data, name, timestamp
@@ -114,19 +97,16 @@ def import_RS_ratdb(runs, limit, offset):
         ORDER BY run_min DESC
         """.format(int(first_run + offset), first_run + limit + offset)
 
-    parameters = None
-    c = None
-
-    c = psycopg2.connect(connection_details)
-    cr = c.cursor()
     query = """%s""" % query_string
-    cr.execute(query, parameters)
+
+    conn = engine_nl.connect()
+    resultQuery = conn.execute(query)
 
     data = []
     names = []
     times = []
     criterialist = []
-    for row in cr.fetchall():
+    for row in resultQuery.fetchall():
         data.append(row[0])
         names.append([row[1]])
         times.append([row[2]])
@@ -135,14 +115,15 @@ def import_RS_ratdb(runs, limit, offset):
 
     info = {}
 
-    # criterialist = ["scintillator", "partial_fill_antinu", "partial_fill", "water"] #FIXME: Make this automatically grab available criteria
+    resultMapping = {'Pass': True, 'Purgatory': None, 'Fail': False, 'All': True}
 
     for i in range(len(data)):
-        if int(data[i]['run_range'][0]) not in info.keys():
-            info[int(data[i]['run_range'][0])] = {}
-        info[int(data[i]['run_range'][0])][data[i]['index']] = data[i]
-        info[int(data[i]['run_range'][0])][data[i]['index']]["name"] = names[i][0]
-        info[int(data[i]['run_range'][0])][data[i]['index']]["time"] = times[i][0]
+        if (result == 'All' or data[i]['decision']['result'] == resultMapping[result]) and data[i]['version'] > 2:
+            if int(data[i]['run_range'][0]) not in info.keys():
+                info[int(data[i]['run_range'][0])] = {}
+            info[int(data[i]['run_range'][0])][data[i]['index']] = data[i]
+            info[int(data[i]['run_range'][0])][data[i]['index']]["name"] = names[i][0]
+            info[int(data[i]['run_range'][0])][data[i]['index']]["time"] = times[i][0]
 
     if type(runs) == list:
         for number in runs:
@@ -161,13 +142,13 @@ def import_RS_ratdb(runs, limit, offset):
         """.format(int(first_run), int(first_run))
 
     query = """%s""" % query_string
-    cr.execute(query, parameters)
+    resultQuery = conn.execute(query)
 
     criteriaInfo = {}
 
-    for row in cr.fetchall():
+    for row in resultQuery.fetchall():
         criteriaInfo[row[0]["index"]] = row[0]
 
-    c.close()
+    conn.close()
 
     return info, criteriaInfo

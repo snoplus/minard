@@ -789,10 +789,18 @@ def get_SH():
         high = redis.get('l2:highnhit')
         highEvs = redis.get('l2:highEvs')
         highSurv = redis.get('l2:highsurv')
-        settings = [nhit3,nhit5,nhit7,nhit10,window,xwindow,ywindow,ext,high,highEvs,highSurv]
+        ibdNHitMeV = redis.get('l2:ibdnhitmev')
+        ibdFirstE = redis.get('l2:ibdfirste')
+        ibdTimeLow = redis.get('l2:ibdtimelow')
+        ibdTimeHigh = redis.get('l2:ibdtimehigh')
+        ibdCount = redis.get('l2:ibdcount')
+        ibdWindow = redis.get('l2:ibdwindow')
+        ibdCoinc = redis.get('l2:ibdcoinc')
+        ibdExt = redis.get('l2:ibdext')
+        settings = [nhit3,nhit5,nhit7,nhit10,window,xwindow,ywindow,ext,high,highEvs,highSurv,ibdNHitMeV,ibdFirstE,ibdTimeLow,ibdTimeHigh,ibdCount,ibdWindow,ibdCoinc,ibdExt]
     except ValueError:
         # no files
-        settings = [0,0,0,0,0,0,0,0,0,0,0]
+        settings = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
     return jsonify(settings=settings)
 
 @app.route('/graph')

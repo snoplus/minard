@@ -1,4 +1,5 @@
 import couchdb
+import json
 from . import app
 from .db import engine, engine_nl
 
@@ -18,7 +19,18 @@ def load_pca_runlist():
         except KeyError:
             app.logger.warning("Code returned KeyError searching for runlist information in the couchDB. Dod ID: %d" % doc_id)
 
+    for i in range (0, len(results)):
+        run_start = results[i]['runrange'][0]
+        status = parse_log_file(str(run_start))
+        results[i]['status'] = status
+
     return results
+
+def parse_log_file(run):
+    file_path = "/mnt/Data/Work/Automation/Processing/minard/" + run + "/PCA_log_" + run + "_0.ratdb"
+    with open(file_path, 'r') as input_file:
+        log = json.load(input_file)
+    return bin(log['PCA_status']).replace("0b", "")
 
 def load_set(first_run):
     """

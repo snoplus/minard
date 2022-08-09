@@ -6,6 +6,28 @@
 {% block body %}
   {{ super() }}
 
+  {% macro print_status(status) -%}
+    {% if status[-1] | int == 1 %}
+      FAIL
+    {% else %}
+      PASS
+    {% endif %}
+  {%- endmacro %}
+  {% macro print_status_TW(status) -%}
+    {% if status[-2] | int == 1 %}
+      FAIL
+    {% else %}
+      PASS
+    {% endif %}
+  {%- endmacro %}
+  {% macro print_status_GF(status) -%}
+    {% if status[-3] | int == 1 %}
+      FAIL
+    {% else %}
+      PASS
+    {% endif %}
+  {%- endmacro %}
+
   <style>
     .tpar { color: blue}
     .tval { color: red}
@@ -22,6 +44,9 @@
                 <th style="text-align: center; vertical-align: middle;"><a href="{{ url_for('pca_tellie_tables') }}">PCA tables</a></th>
                 <th style="text-align: center; vertical-align: middle;">PCA processor</th>
                 <th style="text-align: center; vertical-align: middle;">Benchmarking</th>
+                <th style="text-align: center; vertical-align: middle;">Status</th>
+                <th style="text-align: center; vertical-align: middle;">TW</th>
+                <th style="text-align: center; vertical-align: middle;">GF</th>
               </thead>
               <tbody>
                 {% for runlist in data %}
@@ -31,6 +56,9 @@
                   <td style="text-align: center; vertical-align: middle;"><a href="{{ url_for('pca_tellie_table', run=runlist['runrange'][0]) }}">{{  runlist['runrange'][0] }} table</a></td>
                   <td style="text-align: center; vertical-align: middle;"><a href="{{ url_for('pca_proc', first_run=runlist['runrange'][0]) }}">{{  runlist['runrange'][0] }}</a></td>
                   <td style="text-align: center; vertical-align: middle;"><a href="{{ url_for('pca_set_bench', run=runlist['runrange'][0]) }}">{{  runlist["runrange"] }}</a></td>
+                  <td style="text-align: center; vertical-align: middle;"><a class='btn btn-sm passfail' href="{{ url_for('pca_tellie_log', run_number=runlist['runrange'][0]) }}">{{ print_status(runlist['status']) }}</a></td>
+                  <td style="text-align: center; vertical-align: middle;"><a class='btn btn-sm passfail' href="{{ url_for('pca_tellie_tw', run_number=runlist['runrange'][0]) }}">{{ print_status_TW(runlist['status']) }}</a></td>
+                  <td style="text-align: center; vertical-align: middle;"><a class='btn btn-sm passfail' href="{{ url_for('pca_tellie_gf', run_number=runlist['runrange'][0]) }}">{{ print_status_GF(runlist['status']) }}</a></td>
                 </tr>
                 {% endfor %}
               </tbody>
@@ -418,5 +446,15 @@
     </div>
 
   </div>
-
+{% endblock %}
+{% block script %}
+  <script>
+  $( document ).ready(function() {
+    $( "a.passfail" ).each(function() {
+      $( this ).addClass( $( this ).text().indexOf("PASS") > 0
+                          ? 'btn-success'
+                          : 'btn-danger' );
+    });
+  });
+  </script>
 {% endblock %}

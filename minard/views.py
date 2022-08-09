@@ -1447,6 +1447,18 @@ def burst_run_detail_l3(run_number, subrun, sub):
 def pcatellie_processing():
     return render_template('pcatellie_processing.html', data=pcaprocessing_f.load_pca_runlist(), limits=pcaprocessing_f.load_limits())
 
+@app.route('/pca_tellie_log/<run_number>')
+def pca_tellie_log(run_number):
+    return render_template('pca_tellie_log.html')
+
+@app.route('/pca_tellie_tw/<run_number>')
+def pca_tellie_tw(run_number):
+    return render_template('pca_tellie_tw.html')
+
+@app.route('/pca_tellie_gf/<run_number>')
+def pca_tellie_gf(run_number):
+    return render_template('pca_tellie_gf.html')
+
 @app.route('/pca_set/<int:first_run>')
 def pca_set(first_run):
     return render_template('pca_set.html', data=pcaprocessing_f.load_set(first_run))

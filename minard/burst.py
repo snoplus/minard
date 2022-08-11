@@ -108,6 +108,12 @@ def load_bursts_search(search, start, end, offset, limit, level=2):
     elif search == "gtid":
         view = '_design/'+view_string+'/_view/burst_by_date_GTID'
 
+    elif search == "sign":
+
+        endkey = [float(int(start))/100, {}]
+        startkey = [float(int(end))/100, {}]
+        view = '_design/'+view_string+'/_view/final_alarm'
+
     if search == "run" or search == "date":
         try:
             all = db.view(view, startkey=startkey, endkey=endkey, descending=False)
@@ -155,6 +161,23 @@ def load_bursts_search(search, start, end, offset, limit, level=2):
             total = len(results)
 
         return results, total, 0, 100
+
+    elif search == "sign":
+
+        try:
+            all = db.view(view, startkey=startkey, endkey=endkey, descending=True)
+            total = len(all.rows)
+        except:
+            app.logger.warning("Code returned KeyError searching for burst information in the couchDB.")
+
+        for row in db.view(view, startkey=startkey, endkey=endkey, descending=True, skip=skip, limit=limit):
+            run_id = row.id
+            try:
+                results.append(dict(db.get(run_id).items()))
+            except KeyError:
+                app.logger.warning("Code returned KeyError searching for burst information in the couchDB. Run Number: %d" % run)
+
+        return results, total, offset, limit
 
 def burst_get_cuts():
     """

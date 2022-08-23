@@ -1,0 +1,66 @@
+{% extends "layout.html" %}
+{% block title %}Light Levels Summary{% endblock %}
+{% block body %}
+    {{ super() }}
+<div class="container">
+    <div class="row">
+        Run Range:
+        <input type="text" id="run_range_low" value={{run_range_low}} style="width:80px;"> - 
+        <input type="text" id="run_range_high" value={{run_range_high}} style="width:80px;"> 
+        Fiducial volume:
+        <select id="fv">
+            <option selected value="{{fiducial_volume}}">{{fiducial_volume}}</option>
+            {% for fvs in [3000, 5000, 8500] %}
+                {% if fvs != fiducial_volume %}
+                    <option value="{{fvs}}">{{fvs}}</option>
+                {% endif %}
+            {% endfor %}
+        </select>
+        <button type=button onclick="history();">Update Plots</button>
+    </div>
+    <div class="row">
+
+    <div class="col-md-12">
+        <table class="table table-hover">
+            <tr>
+              <th> Run </th>
+              <th> Peak </th>
+              <th> Entries </th>
+            </tr>
+            {% for i in range( light_levels | length ) %}
+            <tr>
+                <td> <a href="{{ url_for('light_level_plots', run_number=light_levels[i]['run']) }}">{{ light_levels[i]['run'] }} </td>
+                <td> {{ light_levels[i]['peak'] }} </td>
+                <td> {{ light_levels[i]['entries'] }} </td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+</div>
+{% endblock %}
+{% block script %}
+    <script>
+
+        function history() {
+            var params = {};
+            try {
+                params['run_range_low'] = document.getElementById("run_range_low").value;
+            } catch (e) {
+                params['run_range_low'] = 300000;
+            }
+            try {
+                params['run_range_high'] = document.getElementById("run_range_high").value;
+            } catch (e) {
+                params['run_range_high'] = 350000;
+            }
+            try {
+                params['fiducial_volume'] = document.getElementById("fv").value;
+            } catch (e) {
+                params['fiducial_volume'] = 8500;
+            }
+            window.location.replace($SCRIPT_ROOT + "/light_level_summary?" + $.param(params));
+        }
+
+    </script>
+{% endblock %}
+

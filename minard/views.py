@@ -38,6 +38,7 @@ import activity
 import scintillator_level
 import burst as burst_f
 import presn as presn_f
+from light_level import get_light_level, get_all_light_levels
 from shifter_information import get_shifter_information, set_shifter_information, ShifterInfoForm, get_experts, get_supernova_experts
 from run_list import golden_run_list
 from .polling import polling_runs, polling_info, polling_info_card, polling_check, get_cmos_rate_history, polling_summary, get_most_recent_polling_info, get_vmon, get_base_current_history, get_vmon_history
@@ -1879,6 +1880,41 @@ def scint_level():
     av_data = scintillator_level.get_av_z_offset(run_range_low, run_range_high)
     rope_data = scintillator_level.get_av_rope_data(run_range_low, run_range_high)
     return render_template('scint_level.html', scint_data=scint_data, av_data=av_data, rope_data=rope_data, run_range_low=run_range_low, run_range_high=run_range_high)
+
+@app.route('/light_level')
+def light_level():
+    run_range_low = request.args.get("run_range_low", 300000, type=int)
+    run_range_high = request.args.get("run_range_high", 0, type=int)
+
+    if run_range_high == 0:
+        run_range_high = detector_state.get_latest_run()
+
+    light_levels_8500 = get_light_level(run_range_low, run_range_high, 8500)
+    light_levels_5000 = get_light_level(run_range_low, run_range_high, 5000)
+    light_levels_3000 = get_light_level(run_range_low, run_range_high, 3000)
+
+    return render_template('light_level.html', light_levels_8500=light_levels_8500, light_levels_5000=light_levels_5000, light_levels_3000=light_levels_3000, run_range_low=run_range_low, run_range_high=run_range_high)
+
+@app.route('/light_level_plots/<run_number>')
+def light_level_plots(run_number):
+
+    run_number=str(run_number)
+
+    return render_template('light_level_plots.html', run_number=run_number)
+
+
+@app.route('/light_level_summary')
+def light_level_summary():
+    run_range_low = request.args.get("run_range_low", 300000, type=int)
+    run_range_high = request.args.get("run_range_high", 0, type=int)
+    fiducial_volume = request.args.get("fiducial_volume", 8500, type=int)
+
+    if run_range_high == 0:
+        run_range_high = detector_state.get_latest_run()
+
+    light_levels = get_all_light_levels(run_range_low, run_range_high, fiducial_volume)
+
+    return render_template('light_level_summary.html', light_levels=light_levels, run_range_low=run_range_low, run_range_high=run_range_high, fiducial_volume=fiducial_volume)
 
 @app.route('/radon_monitor')
 def radon_monitor():

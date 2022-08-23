@@ -1886,7 +1886,7 @@ def radon_monitor():
     year_low = request.args.get("year_low", 2021, type=int)
     month_low = request.args.get("month_low", 1, type=int)
     day_low = request.args.get("day_low", 1, type=int)
-    year_high = request.args.get("year_high", 2022, type=int)
+    year_high = request.args.get("year_high", 2024, type=int)
     month_high = request.args.get("month_high", 1, type=int)
     day_high = request.args.get("day_high", 1, type=int)
     yscale = request.args.get("yscale", "log", type=str)

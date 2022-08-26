@@ -1897,9 +1897,6 @@ def light_level():
 
 @app.route('/light_level_plots/<run_number>')
 def light_level_plots(run_number):
-
-    run_number=str(run_number)
-
     return render_template('light_level_plots.html', run_number=run_number)
 
 

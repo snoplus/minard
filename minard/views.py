@@ -1893,15 +1893,14 @@ def scint_level():
 def light_level():
     run_range_low = request.args.get("run_range_low", 300000, type=int)
     run_range_high = request.args.get("run_range_high", 0, type=int)
+    fv = request.args.get("fv", 3000, type=int)
 
     if run_range_high == 0:
         run_range_high = detector_state.get_latest_run()
 
-    light_levels_8500 = get_light_level(run_range_low, run_range_high, 8500)
-    light_levels_5000 = get_light_level(run_range_low, run_range_high, 5000)
-    light_levels_3000 = get_light_level(run_range_low, run_range_high, 3000)
+    light_levels = get_light_level(run_range_low, run_range_high, fv)
 
-    return render_template('light_level.html', light_levels_8500=light_levels_8500, light_levels_5000=light_levels_5000, light_levels_3000=light_levels_3000, run_range_low=run_range_low, run_range_high=run_range_high)
+    return render_template('light_level.html', light_levels=light_levels, run_range_low=run_range_low, run_range_high=run_range_high, fv=fv)
 
 @app.route('/light_level_plots/<run_number>')
 def light_level_plots(run_number):

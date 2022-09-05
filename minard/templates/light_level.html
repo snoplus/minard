@@ -14,25 +14,22 @@
         Run Range:
         <input type="text" id="run_range_low" value={{run_range_low}} style="width:80px;"> - 
         <input type="text" id="run_range_high" value={{run_range_high}} style="width:80px;"> 
+        Fiducial Volume:
+        <select id="fv"> 
+            <option selected value="{{fv}}">{{fv/1000.0}} m</option>
+            {% for fvs in [3000, 5000, 8500] %}
+                {% if fvs != fv %}
+                    <option value="{{fvs}}">{{fvs/1000.0}} m</option>
+                {% endif %}
+            {% endfor %}
+        </select>
         <button type=button onclick="history();">Update Plots</button> <br>
         <a href="{{ url_for('light_level_summary') }}">Fill list of processed runs</a>
     </div>
     <div class="row">
-        <div class="col-md-12" id="main8500">
-            <h4 align="center"> Peak of <sup>210</sup>Po nhits, FV cut = 8.5 m  </h4>
-            {% if not light_levels_8500 %}
-                <h2 align="left"> No data available </h2>
-            {% endif %}
-        </div>
-        <div class="col-md-12" id="main5000">
-            <h4 align="center"> Peak of <sup>210</sup>Po nhits, FV cut = 5.0 m  </h4>
-            {% if not light_levels_5000 %}
-                <h2 align="left"> No data available </h2>
-            {% endif %}
-        </div>
-        <div class="col-md-12" id="main3000">
-            <h4 align="center"> Peak of <sup>210</sup>Po nhits, FV cut = 3.0 m  </h4>
-            {% if not light_levels_3000 %}
+        <div class="col-md-12" id="main">
+            <h4 align="center"> Peak of <sup>210</sup>Po nhits, FV cut = {{ fv/1000.0 }} m  </h4>
+            {% if not light_levels %}
                 <h2 align="left"> No data available </h2>
             {% endif %}
         </div>
@@ -54,19 +51,20 @@
         if (url_params.run_range_high) {
             document.getElementById("run_range_high").value = url_params.run_range_high;
         }
+        if (url_params.fv) {
+            document.getElementById("fv").value = url_params.fv;
+        }
 
-        var ldata8500 = {{ light_levels_8500 | safe }};
-        var ldata5000 = {{ light_levels_5000 | safe }};
-        var ldata3000 = {{ light_levels_3000 | safe }};
+        var ldata = {{ light_levels | safe }};
 
-        var lparams8500 = {
+        var lparams = {
             chart_type: 'point',
             area: false,
-            data: ldata8500,
-            width: $('#main8500').width(),
+            data: ldata,
+            width: $('#main').width(),
             left: 100,
             height: 400,
-            target: "#main8500",
+            target: "#main",
             x_accessor:'run',
             y_accessor:'peak',
             point_size: 4.0,
@@ -80,51 +78,7 @@
             },
         };
 
-        var lparams5000 = {
-            chart_type: 'point',
-            area: false,
-            data: ldata5000,
-            width: $('#main5000').width(),
-            left: 100,
-            height: 400,
-            target: "#main5000",
-            x_accessor:'run',
-            y_accessor:'peak',
-            point_size: 4.0,
-            y_label: "Po210 nhits (mm)",
-            x_label: "Run number",
-            yax_count: 5,
-            xax_count: 4,
-            min_y_from_data: true,
-            y_mouseover: function(d, i) {
-                return 'Po210 peak: ' + format_int(d['peak']);
-            },
-        };
-
-        var lparams3000 = {
-            chart_type: 'point',
-            area: false,
-            data: ldata3000,
-            width: $('#main3000').width(),
-            left: 100,
-            height: 400,
-            target: "#main3000",
-            x_accessor:'run',
-            y_accessor:'peak',
-            point_size: 4.0,
-            y_label: "Po210 nhits (mm)",
-            x_label: "Run number",
-            yax_count: 5,
-            xax_count: 4,
-            min_y_from_data: true,
-            y_mouseover: function(d, i) {
-                return 'Po210 peak: ' + format_int(d['peak']);
-            },
-        };
-
-        MG.data_graphic(lparams8500);
-        MG.data_graphic(lparams5000);
-        MG.data_graphic(lparams3000);
+        MG.data_graphic(lparams);
 
         d3.selectAll('.mg-voronoi path').on('click', function(d, i) {
             window.location.replace($SCRIPT_ROOT + "/light_level_plots/" + d.point['run']); 
@@ -142,6 +96,11 @@
                 params['run_range_high'] = document.getElementById("run_range_high").value;
             } catch (e) {
                 params['run_range_high'] = 350000;
+            }
+            try {
+                params['fv'] = document.getElementById("fv").value;
+            } catch (e) {
+                params['fv'] = 3000;
             }
             window.location.replace($SCRIPT_ROOT + "/light_level?" + $.param(params));
         }

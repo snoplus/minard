@@ -1819,13 +1819,14 @@ def runselection():
     offset = request.args.get("offset", 0, type=int)
     result = request.args.get("result", "All", type=str)
     runs = HLDQTools.import_HLDQ_runnumbers(limit=limit, offset=offset)
-    run_info, criteria_info = RSTools.import_RS_ratdb(runs, result, limit, offset)
+    run_info, criteria_info, list_history = RSTools.import_RS_ratdb(runs, result, limit, offset)
     criteria = request.args.get("criteria", "scintillator", type=str)
     return render_template('runselection.html', physics_run_numbers=runs, run_info=run_info, criteria=criteria, limit=limit, offset=offset, result=result)
 
 @app.route('/runselection/<int:run_number>', methods=['GET', 'POST'])
 def runselection_run_number(run_number):
-    run_info, criteria_info = RSTools.import_RS_ratdb(run_number, 'All', 1, 0)
+    # run_info, criteria_info, list_history = RSTools.import_RS_ratdb(run_number, 'All', 1, 0)
+    run_info, criteria_info, list_history = RSTools.import_RS_ratdb(run_number, 'All', 0, 0)
     lists = RSTools.get_run_lists()
     list_data = RSTools.get_current_lists_run(run_number)
     if request.form:
@@ -1836,7 +1837,7 @@ def runselection_run_number(run_number):
     if request.method == 'POST':
         if form.validate():
             try:
-                RSTools.update_run_lists(form, run_number, lists, list_data)
+                RSTools.update_run_lists(form, run_number, lists, list_data, list_history)
             except Exception as e:
                 flash(str(e), 'danger')
                 return redirect(url_for('runselection_run_number', run_number=run_number))
@@ -1845,4 +1846,4 @@ def runselection_run_number(run_number):
         else:
             flash("Unsuccessful: error submitting form", 'danger')
 
-    return render_template('runselection_run.html', run_number=run_number, run_info=run_info, criteria_info=criteria_info, lists=lists.keys(), form=form)
+    return render_template('runselection_run.html', run_number=run_number, run_info=run_info, criteria_info=criteria_info, list_history=list_history, lists=lists.keys(), form=form)

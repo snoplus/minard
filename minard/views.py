@@ -38,7 +38,7 @@ import activity
 import scintillator_level
 import burst as burst_f
 import presn as presn_f
-from light_level import get_light_level, get_all_light_levels
+from light_level import get_light_level, get_light_level_clean, get_all_light_levels
 from shifter_information import get_shifter_information, set_shifter_information, ShifterInfoForm, get_experts, get_supernova_experts
 from run_list import golden_run_list
 from .polling import polling_runs, polling_info, polling_info_card, polling_check, get_cmos_rate_history, polling_summary, get_most_recent_polling_info, get_vmon, get_base_current_history, get_vmon_history
@@ -1894,13 +1894,17 @@ def light_level():
     run_range_low = request.args.get("run_range_low", 300000, type=int)
     run_range_high = request.args.get("run_range_high", 0, type=int)
     fv = request.args.get("fv", 3000, type=int)
+    nhits_select = request.args.get("nhits_select","Nhits Corrected", type=str)
 
     if run_range_high == 0:
         run_range_high = detector_state.get_latest_run()
 
-    light_levels = get_light_level(run_range_low, run_range_high, fv)
+    if nhits_select == "Nhits Corrected":
+        light_levels = get_light_level(run_range_low, run_range_high, fv)
+    else:
+        light_levels = get_light_level_clean(run_range_low, run_range_high, fv)
 
-    return render_template('light_level.html', light_levels=light_levels, run_range_low=run_range_low, run_range_high=run_range_high, fv=fv)
+    return render_template('light_level.html', light_levels=light_levels, run_range_low=run_range_low, run_range_high=run_range_high, fv=fv, nhits_select=nhits_select)
 
 @app.route('/light_level_plots/<run_number>')
 def light_level_plots(run_number):
@@ -1911,12 +1915,13 @@ def light_level_plots(run_number):
 def light_level_summary():
     run_range_low = request.args.get("run_range_low", 300000, type=int)
     run_range_high = request.args.get("run_range_high", 0, type=int)
-    fiducial_volume = request.args.get("fiducial_volume", 8500, type=int)
+    fiducial_volume = request.args.get("fiducial_volume", 3000, type=int)
+    limit = request.args.get("limit", 100, type=int)
 
     if run_range_high == 0:
         run_range_high = detector_state.get_latest_run()
 
-    light_levels = get_all_light_levels(run_range_low, run_range_high, fiducial_volume)
+    light_levels = get_all_light_levels(run_range_low, run_range_high, fiducial_volume, limit)
 
     return render_template('light_level_summary.html', light_levels=light_levels, run_range_low=run_range_low, run_range_high=run_range_high, fiducial_volume=fiducial_volume)
 

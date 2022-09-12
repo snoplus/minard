@@ -6,7 +6,7 @@
     <div class="row">
         Run Range:
         <input type="text" id="run_range_low" value={{run_range_low}} style="width:80px;"> - 
-        <input type="text" id="run_range_high" value={{run_range_high}} style="width:80px;"> 
+        <input type="text" id="run_range_high" value={{run_range_high}} style="width:80px;"> &nbsp; &nbsp; 
         Fiducial volume:
         <select id="fv">
             <option selected value="{{fiducial_volume}}">{{fiducial_volume}}</option>
@@ -15,9 +15,9 @@
                     <option value="{{fvs}}">{{fvs}}</option>
                 {% endif %}
             {% endfor %}
-        </select>
-        <button type=button onclick="history();">Update List</button> <br>
-        <a href="{{ url_for('light_level') }}">Plots of nhits vs. run</a>
+        </select> &nbsp; &nbsp;
+        <button type=button onclick="history();">Update List</button> <br> <br>
+        <a href="{{ url_for('light_level') }}">Plots of nhits vs. run</a> <br> <br>
     </div>
     <div class="row">
 
@@ -25,14 +25,20 @@
         <table class="table table-hover">
             <tr>
               <th> Run </th>
-              <th> Peak </th>
+              <th> NHits Corrected Peak </th>
+              <th> NHits Clean Peak </th>
               <th> Entries </th>
             </tr>
             {% for i in range( light_levels | length ) %}
             <tr>
-                <td> <a href="{{ url_for('light_level_plots', run_number=light_levels[i]['run']) }}">{{ light_levels[i]['run'] }} </td>
-                <td> {{ light_levels[i]['peak'] }} </td>
-                <td> {{ light_levels[i]['entries'] }} </td>
+                <td> <a href="{{ url_for('light_level_plots', run_number=light_levels[i]['run']) }}">{{ light_levels[i]['run'] }}</a> </td>
+                <td>{{ light_levels[i]['peak'] }}</td>
+                {% if light_levels[i]['peak_clean'] %}
+                    <td> {{ light_levels[i]['peak_clean'] }} </td>
+                {% else %}
+                    <td> Not Processed </td>
+                {% endif %}
+                <td>{{ light_levels[i]['entries'] }}</td>
             </tr>
             {% endfor %}
         </table>

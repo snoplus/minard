@@ -1449,15 +1449,23 @@ def pcatellie_processing():
 
 @app.route('/pca_tellie_log/<run_number>')
 def pca_tellie_log(run_number):
-    return render_template('pca_tellie_log.html')
+    return render_template('pca_tellie_log.html', data=pcaprocessing_f.load_pca_log_data(run_number))
 
 @app.route('/pca_tellie_tw/<run_number>')
 def pca_tellie_tw(run_number):
-    return render_template('pca_tellie_tw.html')
+    return render_template('pca_tellie_tw.html', data=pcaprocessing_f.load_pca_tw_data(run_number))
 
 @app.route('/pca_tellie_gf/<run_number>')
 def pca_tellie_gf(run_number):
-    return render_template('pca_tellie_gf.html')
+    return render_template('pca_tellie_gf.html', data=pcaprocessing_f.load_pca_gf_data(run_number))
+
+@app.route('/pca_tellie_flag/<view>/<run>/<flag>')
+def pca_tellie_flag(view, run, flag):
+    return render_template('pca_tellie_flag.html', data=pcaprocessing_f.load_pca_flag_data(view, run, flag))
+
+@app.route('/pca_tellie_pmt_flags/<run>/<pmt>')
+def pca_tellie_pmt_flags(run, pmt):
+    return render_template('pca_tellie_pmt_flags.html', data=pcaprocessing_f.load_pca_pmt_data(run, pmt))
 
 @app.route('/pca_set/<int:first_run>')
 def pca_set(first_run):

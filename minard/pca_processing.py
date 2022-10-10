@@ -1,7 +1,14 @@
 import couchdb
 import json
+import os
+import functools
+import ratdbloader
+import pca_flags
+import detectorviz
 from . import app
 from .db import engine, engine_nl
+
+scratch = app.config["PCA_AUTOMATION_LOC"] + "/Processing/minard/scratch"
 
 def load_pca_runlist():
     """
@@ -27,7 +34,7 @@ def load_pca_runlist():
     return results
 
 def parse_log_file(run):
-    file_path = "/mnt/Data/Work/Automation/Processing/minard/" + run + "/PCA_log_" + run + "_0.ratdb"
+    file_path = app.config["PCA_AUTOMATION_LOC"] + "/Processing/minard/pca_constants/PCA_log_" + run + "_0.ratdb"
     with open(file_path, 'r') as input_file:
         log = json.load(input_file)
     return bin(log['PCA_status']).replace("0b", "")
@@ -230,3 +237,166 @@ def load_sets():
         first_run = row.key[0]
         result.append( first_run )
     return result
+
+class FuzzyDict(dict):
+    """
+    A dict subclass that gives case-insensitive "x in y" substring key lookup
+    when unambiguous matches can be found. fixme: word this better
+
+    For example, in a dict:
+    record = FuzzyDict({"ProductStandardName": 'apple',
+                        "ProductColor": 'red',
+                        "ProductKind": 'fruit'})
+    >>> record['name']
+    'apple'
+    >>> record['product']
+    KeyError: 'Fuzzy key "product" is ambiguous; matches: ProductStandardName,
+     ProductKind, ProductColor'
+
+    Designed to be used with dicts that don't change much after creation.
+    There is an internal search cache that never invalidates
+    """
+    keyview = None
+    cache = None
+
+    def __init__(self, *args, **kwargs):
+        super(FuzzyDict, self).__init__(*args, **kwargs)
+        self.keyview = self.viewkeys()
+        self.cache = dict()
+
+
+    def __missing__(self, fuzzy_key):
+        cache = self.cache
+        if fuzzy_key in cache:
+            return self[cache[fuzzy_key]]
+
+        lc_fuzzy_key = fuzzy_key.lower()
+        matching_keys = [key for key in self.keyview
+                         if lc_fuzzy_key in key.lower()]
+        match_count = len(matching_keys)
+
+        if match_count > 1:
+            # ambiguous match
+            raise KeyError('Fuzzy key "{}" is ambiguous; matches: {}'.format(
+                fuzzy_key, ", ".join(matching_keys)))
+        elif match_count < 1:
+            raise KeyError('Fuzzy key "{}" did not match any keys'.format(
+                fuzzy_key))
+
+        # it worked
+        match = matching_keys[0]
+        cache[fuzzy_key] = match
+        return self[match]
+
+def get_pca_log(run_name):
+    """ Return the run object for the given pca run """
+    return ratdbloader.load_ratdb(app.config["PCA_AUTOMATION_LOC"] + "/Processing/minard/pca_constants/PCA_log_" + run_name + "_0.ratdb")
+
+def get_pca_tw(run_name):
+    """ Return the run object for the given pca run """
+    data = FuzzyDict(ratdbloader.load_ratdb(app.config["PCA_AUTOMATION_LOC"] + "/Processing/minard/pca_constants/PCATW_" + run_name + "_0.ratdb"))
+    data['name'] = run_name
+    data['path'] = app.config["PCA_AUTOMATION_LOC"] + "/Processing/minard"
+    data['status'] = data.pop('PCATW_status')
+    return data
+
+def get_pca_gf(run_name):
+    """ Return the run object for the given pca run """
+    data = FuzzyDict(ratdbloader.load_ratdb(app.config["PCA_AUTOMATION_LOC"] + "/Processing/minard/pca_constants/PCAGF_" + run_name + "_0.ratdb"))
+    data['name'] = run_name
+    data['path'] = app.config["PCA_AUTOMATION_LOC"] + "/Processing/minard"
+    data['status'] = data.pop('PCAGF_status')
+    return data
+
+def ccc_from_lcn(lcn):
+    """ Return a (crate, card, channel) tuple from the given lcn argument """
+    subbits = lambda data, start, count: (data >> start) & ((1 << count) - 1)
+    ilcn = int(lcn)
+    crate = subbits(ilcn, 9, 5)
+    card = subbits(ilcn, 5, 4)
+    channel = subbits(ilcn, 0, 5)
+    if not ilcn == (512 * crate) + (32 * card) + channel:
+        raise ValueError('Unable to parse given LCN "{}"'.format(ilcn))
+    return (crate, card, channel)
+
+def load_pca_log_data(run_number):
+    """
+    Fill this in :)
+    """
+    subview = "log"
+    run = get_pca_log(run_number)
+    flags = pca_flags.flags[subview]
+    status_int = run['status']
+    hits = [flag for flag_num, flag in enumerate(flags)
+            if status_int & 2**flag_num]
+
+    dynimage = functools.partial(detectorviz.image_for_run_mode_flag,
+                                scratch, run, subview, scale=4)
+    return run, flags, status_int, hits, dynimage
+
+def load_pca_tw_data(run_number):
+    """
+    Fill this in :)
+    """
+    subview = "tw"
+    run = get_pca_tw(run_number)
+    flags = pca_flags.flags[subview]
+    hits = dict([(flag['bit'], len([None for status
+                                    in run['status']
+                                    if status & 2**flag['bit'] ]))
+                                    for flag in flags])
+    dynimage = functools.partial(detectorviz.image_for_run_mode_flag,
+                                scratch, run, subview, scale=4)
+    return run, flags, hits, dynimage, run_number, subview
+
+def load_pca_gf_data(run_number):
+    """
+    Fill this in :)
+    """
+    subview = "gf"
+    run = get_pca_gf(run_number)
+    flags = pca_flags.flags[subview]
+    hits = dict([(flag['bit'], len([None for status
+                                    in run['status']
+                                    if status & 2**flag['bit'] ]))
+                                    for flag in flags])
+    dynimage = functools.partial(detectorviz.image_for_run_mode_flag,
+                                scratch, run, subview, scale=4)
+
+    return run, flags, hits, dynimage, run_number, subview
+
+def load_pca_flag_data(view, run_num, flag_i):
+    """
+    Fill this in :)
+    """
+    flag_num = int(flag_i)
+    subview = view
+    if view == "gf":
+        run = get_pca_gf(run_num)
+    else:
+        run = get_pca_tw(run_num)
+    flag = pca_flags.flags[subview][flag_num]
+    pmts = [lcn for lcn, status in enumerate(run['status'])
+            if status & 2**flag_num]
+    dynimage = functools.partial(detectorviz.image_for_run_mode_flag,
+                                 scratch, run, subview, scale=4)
+    pmt_ccc = []
+    for pmt in pmts:
+        pmt_ccc.append( ccc_from_lcn(pmt) )
+
+    return flag, pmts, dynimage, view, run_num, flag_i, pmt_ccc
+
+def load_pca_pmt_data(run, pmt):
+    """
+    Fill this in :)
+    """
+    tw_data = get_pca_tw(run)
+    gf_data = get_pca_gf(run)
+    tw_status = tw_data['status'][int(pmt)]
+    gf_status = gf_data['status'][int(pmt)]
+    tw_flags = [flag for flag_num, flag in enumerate(pca_flags.flags['tw'])
+                if tw_status & 2**flag_num]
+    gf_flags = [flag for flag_num, flag in enumerate(pca_flags.flags['gf'])
+                if gf_status & 2**flag_num]
+    ccc = ccc_from_lcn(pmt)
+    return run, pmt, tw_flags, gf_flags, ccc

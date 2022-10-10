@@ -1,0 +1,100 @@
+{% extends "layout.html" %}
+{% block title %}PCA Flags{% endblock %}
+{% block head %}
+  {{ super() }}
+{% endblock %}
+{% block body %}
+  {{ super() }}
+
+  {% if data[5]|length < 2 %}
+    {% set flag_link = "0" + data[5] %}
+  {% else %}
+    {% set flag_link = data[5] %}
+  {% endif %}
+
+  {% if data[3] == "tw" %}
+  {% set nice_string = "Time Walk" %}
+  {% elif data[3] == "gf" %}
+  {% set nice_string = "Gain Fit" %}
+  {% else %}
+  {% set nice_string = "" %}
+  {% endif %}
+
+  <div class="container">
+
+    <div class="row">
+      <div class="col-md-12">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h2 style="text-align:center">TELLIE PCA Run: {{ data[4] }}</h2>
+          </div>
+          <div class="panel-body">
+            <h3 style="text-align:center">View: {{ nice_string }}</h3>
+            <h4 style="text-align:center">Flag: {{ data[0]['name'] }}</h4>
+            <h5 style="text-align:center">Type: {{ data[0]['type'] }}</h5>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-12">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h4 class="panel-title" style="text-align:center">Flag Image</h4>
+          </div>
+          <div class="panel-body">
+              <div class="col-md-4"></div>
+              <div class="col-md-4">
+              <img src="{{ url_for('static', filename="pcatellie/scratch/" + data[4] + "/" + data[3] + "-flag-" + flag_link + ".bmp" ) }}" alt="alt" class="ondemand img-responsive">
+              </div>
+              <div class="col-md-4"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-12">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h4 class="panel-title" style="text-align:center">Matching PMTs</h4>
+          </div>
+          <div class="panel-body">
+            <div class="col-md-12">
+              <div id="StyleContainer">
+                {% for pmt_num in data[1] %}
+                  {% set crate, card, channel = data[6][loop.index0] %}
+                  <div class="item" title="{{ pmt_num }}: Crate {{ crate }}, Card {{ card }}, Channel {{ channel }}"
+                    style="width:60px; margin-top:8px; margin-top:8px" >
+                    <a style="color:black; font-size:13px" href="{{ url_for('pca_tellie_pmt_flags', pmt=pmt_num, run=data[4]) }}">{{ pmt_num }}<br/>
+                    <small>{{ crate }}:{{ card }}:{{ channel }}</small></a>
+                  </div>
+                {% endfor %}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+{% endblock %}
+{% block script %}
+<script src="/static/js/masonry.pkgd.min.js"></script>
+<script>
+  $( document ).ready(function() {
+
+    // masonry init
+    var $container = $('#StyleContainer');
+    $container.masonry({
+      columnWidth: 75,
+      itemSelector: '.item'
+    });
+
+    $(".item").addClass('btn btn-info btn-xs');
+
+  });
+</script>
+{% endblock %}

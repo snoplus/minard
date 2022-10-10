@@ -1,5 +1,5 @@
 {% extends "layout.html" %}
-{% block title %}Burst Trigger L2{% endblock %}
+{% block title %}PCA Time Walk{% endblock %}
 {% block head %}
   {{ super() }}
 {% endblock %}
@@ -7,9 +7,80 @@
   {{ super() }}
 
   <div class="container">
-    <div class="row">
 
+  <div class="row">
+    <div class="col-md-12">
+      <h1 style="text-align:center">TELLIE PCA Time Walk: {{ data[4] }}</h1>
     </div>
   </div>
 
+  <div class="row">
+    <div class="col-md-12">
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          <h1 class="panel-title"><b>PCA: Time Walk</b></h1>
+        </div>
+        <div class="panel-body">
+          <div class="row">
+            <div class="col-md-12">
+              <table class="table table-striped">
+                <thead>
+                  <tr>
+                    <th width="25.0%">Flag</th>
+                    <th width="35.0%">Description</th>
+                    <th width="5.0%">Type</th>
+                    <th width="5.0%">Count</th>
+                    <th width="30.0%"">Images
+                      <button type="button" class="btn btn-info btn-xs" id="imagestoggle" style="margin-left: 10%;">
+                        Show/Hide
+                      </button>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for i in range(0,( data[1]|length) ) %}
+                    {% if data[2][i] > 0 %}
+                      <tr class="{{ data[1][i]['type'] }}">
+                        {% if i > 3 %}
+                          <td>
+                            <a href="{{ url_for('pca_tellie_flag', view=data[5], run=data[4], flag=i) }}">
+                              {{ i }}: {{ data[1][i]['name'] }}
+                            </a>
+                          </td>
+                        {% else %}
+                          <td>{{ i }}: {{ data[1][i]['name'] }}</td>
+                        {% endif %}
+                        <td>{{ data[1][i]['doc'] }}</td>
+                        <td>{{ data[1][i]['type'] }}</td>
+                        <td>{{ data[2][i] }}</td>
+                        <td><img src="{{ url_for('static', filename="pcatellie" + data[3](data[1][i])) }}" alt="alt" class="ondemand img-responsive"></td>
+                    {% endif %}
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  </div>
+
+{% endblock %}
+{% block script %}
+<script>
+$( document ).ready(function() {
+  // hide the on-demand images
+  $( 'img.ondemand' ).css('display', 'none');
+
+  // handler for the images button
+  $( 'button#imagestoggle' ).click(function () {
+    $(this).toggleClass("active");
+    // $(this).text( $(this).hasClass('active') ? "Hide Images" : "Show Images" );
+    $( 'img.ondemand' ).toggle( $(this).hasClass('active') );
+  });
+
+});
+</script>
 {% endblock %}

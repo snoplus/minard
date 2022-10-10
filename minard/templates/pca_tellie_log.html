@@ -1,15 +1,55 @@
 {% extends "layout.html" %}
-{% block title %}Burst Trigger L2{% endblock %}
+{% block title %}PCA Log{% endblock %}
 {% block head %}
   {{ super() }}
 {% endblock %}
 {% block body %}
   {{ super() }}
 
-  <div class="container">
+    <div class="container">
+
     <div class="row">
+      <div class="col-md-12">
+        <h1 style="text-align:center">TELLIE PCA Log: {{ data[0]['PCA_runnumber'] }}</h1>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-12">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h1 class="panel-title"><b>PCA: Log</b></h1>
+          </div>
+          <div class="panel-body">
+            <div class="row">
+              <div class="col-md-12">
+                <table class="table table-striped">
+                  <thead>
+                    <tr>
+                      <th width="30.0%">Flag</th>
+                      <th width="45.0%">Description</th>
+                      <th width="5.0%">Type</th>
+                      <th width="20.0%">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% for flag in data[3] %}
+                    <tr>
+                      <td width="30.0%">{{ flag['bit'] }}: {{ flag['name'] }}</td>
+                      <td width="45.0%">{{ flag['doc'] }}</td>
+                      <td width="5.0%">{{ flag['type'] }}</td>
+                      <td width="20.0%"><strong>Flag Raised</strong></td>
+                    </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
 
     </div>
-  </div>
 
 {% endblock %}

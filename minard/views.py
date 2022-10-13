@@ -225,7 +225,7 @@ def detector_state_check(run=None):
     if run is None:
         run = detector_state.get_run_state(None)['run']
 
-    trig_messages, hv_messages, off_messages, fec_messages, channels = detector_state.get_detector_state_check(run)
+    trig_messages, hv_messages, relay_messages, off_messages, fec_messages, channels = detector_state.get_detector_state_check(run)
     alarms = detector_state.get_alarms(run)
 
     if alarms is None:
@@ -247,7 +247,7 @@ def detector_state_check(run=None):
             flash("unable to get daq log for run %i" % run, 'danger')
             warnings = None
 
-    return render_template('detector_state_check.html', run=run, trig_messages=trig_messages, hv_messages=hv_messages, fec_messages=fec_messages, off_messages=off_messages, channels=channels, alarms=alarms, warnings=warnings, builder_warnings=builder_warnings)
+    return render_template('detector_state_check.html', run=run, trig_messages=trig_messages, hv_messages=hv_messages, fec_messages=fec_messages, off_messages=off_messages, relay_messages=relay_messages, channels=channels, alarms=alarms, warnings=warnings, builder_warnings=builder_warnings)
 
 @app.route('/channel-database')
 def channel_database():

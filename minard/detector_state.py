@@ -247,7 +247,7 @@ def get_detector_state_check(run=0):
     run_state = get_run_state(run)
 
     if run_state is None:
-        return None, None, None, None, None
+        return None, None, None, None, None, None
 
     nominal_settings = get_nominal_settings_for_run(run)
     mtc_key = run_state['mtc']
@@ -387,7 +387,7 @@ def get_detector_state_check(run=0):
 
     if detector_state is None:
         off_messages.append("All crates are off")
-        return trig_messages, hv_messages, off_messages, fec_messages, channels
+        return trig_messages, hv_messages, relay_messages, off_messages, fec_messages, channels
 
     for crate in range(19):
         if detector_state[crate] is None:

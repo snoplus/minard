@@ -102,7 +102,7 @@
                     <tr>
                       <td>Newly calibrated</td>
                       <td>{% for pmt in data["nowGood"] %}
-                      <a href="{{ url_for('pca_tellie_pmt', pmt=pmt, set=data['Run1'] ) }}">{{pmt}}, </a>
+                      <a href="{{ url_for('pca_tellie_pmt', pmt=pmt, set=(data['Run1']-1) ) }}">{{pmt}}, </a>
                       {% endfor %}</td>
                       <td>PMTs that have valid calibration now (didn't have previously)</td>
                     </tr>

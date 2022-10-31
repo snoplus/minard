@@ -14,15 +14,23 @@
     {% endif %}
   {%- endmacro %}
   {% macro print_status_TW(status) -%}
-    {% if status[-2] | int == 1 %}
-      FAIL
+    {% if status|length > 1 %}
+      {% if status[-2] | int == 1 %}
+        FAIL
+      {% else %}
+        PASS
+      {% endif %}
     {% else %}
       PASS
     {% endif %}
   {%- endmacro %}
   {% macro print_status_GF(status) -%}
-    {% if status[-3] | int == 1 %}
-      FAIL
+    {% if status|length > 1 %}
+      {% if status[-3] | int == 1 %}
+        FAIL
+      {% else %}
+        PASS
+      {% endif %}
     {% else %}
       PASS
     {% endif %}

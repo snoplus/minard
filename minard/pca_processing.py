@@ -29,6 +29,7 @@ def load_pca_runlist():
     for i in range (0, len(results)):
         run_start = results[i]['runrange'][0]
         status = parse_log_file(str(run_start))
+        #status = "SUCCESS"
         results[i]['status'] = status
 
     return results
@@ -217,7 +218,7 @@ def load_bench(run):
     view_string = "benchmark"
     for row in db.view('_design/'+view_string+'/_view/'+view_string):
         doc_id = row.id
-        if row.key[0] == run:
+        if int(row.key[0]-1) == int(run):
             try:
                 result = dict(db.get(doc_id).items())
             except KeyError:

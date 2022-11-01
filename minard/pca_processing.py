@@ -185,7 +185,10 @@ def load_fibre(fibre):
         doc_id = row.id
         try:
             doc = dict(db.get(doc_id).items())
-            ind = doc['fibres'].index(fibre)
+            try:
+                ind = doc['fibres'].index(fibre)
+            except:
+                continue
             run = doc['runlist'][ind]
             results.append( run )
         except KeyError:

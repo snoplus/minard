@@ -8,11 +8,13 @@ import detectorviz
 from . import app
 from .db import engine, engine_nl
 
-scratch = app.config["PCA_AUTOMATION_LOC"] + "/Processing/minard/scratch"
+scratch = os.getcwd() + "/minard/static/pcatellie/scratch"
 
 def load_pca_runlist():
     """
-    Fill this in :)
+    Connects to couchdb and loads run list.
+    Also parses PCA log file for status: overall, TW, GF.
+    Returns: an array composed of the couchdb doc with the status appended.
     """
     server = couchdb.Server("http://snoplus:"+app.config["COUCHDB_PASSWORD"]+"@"+app.config["COUCHDB_HOSTNAME"])
     db = server["tellie_auto"]
@@ -29,20 +31,25 @@ def load_pca_runlist():
     for i in range (0, len(results)):
         run_start = results[i]['runrange'][0]
         status = parse_log_file(str(run_start))
-        #status = "SUCCESS"
         results[i]['status'] = status
 
     return results
 
 def parse_log_file(run):
-    file_path = app.config["PCA_AUTOMATION_LOC"] + "/Processing/minard/pca_constants/PCA_log_" + run + "_0.ratdb"
+    """
+    Loads and parses PCA log ratdb file.
+    Returns: the status of the PCA calibration, from file.
+    """
+    file_path = os.getcwd() + "/minard/static/pcatellie/pca_constants/PCA_log_" + run + "_0.ratdb"
     with open(file_path, 'r') as input_file:
         log = json.load(input_file)
     return bin(log['PCA_status']).replace("0b", "")
 
 def load_set(first_run):
     """
-    Fill this in :)
+    Loads all relevant data for a singe PCA dataset, from couchdb.
+    This includes: list of fibres, runlist, run-fibre pairs, validation bitwords, fits. Matches data together into array.
+    Returs: big array for the set, including relevant per-fibre data.
     """
     server = couchdb.Server("http://snoplus:"+app.config["COUCHDB_PASSWORD"]+"@"+app.config["COUCHDB_HOSTNAME"])
     db = server["tellie_auto"]
@@ -128,7 +135,8 @@ def load_set(first_run):
 
 def load_run(run, o):
     """
-    Fill this in :)
+    Connects to couchdb and loads either: validation1, fits, or validation2 data for specific run.
+    Returns: couchdb document as array.
     """
     server = couchdb.Server("http://snoplus:"+app.config["COUCHDB_PASSWORD"]+"@"+app.config["COUCHDB_HOSTNAME"])
     db = server["tellie_auto"]
@@ -174,7 +182,8 @@ def load_run(run, o):
 
 def load_fibre(fibre):
     """
-    Fill this in :)
+    Connects to couchdb and obtains index (position) for specific fibre.
+    Returns: run number for particular fibre in a dataset.
     """
     server = couchdb.Server("http://snoplus:"+app.config["COUCHDB_PASSWORD"]+"@"+app.config["COUCHDB_HOSTNAME"])
     db = server["tellie_auto"]
@@ -197,7 +206,8 @@ def load_fibre(fibre):
 
 def load_limits():
     """
-    Fill this in :)
+    Connects to couchdb and loads environment variables (stored as doc).
+    Returns: contents of couchdb doc holding env variables.
     """
     server = couchdb.Server("http://snoplus:"+app.config["COUCHDB_PASSWORD"]+"@"+app.config["COUCHDB_HOSTNAME"])
     db = server["tellie_auto"]
@@ -213,7 +223,8 @@ def load_limits():
 
 def load_bench(run):
     """
-    Fill this in :)
+    Connects to couchdb, loads benchmark document for particular run.
+    Returns: contents of specific couchdb document (benchmark).
     """
     server = couchdb.Server("http://snoplus:"+app.config["COUCHDB_PASSWORD"]+"@"+app.config["COUCHDB_HOSTNAME"])
     db = server["tellie_auto"]
@@ -230,7 +241,8 @@ def load_bench(run):
 
 def load_sets():
     """
-    Fill this in :)
+    Connects to couchdb, loads runlist document for particular run.
+    Returns: contents of specific couchdb document (runlist).
     """
     server = couchdb.Server("http://snoplus:"+app.config["COUCHDB_PASSWORD"]+"@"+app.config["COUCHDB_HOSTNAME"])
     db = server["tellie_auto"]
@@ -293,22 +305,22 @@ class FuzzyDict(dict):
         return self[match]
 
 def get_pca_log(run_name):
-    """ Return the run object for the given pca run """
-    return ratdbloader.load_ratdb(app.config["PCA_AUTOMATION_LOC"] + "/Processing/minard/pca_constants/PCA_log_" + run_name + "_0.ratdb")
+    """ Return the run object LOG for the given pca run """
+    return ratdbloader.load_ratdb(os.getcwd() + "/minard/static/pcatellie/pca_constants/PCA_log_" + run_name + "_0.ratdb")
 
 def get_pca_tw(run_name):
-    """ Return the run object for the given pca run """
-    data = FuzzyDict(ratdbloader.load_ratdb(app.config["PCA_AUTOMATION_LOC"] + "/Processing/minard/pca_constants/PCATW_" + run_name + "_0.ratdb"))
+    """ Return the run object TW for the given pca run """
+    data = FuzzyDict(ratdbloader.load_ratdb(os.getcwd() + "/minard/static/pcatellie/pca_constants/PCATW_" + run_name + "_0.ratdb"))
     data['name'] = run_name
-    data['path'] = app.config["PCA_AUTOMATION_LOC"] + "/Processing/minard"
+    data['path'] = "/pcatellie/"
     data['status'] = data.pop('PCATW_status')
     return data
 
 def get_pca_gf(run_name):
-    """ Return the run object for the given pca run """
-    data = FuzzyDict(ratdbloader.load_ratdb(app.config["PCA_AUTOMATION_LOC"] + "/Processing/minard/pca_constants/PCAGF_" + run_name + "_0.ratdb"))
+    """ Return the run object GF for the given pca run """
+    data = FuzzyDict(ratdbloader.load_ratdb(os.getcwd() + "/minard/static/pcatellie/pca_constants/PCAGF_" + run_name + "_0.ratdb"))
     data['name'] = run_name
-    data['path'] = app.config["PCA_AUTOMATION_LOC"] + "/Processing/minard"
+    data['path'] = "/pcatellie/"
     data['status'] = data.pop('PCAGF_status')
     return data
 
@@ -325,7 +337,7 @@ def ccc_from_lcn(lcn):
 
 def load_pca_log_data(run_number):
     """
-    Fill this in :)
+    Parses PCA LOG file. Creates associated flags. Also created dynamic image for PMTs.
     """
     subview = "log"
     run = get_pca_log(run_number)
@@ -340,7 +352,7 @@ def load_pca_log_data(run_number):
 
 def load_pca_tw_data(run_number):
     """
-    Fill this in :)
+    Parses PCA TW file. Creates associated flags. Also created dynamic image for PMTs.
     """
     subview = "tw"
     run = get_pca_tw(run_number)
@@ -355,7 +367,7 @@ def load_pca_tw_data(run_number):
 
 def load_pca_gf_data(run_number):
     """
-    Fill this in :)
+    Parses PCA GF file. Creates associated flags. Also created dynamic image for PMTs.
     """
     subview = "gf"
     run = get_pca_gf(run_number)
@@ -371,7 +383,9 @@ def load_pca_gf_data(run_number):
 
 def load_pca_flag_data(view, run_num, flag_i):
     """
-    Fill this in :)
+    Helper function, creates PCA flag data for specific PCA set.
+    Loops through PMTs to obtain status.
+    Creates dynamic image.
     """
     flag_num = int(flag_i)
     subview = view
@@ -392,7 +406,8 @@ def load_pca_flag_data(view, run_num, flag_i):
 
 def load_pca_pmt_data(run, pmt):
     """
-    Fill this in :)
+    Helper function, creates PMT flag data for specific PCA set.
+    Loops through flags to obtain status for particular PMT.
     """
     tw_data = get_pca_tw(run)
     gf_data = get_pca_gf(run)

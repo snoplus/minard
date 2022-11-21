@@ -92,16 +92,18 @@ def update_run_lists(form, run, lists, data, listHistory):
     conn.set_isolation_level(psycopg2.extensions.ISOLATION_LEVEL_AUTOCOMMIT)
 
     cursor = conn.cursor()
-    lists_added = []
-    lists_removed = []
     for key in dir(form):
         if key in lists:
             if (getattr(form, key).data == True and lists[key] not in data): # need new entry
-                lists_added.append(key)
+                # Add run to run list
                 result = cursor.execute("INSERT INTO evaluated_runs(run, list, evaluator) VALUES({},{},'{}')".format(run, lists[key], form.name.data))
+                # Update run history
+                result = cursor.execute("INSERT INTO rs_history(run,uploaded_to,removed_from,name,comment) VALUES({},'{}',NULL,'{}','{}')".format(int(run), str(key), str(form.name.data), str(form.comment.data)))
             elif (getattr(form, key).data == False and lists[key] in data): # need to delete entry
+                # Remove run from run list
                 result = cursor.execute("DELETE FROM evaluated_runs WHERE run = {} AND list = {}".format(run, lists[key]))
-                lists_removed.append(key)
+                # Update run history
+                result = cursor.execute("INSERT INTO rs_history(run,uploaded_to,removed_from,name,comment) VALUES({},NULL,'{}','{}','{}')".format(int(run), str(key), str(form.name.data), str(form.comment.data)))
     
     """
     Now, update the nearlineDB with the name and time
@@ -117,38 +119,7 @@ def update_run_lists(form, run, lists, data, listHistory):
     cursor_nl = conn_nl.cursor()
     result_nl = cursor_nl.execute("UPDATE run_selection SET name=%s, timestamp=now() WHERE run_min=%s AND run_max=%s AND type='RS_REPORT'", (form.name.data, run, run))
 
-    # conn_nl = engine_nl.connect()
-    # resultQuery = conn_nl.execute("UPDATE run_selection SET name=%s, timestamp=now() WHERE run_min=%s AND run_max=%s AND type='RS_REPORT'", (form.name.data, run, run))
-
     conn_nl.close()
-
-    #temp testing locally
-
-    #con_loc = sl.connect('/home/cm746/Documents/SNO+/Run_Selection/testMinardHistory/my-test.db')
-
-    conn_test = psycopg2.connect(dbname=app.config['DB_NAME_TEST'],
-                               user=app.config['DB_USER'],
-                               host=app.config['DB_HOST_TEST'],
-                               password=app.config['DB_PASS'])
-    conn_test = engine_test.connect()
-    # conn_test.set_isolation_level(psycopg2.extensions.ISOLATION_LEVEL_AUTOCOMMIT)
-    # cursor_test = conn_test.cursor()
-
-    newHistory = writeNewLists(listHistory[listHistory.keys()[-1]], form, lists_added, lists_removed)
-
-    data = (newHistory["run_range"][0], newHistory["run_range"][1], newHistory["name"], "scintillator", "RS_UPLOAD", newHistory)
-    conn_test.execute("INSERT INTO run_selection(run_min, run_max, name, criteria, type, meta_data) VALUES({}, {}, '{}', '{}', '{}', {})".format(newHistory["run_range"][0], newHistory["run_range"][1], newHistory["name"], "scintillator", "RS_UPLOAD", psycopg2.extras.Json(newHistory)))
-    # conn_test.execute(sqlstr)
-
-    # lists_to_update = []
-    # for key in vars(form):
-    #     if key in lists:
-    #         if (getattr(form, key).data == True and lists[key] not in data) or (getattr(form, key).data == False and lists[key] in data):
-    #             lists_to_update.append(key)
-
-    # print("Lists to be updated:")
-    # for i in lists_to_update:
-    #     print(i)
 
 def import_RS_ratdb(runs, result, limit, offset):
 

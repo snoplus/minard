@@ -393,33 +393,13 @@
           <tbody>
             {% for pass in list_history.keys() %}
               <tr>
-                <td> {{ list_history[pass]["timestamp"].split("T",1)[0] }} </td>
-                {% if list_history[pass]["list_added"] is iterable and list_history[pass]["list_added"] != [] %}
-                  {% for item in list_history[pass]["list_added"] %}
-                    <td>
-                      {% if loop.last %}
-                        {{ item }}
-                      {% else %}
-                        {{ item }}
-                      {% endif %}
-                    </td>
-                  {% endfor %}
-                {% elif list_history[pass]["list_added"] == [] %}
+                <td> {{ list_history[pass]["timestamp"].split(" ",1)[0] }} </td>
+                {% if list_history[pass]["list_added"] == "None" %}
                   <td>  </td>
                 {% else %}
                   <td> {{ list_history[pass]["list_added"] }} </td>
                 {% endif %}
-                {% if list_history[pass]["list_removed"] is iterable and list_history[pass]["list_removed"] != [] %}
-                  {% for item in list_history[pass]["list_removed"] %}
-                    <td>
-                      {% if loop.last %}
-                        {{ item }}
-                      {% else %}
-                        {{ item }},
-                      {% endif %}
-                    </td>
-                  {% endfor %}
-                {% elif list_history[pass]["list_removed"] == [] %}
+                {% if list_history[pass]["list_removed"] == "None" %}
                   <td>  </td>
                 {% else %}
                   <td> {{ list_history[pass]["list_removed"] }} </td>

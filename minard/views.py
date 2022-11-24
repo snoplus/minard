@@ -1826,7 +1826,8 @@ def runselection():
 @app.route('/runselection/<int:run_number>', methods=['GET', 'POST'])
 def runselection_run_number(run_number):
     # run_info, criteria_info, list_history = RSTools.import_RS_ratdb(run_number, 'All', 1, 0)
-    run_info, criteria_info, list_history = RSTools.import_RS_ratdb(run_number, 'All', 0, 0)
+    run_info, criteria_info = RSTools.import_RS_ratdb(run_number, 'All', 0, 0)
+    list_history = RSTools.get_list_history(run_number)
     lists = RSTools.get_run_lists()
     list_data = RSTools.get_current_lists_run(run_number)
     if request.form:
@@ -1837,7 +1838,7 @@ def runselection_run_number(run_number):
     if request.method == 'POST':
         if form.validate():
             try:
-                RSTools.update_run_lists(form, run_number, lists, list_data, list_history)
+                RSTools.update_run_lists(form, run_number, lists, list_data)
             except Exception as e:
                 flash(str(e), 'danger')
                 return redirect(url_for('runselection_run_number', run_number=run_number))

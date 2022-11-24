@@ -80,8 +80,25 @@ def writeNewLists(inputTable, form, added, removed):
     
     return newTable
 
+def get_list_history(run):
+    """
+    Get run list history for this run.
+    """
+    # key | run | uploaded_to | removed_from | name | timestamp | comment
+    conn = engine.connect()
+    result = conn.execute("SELECT timestamp, uploaded_to, removed_from, comment, name FROM rs_history WHERE run={} ORDER BY timestamp DESC".format(int(run)))
+    data = OrderedDict()
+    i = 0
+    for entry in result.fetchall():
+        data[str(i)] = {}
+        data[str(i)]['timestamp'] = str(entry[0])
+        data[str(i)]['list_added'] = str(entry[1]); data[str(i)]['list_removed'] = str(entry[2])
+        data[str(i)]['comment'] = str(entry[3]); data[str(i)]['name'] = str(entry[4])
+        i += 1
+    conn.close()
+    return data
 
-def update_run_lists(form, run, lists, data, listHistory):
+def update_run_lists(form, run, lists, data):
     """
     First update the run lists, then update the tables with new comment and timestamp
     """
@@ -222,25 +239,4 @@ def import_RS_ratdb(runs, result, limit, offset):
     except:
         pass
 
-    #con_loc = sl.connect('/home/cm746/Documents/SNO+/Run_Selection/testMinardHistory/my-test.db')
-    con_loc = engine_test.connect()
-    # cursor_test = con_loc.cursor()
-    listData = {}
-    query_string = """
-        SELECT meta_data
-        FROM run_selection
-        WHERE run_min >= {}
-        AND run_max <= {}
-        AND type='RS_UPLOAD'
-        ORDER BY run_min DESC
-        """.format(int(first_run + offset), first_run + limit + offset)
-
-    query = """%s""" % query_string
-    data = con_loc.execute(query)
-    for row in data:
-        # temp = json.loads(row[0])
-        temp = row[0]
-        listData[temp["pass"]] = temp
-        print temp
-
-    return info, criteriaInfo, OrderedDict(sorted(listData.items()))
+    return info, criteriaInfo

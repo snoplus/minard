@@ -465,7 +465,7 @@
               <div class="form-group">
             {% endif %}
             <label for="comment">{{ form.comment.label }}</label>
-            <input type="text" class="form-control" name="{{ form.comment.name }}" placeholder="Comment" {% if form.comment.data %}value="{{ form.comment.data }}"{% endif %}></input>
+            <input type="text" class="form-control" name="{{ form.comment.name }}" placeholder="Comment (apostrophes and quotation marks are removed)" {% if form.comment.data %}value="{{ form.comment.data }}"{% endif %}></input>
             {% if form.comment.errors %}
               {% for error in form.comment.errors %}
                   <span class="help-block">{{ error }}</span>

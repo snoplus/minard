@@ -102,6 +102,12 @@ def update_run_lists(form, run, lists, data):
     """
     First update the run lists, then update the tables with new comment and timestamp
     """
+
+    # Remove troublesome characters from entries
+    name = str(form.name.data).replace("'", '').replace('"', '')
+    comment = str(form.comment.data).replace("'", '').replace('"', '')
+
+    # Connect to detector database, to update run lists and run list histories
     conn = psycopg2.connect(dbname=app.config['DB_NAME'],
                             user=app.config['DB_USER_EXPERT'],
                             host=app.config['DB_HOST'],
@@ -113,14 +119,14 @@ def update_run_lists(form, run, lists, data):
         if key in lists:
             if (getattr(form, key).data == True and lists[key] not in data): # need new entry
                 # Add run to run list
-                result = cursor.execute("INSERT INTO evaluated_runs(run, list, evaluator) VALUES({},{},'{}')".format(run, lists[key], form.name.data))
+                result = cursor.execute("INSERT INTO evaluated_runs(run, list, evaluator) VALUES({},{},'{}')".format(int(run), int(lists[key]), name))
                 # Update run history
-                result = cursor.execute("INSERT INTO rs_history(run,uploaded_to,removed_from,name,comment) VALUES({},'{}',NULL,'{}','{}')".format(int(run), str(key), str(form.name.data), str(form.comment.data)))
+                result = cursor.execute("INSERT INTO rs_history(run,uploaded_to,removed_from,name,comment) VALUES({},'{}',NULL,'{}','{}')".format(int(run), str(key), name, comment))
             elif (getattr(form, key).data == False and lists[key] in data): # need to delete entry
                 # Remove run from run list
-                result = cursor.execute("DELETE FROM evaluated_runs WHERE run = {} AND list = {}".format(run, lists[key]))
+                result = cursor.execute("DELETE FROM evaluated_runs WHERE run = {} AND list = {}".format(int(run), int(lists[key])))
                 # Update run history
-                result = cursor.execute("INSERT INTO rs_history(run,uploaded_to,removed_from,name,comment) VALUES({},NULL,'{}','{}','{}')".format(int(run), str(key), str(form.name.data), str(form.comment.data)))
+                result = cursor.execute("INSERT INTO rs_history(run,uploaded_to,removed_from,name,comment) VALUES({},NULL,'{}','{}','{}')".format(int(run), str(key), name, comment))
     
     """
     Now, update the nearlineDB with the name and time

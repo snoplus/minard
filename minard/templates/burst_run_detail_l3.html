@@ -74,7 +74,7 @@
                     <tr>
                       <td>SH Buffer</td>
                       <td>{{ data["c_buffer"] }}</td>
-                      <td>Logical buffer that triggered burst</td>
+                      <td>Logical buffer that triggered burst (1 = IBD | 3,5,7,10 = counting)</td>
                     </tr>
                     <tr>
                       <td>SH End</td>
@@ -131,6 +131,16 @@
                         <td>{{ data["clean_highEv"] }} &nbsp; <span style="color:red">0%</span></td>
                       {% endif %}
                       <td># of clean high NHit events, % of surviving events</td>
+                    </tr>
+                    <tr>
+                      <td>Time of first HN event</td>
+                      <td>{{ data["firstHighUTC"] }}</td>
+                      <td>Time of first event above high NHit threshold (SN alarm)</td>
+                    </tr>
+                    <tr>
+                      <td>Nanoseconds of first HN event</td>
+                      <td>{{ data["nanos"] }}</td>
+                      <td>Nanoseconds (SN alarm)</td>
                     </tr>
                   </tbody>
                 </table>
@@ -544,6 +554,46 @@
               </div>
               <div class="col-md-6">
                 <img src="{{ url_for('static', filename="bursts/L3/" + files + "/L3_" + files + "_flatmap.png") }}" alt="Flatmap histogram" class="img-responsive">
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-12">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h3 class="panel-title"><b>Highest NHit event + following </b>[offline PMTs are set as -100]</h3>
+          </div>
+          <div class="panel-body">
+            <div class="row">
+              <div class="col-md-6">
+                <img src="{{ url_for('static', filename="bursts/L3/" + files + "/L3_" + files + "_flatmap_highest.png") }}" alt="Flatmap highest QHS" class="img-responsive">
+              </div>
+              <div class="col-md-6">
+                <img src="{{ url_for('static', filename="bursts/L3/" + files + "/L3_" + files + "_Timemap_highest.png") }}" alt="Flatmap highest Time" class="img-responsive">
+              </div>
+            </div>
+          </div>
+          <div class="panel-body">
+            <div class="row">
+              <div class="col-md-6">
+                <img src="{{ url_for('static', filename="bursts/L3/" + files + "/L3_" + files + "_flatmap_highest2.png") }}" alt="Flatmap highest2 QHS" class="img-responsive">
+              </div>
+              <div class="col-md-6">
+                <img src="{{ url_for('static', filename="bursts/L3/" + files + "/L3_" + files + "_Timemap_highest2.png") }}" alt="Flatmap highest2 Time" class="img-responsive">
+              </div>
+            </div>
+          </div>
+          <div class="panel-body">
+            <div class="row">
+              <div class="col-md-6">
+                <img src="{{ url_for('static', filename="bursts/L3/" + files + "/L3_" + files + "_flatmap_highest3.png") }}" alt="Flatmap highest3 QHS" class="img-responsive">
+              </div>
+              <div class="col-md-6">
+                <img src="{{ url_for('static', filename="bursts/L3/" + files + "/L3_" + files + "_Timemap_highest3.png") }}" alt="Flatmap highest3 Time" class="img-responsive">
               </div>
             </div>
           </div>

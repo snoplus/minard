@@ -247,36 +247,41 @@ def get_detector_state_check(run=0):
     run_state = get_run_state(run)
 
     if run_state is None:
-        return None, None
+        return None, None, None, None, None, None
 
     nominal_settings = get_nominal_settings_for_run(run)
     mtc_key = run_state['mtc']
     tubii_key = run_state['tubii']
+    caen_key = run_state['caen']
 
     channels = []
-    messages = []
+    trig_messages = []
+    hv_messages = []
+    fec_messages = []
+    off_messages = []
+    relay_messages = []
 
     gt_crate_mask = None
 
     if mtc_key is None:
-        messages.append("mtc state unknown")
+        trig_messages.append("mtc state unknown")
     else:
         mtc = get_mtc_state(mtc_key)
         gt_crate_mask = mtc['gt_crate_mask']
         if gt_crate_mask is None:
-            messages.append("GT crate mask unknown")
+            trig_messages.append("GT crate mask unknown")
         elif not (gt_crate_mask & (1<<23)):
-            messages.append("TUBII is not in the GT crate mask")
+            trig_messages.append("TUBII is not in the GT crate mask")
 
         lockout_width = mtc['lockout_width']
         if lockout_width is None:
-            messages.append("Lockout width unknown")
+            trig_messages.append("Lockout width unknown")
         elif lockout_width != 420:
-            messages.append("Lockout width is a bad value: %i" % lockout_width)
+            trig_messages.append("Lockout width is a bad value: %i" % lockout_width)
 
         relay_mask = mtc['mtca_relays']
         if relay_mask is None:
-            messages.append("MTCA/+ relay mask unknown")
+            trig_messages.append("MTCA/+ relay mask unknown")
         else:
             mtca_names = ['N100', 'N20', 'ESUMLO', 'ESUMHI', 'OWLELO', 'OWLEHI', 'OWLN']
             for i, (relay, mtca) in enumerate(zip(relay_mask,mtca_names)):
@@ -287,9 +292,9 @@ def get_detector_state_check(run=0):
                         crates.append(crate)
                 if len(crates):
                     if len(crates) == 1:
-                        messages.append("crate %i is out of the %s MTCA+ relay mask" % (crates[0], mtca))
+                        trig_messages.append("crate %i is out of the %s MTCA+ relay mask" % (crates[0], mtca))
                     else:
-                        messages.append("crates %s are out of the %s MTCA+ relay mask" % (str(crates)[1:-1], mtca))
+                        trig_messages.append("crates %s are out of the %s MTCA+ relay mask" % (str(crates)[1:-1], mtca))
 
     # Keep track of which channels on TUBII we've plugged 
     # the MTC/A+ analog signals in. We want to put those 
@@ -323,21 +328,24 @@ def get_detector_state_check(run=0):
         attenuated = [0, 1, 4, 5, 7]
 
     if tubii_key is None:
-        messages.append("tubii state unknown")
+        trig_messages.append("tubii state unknown")
     else:
         tubii = get_tubii_state(tubii_key)
 
         clock_status = tubii['clock_status']
         if clock_status == 1:
-            messages.append("TUBII running on backup clock")
+            trig_messages.append("TUBII running on backup clock")
 
         readout_status = tubii['readout_status']
         if readout_status == 0:
-            messages.append("TUBII is not reading out")
+            trig_messages.append("TUBII is not reading out")
 
         control_reg = tubii['control_reg']
         if control_reg is not None and (control_reg & (1<<2)):
-            messages.append("TUBII ECAL bit set")
+            trig_messages.append("TUBII ECAL bit set")
+        if control_reg is not None and not (control_reg & (1<<1)):
+            trig_messages.append("Using TUBII LO*")
+
         # TUBII CAEN mapping
         tubii_gain = [1<<0, 1<<2, 1<<7, 1<<5, 1<<1, 1<<3, 1<<6, 1<<4]
         gain_reg = tubii['caen_gain_reg']
@@ -353,53 +361,64 @@ def get_detector_state_check(run=0):
                     attenuated_channels.append(i)
             if len(non_attenuated_channels):
                 if len(non_attenuated_channels) == 1:
-                    messages.append("Warning: TUBII channel %s is in attenuating mode"\
+                    trig_messages.append("Warning: TUBII channel %s is in attenuating mode"\
                         % non_attenuated_channels[0])
                 else:
-                    messages.append("Warning: TUBII channels %s are in attentuating mode"\
+                    trig_messages.append("Warning: TUBII channels %s are in attentuating mode"\
                         % str(non_attenuated_channels)[1:-1])
             if len(attenuated_channels):
                 if len(attenuated_channels) == 1:
-                    messages.append("Warning: TUBII channel %s is in non-attenuating mode"\
+                    trig_messages.append("Warning: TUBII channel %s is in non-attenuating mode"\
                         % attenuated_channels[0])
                 else:
-                    messages.append("Warning: TUBII channels %s are in non-attentuating mode"\
+                    trig_messages.append("Warning: TUBII channels %s are in non-attentuating mode"\
                         % str(attenuated_channels)[1:-1])
+
+    caen_state = get_caen_state(caen_key)
+
+    if caen_state is None:
+        trig_messages.append("CAEN settings are unknown.")
+    else:
+        window_length = caen_state['custom_size']*4*4
+        if window_length != 416: # Not the standard length
+            trig_messages.append("CAEN window size is %i ns." % window_length)
 
     detector_state = get_detector_state(run)
 
     if detector_state is None:
-        messages.append("All crates are off")
-        return messages, channels
+        off_messages.append("All crates are off")
+        return trig_messages, hv_messages, relay_messages, off_messages, fec_messages, channels
 
     for crate in range(19):
         if detector_state[crate] is None:
-            messages.append("crate %i is off" % crate)
+            off_messages.append("crate %i is off" % crate)
             continue
 
         if gt_crate_mask is not None and mtc_key is not None and not (gt_crate_mask & (1<<crate)):
-            messages.append("crate %i is not in the GT crate mask" % crate)
+            trig_messages.append("crate %i is not in the GT crate mask" % crate)
 
         xl3_mode = detector_state[crate]['xl3_mode']
         if xl3_mode == 1:
-            messages.append("crate %i is in init mode" % crate)
+            fec_messages.append("crate %i is in init mode" % crate)
 
         hv_on = detector_state[crate]['hv_a_on'] == True
         if not hv_on:
-            messages.append("crate %i HV is off" % crate)
+            hv_messages.append("crate %i HV is off" % crate)
 
         if crate == 16 and not detector_state[crate]['hv_b_on']:
-            messages.append("OWL HV is off")
+            hv_messages.append("OWL HV is off")
 
         hv_relay_mask1 = detector_state[crate]['hv_relay_mask1']
         hv_relay_mask2 = detector_state[crate]['hv_relay_mask2']
 
         readout_mask = detector_state[crate]['xl3_readout_mask']
         if readout_mask is None:
-            messages.append("crate %i readout mask is unknown" % crate)
+            off_messages.append("crate %i readout mask is unknown" % crate)
 
         if hv_relay_mask1 is None or hv_relay_mask2 is None:
-            messages.append("crate %i relay settings are unknown" % crate)
+            off_messages.append("crate %i relay settings are unknown" % crate)
+
+        no_readout = []
 
         for slot in range(16):
 
@@ -413,15 +432,15 @@ def get_detector_state_check(run=0):
                     hv_on = False
 
             if detector_state[crate][slot] is None:
-                messages.append("crate %i, slot %i is offline" % (crate, slot))
+                fec_messages.append("FEC in crate %i slot %i is missing" % (crate, slot))
                 continue
 
             if readout_mask is not None and not (readout_mask & (1<<slot)) and xl3_mode == 2:
-                messages.append("crate %i, slot %i is out of the xl3 readout mask" % (crate, slot))
+                no_readout.append(slot) 
 
             slot_sequencers = detector_state[crate][slot]['disable_mask']
             if slot_sequencers is not None and slot_sequencers == 0xffffffff and (readout_mask & (1<<slot)):
-                messages.append("Sequencers disabled for crate %i, slot %i" % (crate, slot))
+                fec_messages.append("Sequencers disabled for crate %i, slot %i" % (crate, slot))
 
             if hv_relay_mask1 is None or hv_relay_mask2 is None:
                 continue
@@ -429,34 +448,45 @@ def get_detector_state_check(run=0):
             hv_relay_mask = hv_relay_mask2 << 32 | hv_relay_mask1
 
             if detector_state[crate][slot]['tr100_mask'] is None:
-                messages.append("trigger settings unknown for crate %i, slot %i" % (crate, slot))
+                fec_messages.append("trigger settings unknown for crate %i, slot %i" % (crate, slot))
                 continue
             if detector_state[crate][slot]['tr20_mask'] is None:
-                messages.append("trigger settings unknown for crate %i, slot %i" % (crate, slot))
+                fec_messages.append("trigger settings unknown for crate %i, slot %i" % (crate, slot))
                 continue
             if detector_state[crate][slot]['disable_mask'] is None:
-                messages.append("sequencer settings unknown for crate %i, slot %i" % (crate, slot))
+                fec_messages.append("sequencer settings unknown for crate %i, slot %i" % (crate, slot))
                 continue
             if detector_state[crate][slot]['vthr'] is None:
-                messages.append("vthr settings unknown for crate %i, slot %i" % (crate, slot))
+                fec_messages.append("vthr settings unknown for crate %i, slot %i" % (crate, slot))
                 continue
 
             # Count consecutive maxed thresholds on each slot
             count_maxed_vthr = 0
             nmaxed = 0
 
+            relay_count = 0
+            relay_channels = []
             for channel in range(32):
-                hv_enabled = hv_relay_mask & (1 << (slot*4 + (3-channel//8))) and hv_on
+                relay_closed = hv_relay_mask & (1 << (slot*4 + (3-channel//8)))
+                if not relay_closed:
+                    relay_count+=1
+                    if (channel+1) % 8 == 0:
+                        relay_channels.append(channel)
+
+                if relay_count == 32:
+                    relay_messages.append("Relays open for crate %i slot %i" % (crate, slot))
+
+                hv_enabled = hv_relay_mask & relay_closed and hv_on
                 n100 = bool(detector_state[crate][slot]['tr100_mask'][channel])
                 n20 = bool(detector_state[crate][slot]['tr20_mask'][channel])
                 sequencer = bool(~detector_state[crate][slot]['disable_mask'] & (1 << channel))
                 vthr = detector_state[crate][slot]['vthr'][channel]
                 if vthr is None:
-                    messages.append("vthr unknown for crate %i, slot %i" % (crate, slot))
+                    fec_messages.append("vthr unknown for crate %i, slot %i" % (crate, slot))
                 try:
                     n100_nominal, n20_nominal, sequencer_nominal = nominal_settings[crate][slot][channel]
                 except KeyError:
-                    messages.append("unable to get nominal settings for %i/%i/%i" % (crate, slot, channel))
+                    channels.append("unable to get nominal settings for %i/%i/%i" % (crate, slot, channel))
                     continue
 
                 if not hv_enabled:
@@ -499,11 +529,27 @@ def get_detector_state_check(run=0):
                         count_maxed_vthr += 1
                     else:
                         count_maxed_vthr = 0
+
             if nmaxed >= 8:
-                messages.append("Warning: crate %i slot %i at HV but has %i consecutive thresholds maxed" % (crate, slot, nmaxed))
+                fec_messages.append("Warning: crate %i slot %i at HV but has %i consecutive thresholds maxed" % (crate, slot, nmaxed))
 
+            if len(relay_channels) == 1:
+                relay_messages.append("Relay open crate %i slot %i PC %i" % (crate, slot, (relay_channels[0])/8))
+            elif len(relay_channels) == 2:
+                relay_messages.append("Relays open crate %i slot %i PC %i/%i" % (crate, slot, relay_channels[0]/8, relay_channels[1]/8))
+            elif len(relay_channels) == 3:
+                relay_messages.append("Relays open crate %i slot %i PC %i/%i/%i" % (crate, slot, relay_channels[0]/8, relay_channels[1]/8, relay_channels[2]/8))
 
-    return messages, channels
+        if no_readout:
+            no_readout_list = "/".join(str(x) for x in no_readout)
+            slot_str = "slot"
+            FEC_str = "FEC"
+            if len(no_readout) > 1:
+                slot_str = "slots"
+                FEC_str = "FECs"
+            fec_messages.append("%s in crate %i %s %s not being readout" % (FEC_str, crate, slot_str, no_readout_list))
+
+    return trig_messages, hv_messages, relay_messages, off_messages, fec_messages, channels
 
 def get_nhit_monitor_thresholds(limit=100, offset=0):
     """

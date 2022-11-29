@@ -38,17 +38,21 @@ import gain_monitor
 import activity
 import scintillator_level
 import burst as burst_f
-from shifter_information import get_shifter_information, set_shifter_information, ShifterInfoForm, get_experts
+import presn as presn_f
+from light_level import get_light_level, get_light_level_clean, get_all_light_levels
+from shifter_information import get_shifter_information, set_shifter_information, ShifterInfoForm, get_experts, get_supernova_experts
 from run_list import golden_run_list
 from .polling import polling_runs, polling_info, polling_info_card, polling_check, get_cmos_rate_history, polling_summary, get_most_recent_polling_info, get_vmon, get_base_current_history, get_vmon_history
 from .channeldb import ChannelStatusForm, upload_channel_status, get_channels, get_channel_status, get_channel_status_form, get_channel_history, get_pmt_info, get_nominal_settings, get_discriminator_threshold, get_all_thresholds, get_maxed_thresholds, get_gtvalid_lengths, get_pmt_types, pmt_type_description, get_fec_db_history
 from .ecaldb import ecal_state, penn_daq_ccc_by_test, get_penn_daq_tests
-from .mtca_crate_mapping import MTCACrateMappingForm, OWLCrateMappingForm, upload_mtca_crate_mapping, get_mtca_crate_mapping, get_mtca_crate_mapping_form, mtca_relay_status
+from .mtca_crate_mapping import MTCACrateMappingForm, OWLCrateMappingForm, upload_mtca_crate_mapping, get_mtca_crate_mapping, get_mtca_crate_mapping_form, mtca_relay_status, get_mtca_retriggers, get_mtca_autoretriggers, RETRIGGER_LOGIC
 import re
 from .resistor import get_resistors, ResistorValuesForm, get_resistor_values_form, update_resistor_values
 from .pedestalsdb import get_pedestals, bad_pedestals, qhs_by_channel
 from datetime import datetime
 from functools import wraps, update_wrapper
+from dead_time import get_dead_time, get_dead_time_runs, get_dead_time_run_by_key
+from radon_monitor import get_radon_monitor
 
 TRIGGER_NAMES = \
 ['100L',
@@ -222,7 +226,7 @@ def detector_state_check(run=None):
     if run is None:
         run = detector_state.get_run_state(None)['run']
 
-    messages, channels = detector_state.get_detector_state_check(run)
+    trig_messages, hv_messages, relay_messages, off_messages, fec_messages, channels = detector_state.get_detector_state_check(run)
     alarms = detector_state.get_alarms(run)
 
     if alarms is None:
@@ -244,7 +248,7 @@ def detector_state_check(run=None):
             flash("unable to get daq log for run %i" % run, 'danger')
             warnings = None
 
-    return render_template('detector_state_check.html', run=run, messages=messages, channels=channels, alarms=alarms, warnings=warnings, builder_warnings=builder_warnings)
+    return render_template('detector_state_check.html', run=run, trig_messages=trig_messages, hv_messages=hv_messages, fec_messages=fec_messages, off_messages=off_messages, relay_messages=relay_messages, channels=channels, alarms=alarms, warnings=warnings, builder_warnings=builder_warnings)
 
 @app.route('/channel-database')
 def channel_database():
@@ -382,6 +386,27 @@ def ecal_status():
 
 @app.route('/update-mtca-crate-mapping', methods=["GET", "POST"])
 def update_mtca_crate_mapping():
+
+    # Get the retrigger information
+    retriggers = get_mtca_retriggers()[0]
+    retrigger_status = {}
+    for key in retriggers:
+        if key == "key" or key == "timestamp" or \
+           key == 'run_begin' or key == 'run_end': continue
+        if retriggers[key] <= 3:
+            status = RETRIGGER_LOGIC[retriggers[key]]
+        else:
+            status = "Unknown retrigger logic"
+        retrigger_status[str(key).upper()] = status
+
+    # Get the retrigger information
+    autoretriggers = get_mtca_autoretriggers()[0]
+    autoretrigger_status = {}
+    for key in autoretriggers:
+        if key == "key" or key == "timestamp" or \
+           key == 'run_begin' or key == 'run_end': continue
+        autoretrigger_status[str(key).upper()] = autoretriggers[key]
+
     relay_status = None
     if request.form:
         if int(request.form['mtca']) < 4:
@@ -402,7 +427,7 @@ def update_mtca_crate_mapping():
             return render_template('update_mtca_crate_mapping.html', form=form)
         flash("Successfully submitted", 'success')
         return redirect(url_for('update_mtca_crate_mapping', mtca=form.mtca.data))
-    return render_template('update_mtca_crate_mapping.html', form=form, relay_status=relay_status)
+    return render_template('update_mtca_crate_mapping.html', form=form, relay_status=relay_status, retriggers=retrigger_status, autoretriggers=autoretrigger_status)
 
 @app.route('/update-channel-status', methods=["GET", "POST"])
 def update_channel_status():
@@ -592,6 +617,25 @@ def burst_l3():
     data, total, offset, limit = burst_f.load_burst_runs(offset, limit, 3)
     return render_template( 'burst_l3.html', data=data, total=total, offset=offset, limit=limit )
 
+
+@app.route('/presn')
+def presn():
+    offset = request.args.get('offset',type=int)
+    limit = request.args.get('limit',default=25,type=int)
+    search = request.args.get('search',type=str)
+    if search is not None:
+        start = request.args.get('start')
+        end = request.args.get('end')
+        if offset == None:
+            return redirect("presn?limit=%i&offset=0&search=%s&start=%s&end=%s" % (limit, search, start, end))
+        data, total, offset, limit = presn_f.load_presn_search(search, start, end, offset, limit)
+        return render_template( 'presn.html', data=data, total=total, offset=offset, limit=limit, search=search, start=start, end=end)
+    if offset == None:
+        return redirect("presn?limit=25&offset=0")
+    data, total, offset, limit = presn_f.load_presn_runs(offset, limit)
+    return render_template( 'presn.html', data=data, total=total, offset=offset, limit=limit )
+
+
 @app.route('/orca-session-logs')
 def orca_session_logs():
     limit = request.args.get("limit", 10, type=int)
@@ -745,10 +789,20 @@ def get_SH():
         ywindow = redis.get('l2:ywindow')
         ext = redis.get('l2:extwindow')
         high = redis.get('l2:highnhit')
-        settings = [nhit3,nhit5,nhit7,nhit10,window,xwindow,ywindow,ext,high]
+        highEvs = redis.get('l2:highEvs')
+        highSurv = redis.get('l2:highsurv')
+        ibdNHitMeV = redis.get('l2:ibdnhitmev')
+        ibdFirstE = redis.get('l2:ibdfirste')
+        ibdTimeLow = redis.get('l2:ibdtimelow')
+        ibdTimeHigh = redis.get('l2:ibdtimehigh')
+        ibdCount = redis.get('l2:ibdcount')
+        ibdWindow = redis.get('l2:ibdwindow')
+        ibdCoinc = redis.get('l2:ibdcoinc')
+        ibdExt = redis.get('l2:ibdext')
+        settings = [nhit3,nhit5,nhit7,nhit10,window,xwindow,ywindow,ext,high,highEvs,highSurv,ibdNHitMeV,ibdFirstE,ibdTimeLow,ibdTimeHigh,ibdCount,ibdWindow,ibdCoinc,ibdExt]
     except ValueError:
         # no files
-        settings = [0,0,0,0,0,0,0,0,0]
+        settings = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
     return jsonify(settings=settings)
 
 @app.route('/graph')
@@ -991,6 +1045,23 @@ def polling_history():
     bdata = convert_timestamp(bdata)
 
     return render_template('polling_history.html', crate=crate, slot=slot, channel=channel, cdata=cdata, bdata=bdata, starting_run=starting_run, ending_run=ending_run)
+
+@app.route('/dead_time_runs')
+def dead_time_runs():
+
+    data = get_dead_time_runs()
+
+    return render_template('dead_time_runs.html', data=data)
+
+@app.route('/dead_time')
+def dead_time():
+
+    key = request.args.get('key',0,type=int)
+
+    dead_time_data = get_dead_time(key)
+    run_data = get_dead_time_run_by_key(key)
+
+    return render_template('dead_time.html', ddata=dead_time_data, rdata=run_data)
 
 @app.route('/daq')
 def daq():
@@ -1393,6 +1464,11 @@ def burst_form():
     burst_f.burst_form_upload(run_number, subrun, sub, tick, summary, note, name)
     return render_template('burst_run_detail_l3.html', data=burst_f.burst_run_detail(run_number, subrun, sub, 3)[0], files=burst_f.burst_run_detail(run_number, subrun, sub, 3)[1])
 
+@app.route('/presn_run_detail/<int:run_number>')
+def presn_run_detail(run_number):
+    return render_template('presn_run_detail.html', data=presn_f.presn_run_detail(run_number)[0], files=presn_f.presn_run_detail(run_number)[1])
+
+
 @app.route('/calibdq')
 def calibdq():
         return render_template('calibdq.html')
@@ -1703,6 +1779,7 @@ def shifter_information():
         form = ShifterInfoForm()
 
     form.expert.choices = get_experts()
+    form.supernova_expert.choices = get_supernova_experts()
 
     if request.method == "POST" and form.validate():
         try:
@@ -1713,8 +1790,8 @@ def shifter_information():
         flash("Successfully submitted", 'success')
         return redirect(url_for("shifter_information"))
 
-    shifter, expert, updates = get_shifter_information()
-    return render_template('shifter_information.html', form=form, shifter=shifter, expert=expert, updates=updates)
+    shifter, expert, supernova_expert = get_shifter_information()
+    return render_template('shifter_information.html', form=form, shifter=shifter, expert=expert, supernova_expert=supernova_expert)
 
 @app.route('/deck_activity')
 def deck_activity():
@@ -1813,6 +1890,7 @@ def scint_level():
     rope_data = scintillator_level.get_av_rope_data(run_range_low, run_range_high)
     return render_template('scint_level.html', scint_data=scint_data, av_data=av_data, rope_data=rope_data, run_range_low=run_range_low, run_range_high=run_range_high)
 
+
 @app.route('/runselection')
 def runselection():
     limit = request.args.get("limit", 10, type=int)
@@ -1848,3 +1926,57 @@ def runselection_run_number(run_number):
             flash("Unsuccessful: error submitting form", 'danger')
 
     return render_template('runselection_run.html', run_number=run_number, run_info=run_info, criteria_info=criteria_info, list_history=list_history, lists=lists.keys(), form=form)
+
+
+@app.route('/light_level')
+def light_level():
+    run_range_low = request.args.get("run_range_low", 300000, type=int)
+    run_range_high = request.args.get("run_range_high", 0, type=int)
+    fv = request.args.get("fv", 3000, type=int)
+    nhits_select = request.args.get("nhits_select","Nhits Corrected", type=str)
+
+    if run_range_high == 0:
+        run_range_high = detector_state.get_latest_run()
+
+    if nhits_select == "Nhits Corrected":
+        light_levels = get_light_level(run_range_low, run_range_high, fv)
+    else:
+        light_levels = get_light_level_clean(run_range_low, run_range_high, fv)
+
+    return render_template('light_level.html', light_levels=light_levels, run_range_low=run_range_low, run_range_high=run_range_high, fv=fv, nhits_select=nhits_select)
+
+@app.route('/light_level_plots/<run_number>')
+def light_level_plots(run_number):
+    return render_template('light_level_plots.html', run_number=run_number)
+
+
+@app.route('/light_level_summary')
+def light_level_summary():
+    run_range_low = request.args.get("run_range_low", 300000, type=int)
+    run_range_high = request.args.get("run_range_high", 0, type=int)
+    fiducial_volume = request.args.get("fiducial_volume", 3000, type=int)
+    limit = request.args.get("limit", 100, type=int)
+
+    if run_range_high == 0:
+        run_range_high = detector_state.get_latest_run()
+
+    light_levels = get_all_light_levels(run_range_low, run_range_high, fiducial_volume, limit)
+
+    return render_template('light_level_summary.html', light_levels=light_levels, run_range_low=run_range_low, run_range_high=run_range_high, fiducial_volume=fiducial_volume)
+
+@app.route('/radon_monitor')
+def radon_monitor():
+
+    year_low = request.args.get("year_low", 2021, type=int)
+    month_low = request.args.get("month_low", 1, type=int)
+    day_low = request.args.get("day_low", 1, type=int)
+    year_high = request.args.get("year_high", 2024, type=int)
+    month_high = request.args.get("month_high", 1, type=int)
+    day_high = request.args.get("day_high", 1, type=int)
+    yscale = request.args.get("yscale", "log", type=str)
+    ylow = request.args.get("ylow", 1e-6, type=float)
+    yhigh = request.args.get("yhigh", 0.6, type=float)
+
+    pdata = get_radon_monitor(year_low, month_low, day_low, year_high, month_high, day_high)
+
+    return render_template('radon_monitor.html', pdata=pdata, yscale=yscale, ylow=ylow, yhigh=yhigh)

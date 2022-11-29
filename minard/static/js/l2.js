@@ -26,6 +26,14 @@ function get_SH_settings(interval) {
     var xwindow_td = document.getElementById('pre').innerHTML = obj.settings[5];
     var ywindow_td = document.getElementById('post').innerHTML = obj.settings[6];
     var ext_td = document.getElementById('ext').innerHTML = obj.settings[7];
+    var ibdfirste_td = document.getElementById('nhitmev').innerHTML = obj.settings[11];
+    var ibdseconde_td = document.getElementById('ibd1').innerHTML = obj.settings[12];
+    var ibdtimelow_td = document.getElementById('ibdtlow').innerHTML = obj.settings[13];
+    var ibdtimehigh_td = document.getElementById('ibdthigh').innerHTML = obj.settings[14];
+    var ibdcount_td = document.getElementById('ibdcount').innerHTML = obj.settings[15];
+    var ibdwindow_td = document.getElementById('ibdwindow').innerHTML = obj.settings[16];
+    var ibdcoinc_td = document.getElementById('ibdcoinc').innerHTML = obj.settings[17];
+    var ibdext_td = document.getElementById('ibdext').innerHTML = obj.settings[18];
     setTimeout(function() {get_SH_settings(interval); }, interval*1000);
   });
 }

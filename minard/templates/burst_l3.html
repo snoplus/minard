@@ -27,6 +27,7 @@
                                           <option value="run">Run</option>
                                           <option value="gtid">GTID</option>
                                           <option value="date">Date</option>
+                                          <option value="sign">Significance</option>
                                       </select>
                                   </div>
                                   <label class="col-sm-1 control-label">
@@ -59,7 +60,35 @@
                 </div>
             </div>
 
+            <div class="row">
+              <div class="col-md-12">
+                <div class="panel panel-default">
+                  <div class="panel-heading">
+                    <h3 class="panel-title" style="text-align: center">Final alarm threshold</h3>
+                  </div>
+                  <div class="panel-body">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th width="25%">High: NHit</th>
+                                <th width="25%">High: Events</th>
+                                <th width="25%">High: Surviving percentage</th>
+                            </tr>
+                        </thead>
+                            <tr>
+                                <td id="high" width="25%"> 9 </td>
+                                <td id="highEvs" width="25%"> 10 </td>
+                                <td id="highSurv" width="25%"> 11 </td>
+                            </tr>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+
             <h3>Details</h3>
+              <a href="https://www.snolab.ca/snoplus/private/DocDB/cgi/ShowDocument?docid=6976">Supernova Shift Instructions</a> <br>
+              <a href="https://www.snolab.ca/snoplus/private/DocDB/cgi/ShowDocument?docid=6839">Burst ZOO</a> <br> <br>
               <font size="-1"><b>SH End:</b> 0=normal, 1=end of file reached, 2=events out of order, 3=too long, 4=clock jumps</font> <br>
               <font size="-1"><b>Check:</b> 0=not checked, 1=checked by algorithm, 2=checked by person</font>
             <table class="table table-bordered table-condensed table-striped">
@@ -126,4 +155,8 @@
 {% block script %}
     <script src="{{ url_for('static', filename='js/burst.js') }}"></script>
     <script> window.onload = function() {fill_boxes();};</script>
+    <script src="{{ url_for('static', filename='js/l3.js') }}"></script>
+    <script>
+        get_SH_settings(20);
+    </script>
 {% endblock %}

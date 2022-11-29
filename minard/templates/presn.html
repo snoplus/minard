@@ -1,0 +1,112 @@
+{% extends "layout.html" %}
+{% block title %}Pre-Supernova{% endblock %}
+{% block head %}
+  {{ super() }}
+{% endblock %}
+{% block body %}
+  {{ super() }}
+
+    <div class="container">
+      <div class="row">
+        <div class="col-md-12">
+            <h2>Pre-Supernova </h2>
+
+            <div class="row">
+                <div class="col-md-12">
+                  <div class="panel panel-default">
+                      <div class="panel-heading">
+                          Search:
+                      </div>
+                      <div class="panel-body">
+			<form class="form-horizontal" role="form" method="get" action="{{ url_for("presn") }}" onsubmit="return validate_form()">
+                              <div class="form-group form-group-sm">
+                                  <label class="col-sm-2 control-label">
+                                      Search by:
+                                  </label>
+                                  <div class="col-sm-2">
+                                      <select id="search-by" name="search" class="form-control" onchange="update_search()">
+                                          <option value="run">Run</option>
+                                          <option value="date">Date</option>
+                                      </select>
+                                  </div>
+                                  <label class="col-sm-1 control-label">
+                                      Start
+                                  </label>
+                                  <div class="col-sm-2">
+                                      <input name="start"
+                                       id="start"
+                                       type="number"
+                                       min=0
+                                       class="form-control">
+                                  </div>
+                                  <label class="col-sm-1 control-label">
+                                      End
+                                  </label>
+                                  <div class="col-sm-2">
+                                      <input name="end"
+                                       id="end"
+                                       type="number"
+                                       min=0
+                                       class="form-control">
+                                  </div>
+                                  <div class="col-sm-2">
+                                      <input type="submit" value="Go"></input>
+                                  </div>
+                              </div>
+                          </form>
+                      </div>
+                  </div>
+                </div>
+            </div>
+
+            <h3>Details</h3>
+	    <h5>flag = 1 (good), 2 (at least 1 run not physics), 3 (bad duration search), 4 (duration less than required), 5 (bad duration), 6 (bad significance), 7 (could not retrieve data)</h5>
+            <table class="table table-bordered table-condensed table-striped">
+                <thead>
+                    <tr>
+                        <th>Run</th>
+                        <th>SubRun</th>
+                        <th>Date</th>
+                        <th>Time</th>
+			<th>Significance</th>
+			<th>Flag</th>
+                        <th># Events</th>
+                        <th>Window duration [h]</th>
+                    </tr>
+                </thead>
+                <tbody>
+                  {% for run in data %}
+                  <tr>
+		      <td><a href="{{ url_for('presn_run_detail', run_number=run['run']) }}">{{ run['run'] }}</a></td>
+                      <td>{{  run["subrun"] }}</td>
+                      <td>{{  run["date"] }}</td>
+                      <td>{{  run["time"] }}</td>
+		      <td>{{  run["significance"] }}</td>
+		      <td>{{  run["flag"] }}</td>
+                      <td>{{  run["nevents"] }}</td>
+                      <td>{{  run["duration"] }}</td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+            </table>
+            {% if ( (offset > limit-1) and (search != null) ) %}
+              <a href="{{ url_for("presn", offset=offset-limit, limit=limit, search=search, start=start, end=end) }}">Back</a>
+            {% elif (offset > limit-1) %}
+              <a href="{{ url_for("presn", offset=offset-limit, limit=limit) }}">Back</a>
+            {% endif %}
+            {% if ( (total > offset + limit) and (search != null) ) %}
+              <a href="{{ url_for("presn", offset=offset+limit, limit=limit, search=search, start=start, end=end) }}">Next</a>
+            {% elif (total > offset + limit) %}
+              <a href="{{ url_for("presn", offset=offset+limit, limit=limit) }}">Next</a>
+            {% endif %}
+        </div>
+      </div>
+    </div>
+
+
+{% endblock %}
+{% block script %}
+    <script src="{{ url_for('static', filename='js/burst.js') }}"></script>
+    <!-- <script src="{{ url_for('static', filename='js/presn.js') }}"></script> -->
+    <script> window.onload = function() {fill_boxes();};</script>
+{% endblock %}

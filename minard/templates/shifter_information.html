@@ -12,16 +12,25 @@
     <h1 align="center">Shifter Information</h1> <br>
     <table class="table">
       <tr>
+          <th> <h3> Shifter </h3> </th>
+          <th> <h3> Expert </h3> </th>
+          <th> <h3> Supernova Expert </h3> </th>
+      <tr>
+      <tr>
         {% if shifter %} 
-          <td> <h3> <font color='green'> {{ shifter }} </font> </h3> </td>
+          <td> <h4> <font color='green'> {{ shifter }} </font> </h4> </td>
         {% else %}
-          <td> <h3> <font color='red'> No shifter! </font> </h3> </td>
+          <td> <h4> <font color='red'> No shifter! </font> </h4> </td>
         {% endif %}
-        <td> <h3> <font color='green'> {{ updates }} </font> </h3> </td>
         {% if expert %}
-          <td> <h3> <font color='green'> {{ expert }} </font> </h3> </td>
+          <td> <h4> <font color='green'> {{ expert }} </font> </h4> </td>
         {% else %}
-          <td> <h3> <font color='red'> No expert! </font> </h3> </td>
+          <td> <h4> <font color='red'> No expert! </font> </h4> </td>
+        {% endif %}
+        {% if supernova_expert %}
+          <td> <h4> <font color='green'> {{ supernova_expert }} </font> </h4> </td>
+        {% else %}
+          <td> <h4> <font color='red'> No supernova expert! </font> </h4> </td>
         {% endif %}
       </tr>
     </table>
@@ -42,20 +51,13 @@
            <td> Required, current on-call expert. </td> 
          </tr>
          <tr>
+           <td> {{ render_field(form.supernova_expert) }} </td>
+           <td> Required, current on-call supernova expert. </td> 
+         </tr>
+         <tr>
            <td> {{ render_field(form.email) }} </td>
            <td> Optional, leave empty to not receive email alerts.<br>
                 Use full address (eg, username@aol.com) </td>
-         </tr>
-         <tr>
-           <td> {{ render_field(form.phone) }} </td>
-           <td> Note: Texting alerts currently not implemented, you will not receive text alerts. <br>
-                Optional, you can leave this empty. <br>
-                To fill out use format: 15559998888 </td>
-         </tr>
-         <tr>
-           <td> {{ render_field(form.country) }} </td>
-           <td> Optional, you can leave this empty. <br>
-                This is the country associated with your phone number. </td> 
          </tr>
       </table>
       <button type="submit">Submit</button>

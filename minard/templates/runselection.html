@@ -59,45 +59,32 @@
                         </tr>
                     </thead>
                     <tbody>
-                        {% for i in range(physics_run_numbers|length) %}
-                            {% if run_info[physics_run_numbers[i]] == -1 or criteria not in run_info[physics_run_numbers[i]].keys() %}
-                                {% if result == 'All' %}
-                                    <tr class="bg-danger" >
-                                        <td>
-                                            {{physics_run_numbers[i]}}
-                                        </td>
-                                        <td colspan="10" style="text-align:center;">
-                                            <b> No RS result present for run. </b>
-                                        </td>
-                                    </tr>
-                                {% endif %}
-                            {% elif run_info[physics_run_numbers[i]][criteria] == -1%}
-                                {% if result == 'all' %}
-                                    <tr class="bg-danger" >
-                                        <td>
-                                            {{physics_run_numbers[i]}}
-                                        </td>
-                                        <td colspan="10" style="text-align:center;">
-                                            <b> No RS result present for run. </b>
-                                        </td>
-                                    </tr>
-                                {% endif %}
-                            {% else %}
+                        {% if run_info == False %}
+                            <tr class="bg-danger" >
+                                <td>
+                                    {{"N/A"}}
+                                </td>
+                                <td colspan="10" style="text-align:center;">
+                                    <b> No RS results present for selected range. </b>
+                                </td>
+                            </tr>
+                        {% else %}
+                            {% for run_number in run_info.keys() %}
                                 <tr>
-                                    <td><a href="{{ url_for('runselection_run_number', run_number=physics_run_numbers[i])}}">{{physics_run_numbers[i]}}</a></td>
-                                    {% if run_info[physics_run_numbers[i]][criteria]["decision"]["result"] == True %}
+                                    <td><a href="{{ url_for('runselection_run_number', run_number=run_number)}}">{{run_number}}</a></td>
+                                    {% if run_info[run_number][criteria]["meta_data"]["decision"]["result"] == True %}
                                     <td><font color="green">Pass</font></td>
-                                    {% elif run_info[physics_run_numbers[i]][criteria]["decision"]["result"] == None %}
+                                    {% elif run_info[run_number][criteria]["meta_data"]["decision"]["result"] == None %}
                                     <td>Purgatory</td>
                                     {% else %}
                                     <td><font color="red">Fail</font></td>
                                     {% endif %}
-                                    <td>{{ run_info[physics_run_numbers[i]][criteria]["index"] }}</td>
-                                    <td>{{ run_info[physics_run_numbers[i]][criteria]["name"] }}</td>
-                                    <td>{{ run_info[physics_run_numbers[i]][criteria]["time"] }}</td>
+                                    <td>{{ run_info[run_number][criteria]["meta_data"]["index"] }}</td>
+                                    <td>{{ run_info[run_number][criteria]["name"] }}</td>
+                                    <td>{{ run_info[run_number][criteria]["timestamp"] }}</td>
                                 </tr> 
-                            {% endif %}
-                        {% endfor %}
+                            {% endfor %}
+                        {% endif %}
                     </tbody>
                 </table>
             </div>

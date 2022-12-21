@@ -1,279 +1,3 @@
-{% macro collapsible_header(title,name,run_data,criteria_data) %}
-<div class="row">
-  <div class="col-md-12">
-    <div class="panel-group">
-      <div class="panel panel-default">
-        <div class="panel-heading">
-          <h4 id="title-{{name}}" class="panel-title">
-            <a data-toggle="collapse" href="#collapse{{title}}">
-              <b>{{title}}</b>
-            </a>
-          </h4>
-        </div>
-        <div id="collapse{{title}}" class="panel-collapse collapse out">
-          <div class='panel-body' id='{{name}}'>
-            {{ caller() }}
-            {% for key in run_data[title]["decision"]["rs_modules"] %}
-              {% if key != "dqll" %}
-                <div class="row">
-                  <div class="col-md-12">
-                    <div class="panel panel-default" style="margin-bottom: 20px">
-                      <div class="panel-heading">
-                        <!-- <h1 class="panel-title"><b>{{ key }}</b></h1> -->
-                        <h4 id="title-{{name}}" class="panel-title">
-                          <a data-toggle="collapse" href="#collapse{{key}}">
-                            <b>{{key}}</b>
-                          </a>
-                        </h4>
-                      </div>
-                      <div id="collapse{{key}}" class="panel-collapse collapse out">
-                      <!-- </div> -->
-                        <div class="panel-body">
-                          <div class="row">
-                            <div class="col-md-12">
-                              <table class="table">
-                                <thead>
-                                  <tr>
-                                    <th width=25.0%>Check</th>
-                                    <th width=30.0%>Threshold</th>
-                                    <th width=30.0%>Value</th>
-                                    <th width=15.0%>Result</th>
-                                  </tr>
-                                </thead>
-                                <tbody>
-                                  {% if "error" in run_data[title][key].keys() %}
-                                    <tr class="bg-danger" >
-                                      <td colspan="12" style="text-align:center;">
-                                        <b> No data for {{ key }}! </b>
-                                      </td>
-                                    </tr>
-                                  {% else %}
-                                    {% for subkey in run_data[title][key]["results"] %}
-                                      {% if subkey != "and_result" %}
-                                        {% set subkeyResult = [] %}
-                                        {% if run_data[title][key]["results"][subkey] is mapping %}
-                                          {% for subsubkey in run_data[title][key]["results"][subkey].keys() %}
-                                            {% if run_data[title][key]["results"][subkey][subsubkey] == false %}
-                                              {% if subkeyResult.append(1) %}
-                                              {% endif %}
-                                            {% endif %}
-                                          {% endfor %}
-                                        {% else %}
-                                          {% if run_data[title][key]["results"][subkey] == false %}
-                                            {% if subkeyResult.append(1) %}
-                                            {% endif %}
-                                          {% endif %}
-                                        {% endif %}
-                                        {% if subkeyResult %}
-                                          <tr class="bg-danger" >
-                                            <td>{{ subkey }}</td>
-
-                                            {% if subkey == "alarms" %}
-                                              <td>
-                                                {% for subsubkey in criteria_data[title][key][subkey].keys() %}
-                                                  {% if loop.first %}
-                                                    <li> {{ subsubkey }} </li>
-                                                  {% else %}
-                                                    <li>{{ subsubkey }}</li>
-                                                  {% endif %}
-                                                {% endfor %}
-                                              </td>
-                                            {% elif key == "channel_flags" %}
-                                              <td>
-                                                {% for subsubkey in criteria_data[title][key] %}
-                                                  <li>{{ subsubkey }} : {{ criteria_data[title][key][subsubkey] }} </li>
-                                                {% endfor %}
-                                              </td>
-                                            {% elif key == "dqhl" %}
-                                              <td>
-                                                {% for subsubkey in criteria_data[title][key] %}
-                                                  {% if subsubkey in run_data[title][key]["notes"][subkey] %}
-                                                    <li>{{ subsubkey }} : {{'%0.2f' % criteria_data[title][key][subsubkey]|float }} </li>
-                                                  {% endif %}
-                                                {% endfor %}
-                                              </td>
-                                            {% elif criteria_data[title][key][subkey] is iterable and (criteria_data[title][key][subkey] is not string and criteria_data[title][key][subkey] is not mapping) %}
-                                              <td>
-                                                {% for subsubkey in criteria_data[title][key][subkey] %}
-                                                  <li>{{ subsubkey }} </li>
-                                                {% endfor %}
-                                              </td>
-                                            {% else %}
-                                              <td>{{ criteria_data[title][key][subkey] }}</td>
-                                            {% endif %}
-
-                                            {% if "notes" in run_data[title][key].keys()%}
-                                              {% if subkey in run_data[title][key]["notes"].keys()%}
-                                                {% if run_data[title][key]["notes"][subkey] is mapping %}
-                                                  {% if subkey in run_data[title][key]["notes"][subkey].keys() %}
-                                                    {% for subsubkey in run_data[title][key]["notes"][subkey] %}
-                                                      {% if subsubkey == subkey %}
-                                                        <td>{{ run_data[title][key]["notes"][subkey][subsubkey] }}</td>
-                                                      {% endif %}
-                                                    {% endfor %}
-                                                  {% else %}
-                                                    <td>
-                                                    {% for subsubkey in run_data[title][key]["notes"][subkey] %}
-                                                      {% if loop.first %}
-                                                        {% if subkey == "alarms" %}
-                                                          <li>{{ run_data[title][key]["notes"][subkey][subsubkey]["description"] }}</li>
-                                                        {% else %}
-                                                          <li>{{ subsubkey }} : {{'%0.2f' % run_data[title][key]["notes"][subkey][subsubkey]|float }}</li>
-                                                        {% endif %}
-                                                      {% else %}
-                                                        {% if subkey == "alarms" %}
-                                                          <li>{{ run_data[title][key]["notes"][subkey][subsubkey]["description"] }}</li>
-                                                        {% else %}
-                                                          <li>{{ subsubkey }} : {{'%0.2f' % run_data[title][key]["notes"][subkey][subsubkey]|float }}</li>
-                                                        {% endif %}
-                                                      {% endif %}
-                                                    {% endfor %}
-                                                    </td>
-                                                  {% endif %}
-                                                {% else %}
-                                                  {% if run_data[title][key]["notes"][subkey] is iterable and (run_data[title][key]["notes"][subkey] is not string and run_data[title][key]["notes"][subkey] is not mapping) %}
-                                                    <td>{{ run_data[title][key]["notes"][subkey][0] }}</td>
-                                                  {% else %}
-                                                    <td>{{ run_data[title][key]["notes"][subkey] }}</td>
-                                                  {% endif %}
-                                                {% endif %}
-                                              {% else %}
-                                                <td>0</td>
-                                              {% endif %}
-                                            {% else %}
-                                              <td>0</td>
-                                            {% endif %}
-
-                                            {% if run_data[title][key]["results"][subkey] is mapping %}
-                                              <td>
-                                              {% for subsubkey in run_data[title][key]["results"][subkey].keys() %}
-                                                {% if loop.first %}
-                                                  {{ subsubkey }} : {{ run_data[title][key]["results"][subkey][subsubkey] }}
-                                                {% else %}
-                                                  <br> {{ subsubkey }} : {{ run_data[title][key]["results"][subkey][subsubkey] }}
-                                                {% endif %}
-                                              {% endfor %}
-                                              </td>
-                                            {% else %}
-                                              <td>{{ run_data[title][key]["results"][subkey] }}</td>
-                                            {% endif %}
-                                          </tr>
-                                        {% else %}
-                                          <tr class="bg-success">
-                                            <td>{{ subkey }}</td>
-                                            {% if subkey == "alarms" %}
-                                              <td>
-                                                <ul>
-                                                  {% for subsubkey in criteria_data[title][key][subkey].keys() %}
-                                                    {% if loop.first %}
-                                                      <li> {{ subsubkey }} </li>
-                                                    {% else %}
-                                                      <li>{{ subsubkey }}</li>
-                                                    {% endif %}
-                                                  {% endfor %}
-                                                </ul>
-                                              </td>
-                                            {% elif key == "channel_flags" %}
-                                              <td>
-                                                {% for subsubkey in criteria_data[title][key] %}
-                                                  <li>{{ subsubkey }} : {{ criteria_data[title][key][subsubkey] }} </li>
-                                                {% endfor %}
-                                              </td>
-                                            {% elif key == "dqhl" %}
-                                              <td>
-                                                {% for subsubkey in criteria_data[title][key] %}
-                                                  {% if subsubkey in run_data[title][key]["notes"][subkey] %}
-                                                    <li>{{ subsubkey }} : {{'%0.2f' % criteria_data[title][key][subsubkey]|float }} </li>
-                                                  {% endif %}
-                                                {% endfor %}
-                                              </td>
-                                            {% elif criteria_data[title][key][subkey] is iterable and (criteria_data[title][key][subkey] is not string and criteria_data[title][key][subkey] is not mapping) %}
-                                              <td>
-                                                {% for subsubkey in criteria_data[title][key][subkey] %}
-                                                  <li>{{ subsubkey }} </li>
-                                                {% endfor %}
-                                              </td>
-                                            {% else %}
-                                              <td>{{ criteria_data[title][key][subkey] }}</td>
-                                            {% endif %}
-                                            {% if "notes" in run_data[title][key].keys()%}
-                                              {% if subkey in run_data[title][key]["notes"].keys()%}
-                                                {% if run_data[title][key]["notes"][subkey] is mapping %}
-                                                  {% if subkey in run_data[title][key]["notes"][subkey].keys() %}
-                                                    {% for subsubkey in run_data[title][key]["notes"][subkey] %}
-                                                      {% if subsubkey == subkey %}
-                                                        <td>{{ run_data[title][key]["notes"][subkey][subsubkey] }}</td>
-                                                      {% endif %}
-                                                    {% endfor %}
-                                                  {% else %}
-                                                    <td>
-                                                    {% for subsubkey in run_data[title][key]["notes"][subkey] %}
-                                                      {% if loop.first %}
-                                                        {% if subkey == "alarms" %}
-                                                          <li>{{ run_data[title][key]["notes"][subkey][subsubkey]["description"] }}</li>
-                                                        {% else %}
-                                                          <li>{{ subsubkey }} : {{'%0.2f' % run_data[title][key]["notes"][subkey][subsubkey]|float }}</li>
-                                                        {% endif %}
-                                                      {% else %}
-                                                        {% if subkey == "alarms" %}
-                                                          <li>{{ run_data[title][key]["notes"][subkey][subsubkey]["description"] }}</li>
-                                                        {% else %}
-                                                          <li>{{ subsubkey }} : {{'%0.2f' % run_data[title][key]["notes"][subkey][subsubkey]|float }}</li>
-                                                        {% endif %}
-                                                      {% endif %}
-                                                    {% endfor %}
-                                                    </td>
-                                                  {% endif %}
-                                                {% else %}
-                                                  {% if run_data[title][key]["notes"][subkey] is iterable and (run_data[title][key]["notes"][subkey] is not string and run_data[title][key]["notes"][subkey] is not mapping) %}
-                                                    <td>{{ run_data[title][key]["notes"][subkey][0] }}</td>
-                                                  {% else %}
-                                                    <td>{{ run_data[title][key]["notes"][subkey] }}</td>
-                                                  {% endif %}
-                                                {% endif %}
-                                              {% else %}
-                                                <td>0</td>
-                                              {% endif %}
-                                            {% else %}
-                                              <td>0</td>
-                                            {% endif %}
-
-                                            {% if run_data[title][key]["results"][subkey] is mapping %}
-                                              <td>
-                                              {% for subsubkey in run_data[title][key]["results"][subkey] %}
-                                                {% if loop.first %}
-                                                  {{ subsubkey }} : {{ run_data[title][key]["results"][subkey][subsubkey] }}
-                                                {% else %}
-                                                  <br> {{ subsubkey }} : {{ run_data[title][key]["results"][subkey][subsubkey] }}
-                                                {% endif %}
-                                              {% endfor %}
-                                              </td>
-                                            {% else %}
-                                              <td>{{ run_data[title][key]["results"][subkey] }}</td>
-                                            {% endif %}
-                                          </tr>
-                                        {% endif %}
-                                      {% endif %}
-                                    {% endfor %}
-                                  {% endif %}
-                                </tbody>
-                              </table>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              {% endif %}
-            {% endfor %}
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-{% endmacro %}
 {% extends "layout.html" %}
 {% block title %}Run Selection Run Detail{% endblock %}
 {% block head %}
@@ -283,12 +7,17 @@
 {% block body %}
   {{ super() }}
 
+  <!-- Start Page -->
   <div class="container">
+
+    <!-- Page Title -->
     <div class="row">
       <div class="col-md-12">
-        <h1 style="text-align:center">Run selection for run {{ run_number }}</h1>
+        <h1 style="text-align:center">Run Selection for Run {{ run_number }}</h1>
       </div>
     </div>
+
+    <!-- General Information Table -->
     <div class="row">
       <div class="col-md-12">
         <div class="panel panel-default">
@@ -306,50 +35,18 @@
                     </tr>
                   </thead>
                   <tbody>
+                    {% for parameter in general_info.keys() %}
                     <tr>
-                      <td>Run</td>
-                      <td>{{ run_info[run_number][run_info[run_number].keys()[0]]["run_range"][0] }}</td>
-                    </tr>
-                    <tr>
-                      <td>Start timestamp</td>
-                      <td>{{ run_info[run_number][run_info[run_number].keys()[0]]["run_time"]["notes"]["dt"]["timestamp"] }}</td>
-                    </tr>
-                    <tr>
-                      <td>Duration</td>
-                      <td>{{ run_info[run_number][run_info[run_number].keys()[0]]["run_time"]["notes"]["dt"]["orca_duration"] }} s</td>
-                    </tr>
-                    <tr>
-                      <td>Criteria</td>
-                      <td>
-                        {% for criteria in run_info[run_number].keys() %}
-                        {% if loop.last %}
-                          {{criteria}}
-                        {% else %}
-                          {{criteria}},
-                        {% endif %}
-                        {% endfor %} 
-                      </td>
-                    </tr>
-                    {% for index in run_info[run_number].keys() %}
-                    <tr>
-                      <td>{{ index }} result</td>
-                      {% if run_info[run_number][index]["decision"]["result"] == true %}
-                      <td><font color="green">Pass</font></td>
-                      {% elif run_info[run_number][index]["decision"]["result"] == none %}
-                      <td>Purgatory</td>
+                      <td>{{ parameter }}</td>
+                      {% if general_info[parameter] == "Pass" %}
+                        <td><font color="green">Pass</font></td>
+                      {% elif general_info[parameter] == "Fail" %}
+                        <td><font color="red">Fail</font></td>
                       {% else %}
-                      <td><font color="red">Fail</font></td>
+                        <td>{{ general_info[parameter] }}</td>
                       {% endif %}
                     </tr>
                     {% endfor %}
-                    <tr>
-                      <td>Last reviewed</td>
-                      <td>{{ run_info[run_number][run_info[run_number].keys()[0]]["time"] }}</td>
-                    </tr>
-                    <tr>
-                      <td>Last reviewer</td>
-                      <td>{{ run_info[run_number][run_info[run_number].keys()[0]]["name"] }}</td>
-                    </tr>
                   </tbody>
                 </table>
               </div>
@@ -359,25 +56,122 @@
       </div>
     </div>
 
+    <!-- Run Selection Results Title -->
     <div class="row">
       <div class="col-md-12">
         <h1 style="text-align:left">Run selection results</h1>
       </div>
     </div>
 
-    {% for index in run_info[run_number].keys() %}
-    {% if index %}
-        {% call collapsible_header(index,'index',run_info[run_number],criteria_info) %}
-        {% endcall %}
-    {% endif %}
-    {% endfor %} 
+    <!-- Run Selection Results Collapsable Tabs -->
+    {% for criteria in display_info.keys() %}
+    <div class="row">
+      <div class="col-md-12">
+        <div class="panel-group">
+          <div class="panel panel-default">
 
+            <!-- Collapsable header title for criteria tag -->
+            <div class="panel-heading">
+              <h4 id="title-{{name}}" class="panel-title">
+                <a data-toggle="collapse" href="#collapse{{title}}">
+                  {% if display_info[criteria]["criteria_result"] == true %}
+                    <b><font color="green">{{ criteria }}</font></b>
+                  {% elif display_info[criteria]["criteria_result"] == false %}
+                    <b><font color="red">{{ criteria }}</font></b>
+                  {% else %}
+                    <b>{{ criteria }}</b>
+                  {% endif %}
+                </a>
+              </h4>
+            </div>
+
+            <!-- Collapsable body for criteria tag -->
+            <div id="collapse{{title}}" class="panel-collapse collapse out">
+              <div class='panel-body' id='{{name}}'>
+                {{ caller() }}
+                {% for rs_module in display_info[criteria]["rs_modules"].keys() %}
+                  <div class="row">
+                    <div class="col-md-12">
+                      <div class="panel panel-default" style="margin-bottom: 20px">
+
+                        <!-- RS-Module Header -->
+                        <div class="panel-heading">
+                          <h4 id="title-{{name}}" class="panel-title">
+                            <a data-toggle="collapse" href="#collapse{{key}}">
+                              {% if display_info[criteria]["rs_modules"][rs_module]["module_result"] == true %}
+                                <b><font color="green">{{ rs_module }}</font></b>
+                              {% elif display_info[criteria]["rs_modules"][rs_module]["module_result"] == false %}
+                                <b><font color="red">{{ rs_module }}</font></b>
+                              {% else %}
+                                <b>{{ rs_module }}</b>
+                              {% endif %}
+                              <b>{{key}}</b>
+                            </a>
+                          </h4>
+                        </div>
+
+                        <!-- RS-Module Body -->
+                        <div id="collapse{{key}}" class="panel-collapse collapse out"></div>
+                          <div class="panel-body">
+                            <div class="row">
+                              <div class="col-md-12">
+                                <table class="table">
+
+                                  <!-- Checks columns -->
+                                  <thead>
+                                    <tr>
+                                      <th width=25.0%>Check</th>
+                                      <th width=30.0%>Threshold</th>
+                                      <th width=30.0%>Value</th>
+                                      <th width=15.0%>Result</th>
+                                    </tr>
+                                  </thead>
+
+                                  <!-- Checks -->
+                                  <tbody>
+                                    {% for check in display_info[criteria]["rs_modules"][rs_module]["checks"].keys() %}
+                                      {% if display_info[criteria]["rs_modules"][rs_module]["checks"][check]["Result"] == true %}
+                                        <tr class="bg-success"></tr>
+                                      {% elif display_info[criteria]["rs_modules"][rs_module]["checks"][check]["Result"] == false %}
+                                        <tr class="bg-danger" >
+                                      {% else %}
+                                        <tr>
+                                      {% endif %}
+                                      <!-- Loop through entries (Check, Threshold, Value, Result). They should be in order -->
+                                      {% for entry in display_info[criteria]["rs_modules"][rs_module]["checks"][check].keys() %}
+                                          <td>{{ entry }}</td>
+                                      {% endfor %}
+                                        </tr>
+                                    {% endfor %}
+                                  </tbody>
+
+                                </table>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                      </div>
+                    </div>
+                  </div>
+                {% endfor %}
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+
+    <!-- Run List History Title -->
     <div class="row">
       <div class="col-md-12">
         <h1 style="text-align:left">Run list history</h1>
       </div>
     </div>
 
+    <!-- Run List History Table -->
     <div class="row">
       <div class="col-md-12">
         <table class="table table-striped">
@@ -413,12 +207,14 @@
       </div>
     </div>
 
+    <!-- Run List Control Title -->
     <div class="row">
       <div class="col-md-12">
         <h1 style="text-align:left">Run list control</h1>
       </div>
     </div>
 
+    <!-- Run List Control Section -->
     <div class="row">
       <div class="col-md-12">
         <form action="{{ url_for('runselection_run_number', run_number=run_number)}}" method="POST" role="form">

@@ -353,7 +353,7 @@ def format_general_info(rs_tables, criteria_list):
     for criteria in criteria_list:
         if rs_tables[criteria]['meta_data']['decision']['result'] == True:
             general_info[criteria + ' result'] = "Pass"
-        elif rs_tables[criteria]['meta_data']['decision']['result'] == None:
+        elif rs_tables[criteria]['meta_data']['decision']['result'] == False:
             general_info[criteria + ' result'] = "Fail"
         else:
             general_info[criteria + ' result'] = "Purgatory"

@@ -59,115 +59,129 @@
     <!-- Run Selection Results Title -->
     <div class="row">
       <div class="col-md-12">
-        <h1 style="text-align:left">Run selection results</h1>
+        <h1 style="text-align:left">Run Selection Results</h1>
       </div>
     </div>
 
     <!-- Run Selection Results Collapsable Tabs -->
     {% for criteria in display_info.keys() %}
-    <div class="row">
-      <div class="col-md-12">
-        <div class="panel-group">
-          <div class="panel panel-default">
-
-            <!-- Collapsable header title for criteria tag -->
-            <div class="panel-heading">
-              <h4 id="title-{{name}}" class="panel-title">
-                <a data-toggle="collapse" href="#collapse{{title}}">
-                  {% if display_info[criteria]["criteria_result"] == true %}
-                    <b><font color="green">{{ criteria }}</font></b>
-                  {% elif display_info[criteria]["criteria_result"] == false %}
-                    <b><font color="red">{{ criteria }}</font></b>
-                  {% else %}
-                    <b>{{ criteria }}</b>
-                  {% endif %}
-                </a>
-              </h4>
-            </div>
-
-            <!-- Collapsable body for criteria tag -->
-            <div id="collapse{{title}}" class="panel-collapse collapse out">
-              <div class='panel-body' id='{{name}}'>
-                {{ caller() }}
-                {% for rs_module in display_info[criteria]["rs_modules"].keys() %}
-                  <div class="row">
-                    <div class="col-md-12">
-                      <div class="panel panel-default" style="margin-bottom: 20px">
-
-                        <!-- RS-Module Header -->
-                        <div class="panel-heading">
-                          <h4 id="title-{{name}}" class="panel-title">
-                            <a data-toggle="collapse" href="#collapse{{key}}">
-                              {% if display_info[criteria]["rs_modules"][rs_module]["module_result"] == true %}
-                                <b><font color="green">{{ rs_module }}</font></b>
-                              {% elif display_info[criteria]["rs_modules"][rs_module]["module_result"] == false %}
-                                <b><font color="red">{{ rs_module }}</font></b>
-                              {% else %}
-                                <b>{{ rs_module }}</b>
-                              {% endif %}
-                              <b>{{key}}</b>
-                            </a>
-                          </h4>
-                        </div>
-
-                        <!-- RS-Module Body -->
-                        <div id="collapse{{key}}" class="panel-collapse collapse out"></div>
-                          <div class="panel-body">
-                            <div class="row">
-                              <div class="col-md-12">
-                                <table class="table">
-
-                                  <!-- Checks columns -->
-                                  <thead>
-                                    <tr>
-                                      <th width=25.0%>Check</th>
-                                      <th width=30.0%>Threshold</th>
-                                      <th width=30.0%>Value</th>
-                                      <th width=15.0%>Result</th>
-                                    </tr>
-                                  </thead>
-
-                                  <!-- Checks -->
-                                  <tbody>
-                                    {% for check in display_info[criteria]["rs_modules"][rs_module]["checks"].keys() %}
-                                      {% if display_info[criteria]["rs_modules"][rs_module]["checks"][check]["Result"] == true %}
-                                        <tr class="bg-success"></tr>
-                                      {% elif display_info[criteria]["rs_modules"][rs_module]["checks"][check]["Result"] == false %}
-                                        <tr class="bg-danger" >
-                                      {% else %}
-                                        <tr>
-                                      {% endif %}
-                                      <!-- Loop through entries (Check, Threshold, Value, Result). They should be in order -->
-                                      {% for entry in display_info[criteria]["rs_modules"][rs_module]["checks"][check].keys() %}
-                                          <td>{{ entry }}</td>
+      <div class="row">
+        <div class="col-md-12">
+          <div class="panel-group">
+            <div class="panel panel-default">
+    
+              <!-- Collapsable header title for criteria tag -->
+              <div class="panel-heading">
+                <h4 id="title-{{criteria}}" class="panel-title">
+                  <a data-toggle="collapse" href="#collapse{{criteria}}">
+                    {% if display_info[criteria]["criteria_result"] == true %}
+                      <b><font color="green">{{ criteria }}</font></b>
+                    {% elif display_info[criteria]["criteria_result"] == false %}
+                      <b><font color="red">{{ criteria }}</font></b>
+                    {% else %}
+                      <b>{{ criteria }}</b>
+                    {% endif %}
+                  </a>
+                </h4>
+              </div>
+    
+              <!-- Collapsable body for criteria tag -->
+              <div id="collapse{{criteria}}" class="panel-collapse collapse out">
+                <div class="panel-body" id="{{criteria}}">
+                  {% for rs_module in display_info[criteria]["rs_modules"].keys() %}
+                    <div class="row">
+                      <div class="col-md-12">
+                        <div class="panel panel-default" style="margin-bottom: 20px">
+    
+                          <!-- RS-Module Header -->
+                          <div class="panel-heading">
+                            <h1 class="panel-title">
+                              <a data-toggle="collapse" href="#collapse{{criteria}}-{{rs_module}}">
+                                {% if display_info[criteria]["rs_modules"][rs_module]["module_result"] == true %}
+                                  <font color="green">{{ rs_module }}</font>
+                                {% elif display_info[criteria]["rs_modules"][rs_module]["module_result"] == false %}
+                                  <font color="red">{{ rs_module }}</font>
+                                {% else %}
+                                  {{ rs_module }}
+                                {% endif %}
+                              </a>
+                            </h1>
+                          </div>
+    
+                          <!-- RS-Module Body -->
+                          <div id="collapse{{criteria}}-{{rs_module}}" class="panel-collapse collapse out">
+                            <div class="panel-body" id="{{criteria}}-{{rs_module}}">
+                              <div class="row">
+                                <div class="col-md-12">
+                                  <table class="table">
+    
+                                    <!-- Checks columns -->
+                                    <thead>
+                                      <tr>
+                                        <th width=25.0%>Check</th>
+                                        <th width=30.0%>Threshold</th>
+                                        <th width=30.0%>Value</th>
+                                        <th width=15.0%>Result</th>
+                                      </tr>
+                                    </thead>
+    
+                                    <!-- Checks -->
+                                    <tbody>
+                                      {% for check in display_info[criteria]["rs_modules"][rs_module]["checks"].keys() %}
+                                        {% if display_info[criteria]["rs_modules"][rs_module]["checks"][check]["Result"] == "Pass" %}
+                                          <tr class="bg-success">
+                                        {% elif display_info[criteria]["rs_modules"][rs_module]["checks"][check]["Result"] == "Fail" %}
+                                          <tr class="bg-danger">
+                                        {% else %}
+                                          <tr>
+                                        {% endif %}
+                                            <td>{{ display_info[criteria]["rs_modules"][rs_module]["checks"][check]["Check"] }}</td>
+                                            <td>
+                                              {% if display_info[criteria]["rs_modules"][rs_module]["checks"][check]["Threshold"] is mapping %}
+                                              {% for subcheck in display_info[criteria]["rs_modules"][rs_module]["checks"][check]["Threshold"] %}
+                                                <li> {{ display_info[criteria]["rs_modules"][rs_module]["checks"][check]["Threshold"][subcheck] }} </li>
+                                              {% endfor %}
+                                              {% else %}
+                                                {{ display_info[criteria]["rs_modules"][rs_module]["checks"][check]["Threshold"] }}
+                                              {% endif %}
+                                            </td>
+                                            <td>
+                                              {% if display_info[criteria]["rs_modules"][rs_module]["checks"][check]["Value"] is mapping %}
+                                              {% for subcheck in display_info[criteria]["rs_modules"][rs_module]["checks"][check]["Value"] %}
+                                                <li> {{ display_info[criteria]["rs_modules"][rs_module]["checks"][check]["Value"][subcheck] }} </li>
+                                              {% endfor %}
+                                              {% else %}
+                                                {{ display_info[criteria]["rs_modules"][rs_module]["checks"][check]["Value"] }}
+                                              {% endif %}
+                                            </td>
+                                            <td>{{ display_info[criteria]["rs_modules"][rs_module]["checks"][check]["Result"] }}</td>
+                                          </tr>
                                       {% endfor %}
-                                        </tr>
-                                    {% endfor %}
-                                  </tbody>
-
-                                </table>
+                                    </tbody>
+    
+                                  </table>
+                                </div>
                               </div>
                             </div>
                           </div>
+    
                         </div>
-
                       </div>
                     </div>
-                  </div>
-                {% endfor %}
+                  {% endfor %}
+                </div>
               </div>
+    
             </div>
-
           </div>
         </div>
       </div>
-    </div>
     {% endfor %}
 
     <!-- Run List History Title -->
     <div class="row">
       <div class="col-md-12">
-        <h1 style="text-align:left">Run list history</h1>
+        <h1 style="text-align:left">Run List History</h1>
       </div>
     </div>
 
@@ -210,7 +224,7 @@
     <!-- Run List Control Title -->
     <div class="row">
       <div class="col-md-12">
-        <h1 style="text-align:left">Run list control</h1>
+        <h1 style="text-align:left">Run List Control</h1>
       </div>
     </div>
 

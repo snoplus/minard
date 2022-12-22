@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+# Need comment above to use bullet-point character
 from wtforms import Form, BooleanField, StringField, PasswordField, validators
 from .db import engine, engine_nl
 from collections import OrderedDict
@@ -5,7 +7,6 @@ import psycopg2
 import psycopg2.extras
 from datetime import datetime
 from dateutil import tz, parser
-import numpy as np
 import pytz
 from .views import app
 
@@ -232,9 +233,9 @@ def get_filtered_RS_tables(run_max, offset, limit, result, criteria):
     '''Download run-selection tables in range, and keep only ones with desired result'''
 
     # Download a few more runs than limit, in case some don't meet conditions
-    rs_tables = get_RS_reports(criteria=criteria, run_max=run_max, limit = (offset + limit) * 2, table_type='RS_REPORT')
+    rs_tables = get_RS_reports(criteria=criteria, run_max=run_max, limit = (offset + limit) * 2)
     if rs_tables is False:
-        return False, True
+        return False, False, True
 
     no_more_tables = False
     if len(rs_tables) < ((offset + limit) * 2):
@@ -247,15 +248,19 @@ def get_filtered_RS_tables(run_max, offset, limit, result, criteria):
     resultMapping = {'Pass': True, 'Purgatory': None, 'Fail': False}
 
     # We only want to display runs with the specified result
-    if result != 'All':
+    run_numbers = []
+    if result == 'All':
         filtered_rs_tables = rs_tables
+        for run_number in filtered_rs_tables:
+            run_numbers.append(run_number)
     else:
         filtered_rs_tables = {}
         for run_number in rs_tables:
             if rs_tables[run_number][criteria]['meta_data']['decision']['result'] == resultMapping[result]:
                 filtered_rs_tables[run_number] = rs_tables[run_number]
+                run_numbers.append(run_number)
 
-    return filtered_rs_tables, no_more_tables
+    return filtered_rs_tables, run_numbers, no_more_tables
 
 def list_runs_info(limit, offset, result, criteria):
     '''Want a list of runs that satisfy condition from (latest run - offset)
@@ -264,7 +269,7 @@ def list_runs_info(limit, offset, result, criteria):
     of runs = limit, no matter the conditions.'''
 
     # Get filtered runs (download twice as many runs as needed, then filter by result)
-    filtered_rs_tables, no_more_tables = get_filtered_RS_tables(None, offset, limit, result, criteria)
+    filtered_rs_tables, run_numbers, no_more_tables = get_filtered_RS_tables(None, offset, limit, result, criteria)
     if filtered_rs_tables is False:
         print('WARNING: No runs found for limit {}, offset {}, result {} and criteria {}'.format(limit, offset, result, criteria))
         return False
@@ -272,13 +277,19 @@ def list_runs_info(limit, offset, result, criteria):
     # If there aren't enough, keep downloading more runs until we get enough. Either until enough
     # are downloaded, or there are no more tables to download, or reach a hard cap in number of loops (just in case).
     num_loops = 0
-    while (len(filtered_rs_tables) <= (offset + limit)) and (no_more_tables == False) and (num_loops <= 100):
-        earliest_run = filtered_rs_tables[-1]['meta_data']['run_range'][0]
-        new_filtered_rs_tables, no_more_tables = get_filtered_RS_tables(earliest_run-1, offset, limit, result, criteria)
-        filtered_rs_tables += new_filtered_rs_tables
+    while (len(run_numbers) <= (offset + limit)) and (no_more_tables == False) and (num_loops <= 100):
+        earliest_run = run_numbers[-1]
+        new_filtered_rs_tables, new_run_numbers, no_more_tables = get_filtered_RS_tables(earliest_run-1, offset, limit, result, criteria)
+        filtered_rs_tables.update(new_filtered_rs_tables)
+        run_numbers += new_run_numbers
         num_loops += 1
 
-    return new_filtered_rs_tables[offset:(offset+limit)]
+    # Only keep the runs that will be listed on the page
+    final_rs_tables = OrderedDict()
+    for i in range(offset, (offset+limit)):
+        final_rs_tables[run_numbers[i]] = filtered_rs_tables[run_numbers[i]]
+
+    return final_rs_tables
 
 ############ RUNSELECTION_RUN PAGE FUNCTIONS ############
 
@@ -289,12 +300,12 @@ def get_criteria_tables(runNum, crit_version):
 
     # Download criteria tables that match run number and criteria tag(s)
     query = "SELECT meta_data, timestamp FROM run_selection"
-    query += "WHERE run_min <= {} AND (run_max IS NULL OR run_max >= {}) AND type = 'CRITERIA'".format(int(runNum), int(runNum))
+    query += " WHERE run_min <= {} AND (run_max IS NULL OR run_max >= {}) AND type = 'CRITERIA'".format(int(runNum), int(runNum))
     query += " AND ("
     for criteria in crit_version:
         query += "criteria = '{}' OR ".format(criteria)
-    query = query[:-5]  # Remove last ' OR '
-    query += " ORDER BY timestamp DESC LIMIT 50"
+    query = query[:-4]  # Remove last ' OR '
+    query += ") ORDER BY timestamp DESC LIMIT 50"
 
     conn = engine_nl.connect()
     resultQuery = conn.execute(query)
@@ -325,24 +336,7 @@ def get_criteria_tables(runNum, crit_version):
 
     return crit_tables
 
-def format_data(runNum):
-    '''Format information to be used easilt by runselection_run.html template
-    Essentially we want a set of collapsable to look at the results, values
-    and criteria threshold for each rs_module, and for each criteria tag.'''
-
-    ### Download Tables ###
-    rs_tables = get_RS_reports(run_min=runNum, run_max=runNum, limit=50)[runNum]
-    if rs_tables == False:
-        return False
-    crit_version = {}
-    criteria_list = []
-    for criteria in rs_tables: # Get criteria tag and version number for each table
-        crit_version[criteria] = int(rs_tables[criteria]['meta_data']['version'])
-        criteria_list.append(criteria)
-    crit_tables = get_criteria_tables(runNum, crit_version)
-
-
-    ### General Information ###
+def format_general_info(rs_tables, criteria_list):
     general_info = OrderedDict()
     first_table = rs_tables[criteria_list[0]]  # Take first table for general information (no particular reason)
 
@@ -367,9 +361,10 @@ def format_data(runNum):
     general_info['Last reviewed'] = first_table['timestamp']
     general_info['Last reviewer'] = first_table['name']
 
+    return general_info
 
-    ### Run Selection Results ###
-    display_info = {}
+def format_rs_results(rs_tables, crit_tables):
+    display_info = OrderedDict()
     for criteria in rs_tables:
         # A collapsable header for each criteria tag
         if criteria not in crit_tables:
@@ -378,151 +373,112 @@ def format_data(runNum):
         rs_modules = rs_table['decision']['rs_modules']
         crit_table = crit_tables[criteria]['meta_data']
 
-        display_info[criteria] = {}
+        display_info[criteria] = OrderedDict()
         display_info[criteria]['criteria_result'] = rs_table['decision']['result']
-        display_info[criteria]['rs_modules'] = {}
+        display_info[criteria]['rs_modules'] = OrderedDict()
         for rs_module in rs_modules:
             # A (sub)collapsable header for each rs_module
             if rs_module == 'dqll':  # obsolete
                 continue
+
             results = rs_table[rs_module]['results']
-            notes = rs_table[rs_module]['notes']
+            if 'notes' in rs_table[rs_module]:
+                notes = rs_table[rs_module]['notes']
+            else:
+                notes = OrderedDict()
             crits = crit_table[rs_module]
 
-            display_info[criteria]['rs_modules'][rs_module] = {}
-            display_info[criteria]['rs_modules'][rs_module]['checks'] = {}
+            display_info[criteria]['rs_modules'][rs_module] = OrderedDict()
+            display_info[criteria]['rs_modules'][rs_module]['checks'] = OrderedDict()
             for check in results:
                 # A line for each check (except overall rs_module result)
+                # WARNING: This is a mess since RS_reports have a messy inconsistent structure that
+                # doesn't necessarily line up perfectly with the criteria table used to produce them.
                 if check == 'and_result':
                     display_info[criteria]['rs_modules'][rs_module]['module_result'] = results[check]
-
                 else:
-                    display_info[criteria]['rs_modules'][rs_module]['checks'][check] = {}
-                    display_info[criteria]['rs_modules'][rs_module]['checks'][check]['Result'] = results[check]
-
-                    if check not in crits:  # (Deck activity special case, but keeping it general in case)
-                        thresh_str = ''
-                        for deck_activity in crits:
-                            if crits[deck_activity] is not None:  # If it is None, it will not fail the run
-                                thresh_str += '• ' + deck_activity + '\n'
-                        display_info[criteria]['rs_modules'][rs_module]['checks'][check]['Threshold'] = thresh_str[:-3]  # Remove last '\n'
-                    elif isinstance(crits[check], dict):  # (Alarms check special case, but keeping it general in case)
-                        thresh_str = ''
-                        for alarm in crits[check]:
-                            thresh_str += '• ' + alarm + '\n'
-                        display_info[criteria]['rs_modules'][rs_module]['checks'][check]['Threshold'] = thresh_str[:-3]  # Remove last '\n'
+                    display_info[criteria]['rs_modules'][rs_module]['checks'][check] = OrderedDict()
+                    # Get check and overall result
+                    display_info[criteria]['rs_modules'][rs_module]['checks'][check]['Check'] = check
+                    if results[check] == True:
+                        display_info[criteria]['rs_modules'][rs_module]['checks'][check]['Result'] = "Pass"
+                    elif results[check] == False:
+                        display_info[criteria]['rs_modules'][rs_module]['checks'][check]['Result'] = "Fail"
                     else:
-                        display_info[criteria]['rs_modules'][rs_module]['checks'][check]['Threshold'] = crits[check]
+                        display_info[criteria]['rs_modules'][rs_module]['checks'][check]['Result'] = "Purgatory"
 
+                    # How to display the values depends on if there of subchecks, or it's the number of entries in a list that matter, etc
                     if check not in notes:
-                        display_info[criteria]['rs_modules'][rs_module]['checks'][check]['Value'] = 0
+                        if results[check]:
+                            display_info[criteria]['rs_modules'][rs_module]['checks'][check]['Value'] = 0
+                        else:
+                            display_info[criteria]['rs_modules'][rs_module]['checks'][check]['Value'] = 1
                     elif isinstance(notes[check], list):
                         display_info[criteria]['rs_modules'][rs_module]['checks'][check]['Value'] = len(notes[check])
+                    elif isinstance(notes[check], dict):
+                        display_info[criteria]['rs_modules'][rs_module]['checks'][check]['Value'] = OrderedDict()
+                        for subcheck in notes[check]:
+                            string = subcheck
+                            if isinstance(notes[check][subcheck], float):
+                                string += ': {:.2f}'.format(notes[check][subcheck])
+                            else:
+                                string += ': {}'.format(notes[check][subcheck])
+                            display_info[criteria]['rs_modules'][rs_module]['checks'][check]['Value'][subcheck] = string
                     else:
                         display_info[criteria]['rs_modules'][rs_module]['checks'][check]['Value'] = notes[check]
 
+                    # How to display the thresholds depends on if there are subchecks, what it is, etc
+                    if check not in crits:
+                        if isinstance(display_info[criteria]['rs_modules'][rs_module]['checks'][check]['Value'], dict):  # DQHL has subchecks grouped into processors in RS table, but not in criteria table...
+                            display_info[criteria]['rs_modules'][rs_module]['checks'][check]['Threshold'] = OrderedDict()
+                            for subcheck in display_info[criteria]['rs_modules'][rs_module]['checks'][check]['Value']:
+                                if subcheck in crits:
+                                    string = subcheck
+                                    if isinstance(crits[subcheck], float):
+                                        string += ': {:.2f}'.format(crits[subcheck])
+                                    else:
+                                        string += ': {}'.format(crits[subcheck])
+                                    display_info[criteria]['rs_modules'][rs_module]['checks'][check]['Threshold'][subcheck] = string
+                            if len(display_info[criteria]['rs_modules'][rs_module]['checks'][check]['Threshold']) == 0:
+                                display_info[criteria]['rs_modules'][rs_module]['checks'][check]['Threshold'] = ''
+                        else:
+                            display_info[criteria]['rs_modules'][rs_module]['checks'][check]['Threshold'] = ''
+                    elif isinstance(crits[check], dict):
+                        display_info[criteria]['rs_modules'][rs_module]['checks'][check]['Threshold'] = OrderedDict()
+                        for subcheck in crits[check]:
+                            if check == 'alarms':
+                                display_info[criteria]['rs_modules'][rs_module]['checks'][check]['Threshold'][subcheck] = subcheck
+                            else:
+                                string = subcheck
+                                if isinstance(crits[check][subcheck], float):
+                                    string += ': {:.2f}'.format(crits[check][subcheck])
+                                else:
+                                    string += ': {}'.format(crits[check][subcheck])
+                                display_info[criteria]['rs_modules'][rs_module]['checks'][check]['Threshold'][subcheck] = string
+                    else:
+                        display_info[criteria]['rs_modules'][rs_module]['checks'][check]['Threshold'] = crits[check]
 
-    ### Return Data ###
+    return display_info
+
+def format_data(runNum):
+    '''Format information to be used easilt by runselection_run.html template
+    Essentially we want a set of collapsable to look at the results, values
+    and criteria threshold for each rs_module, and for each criteria tag.'''
+
+    # Download Tables
+    rs_tables = get_RS_reports(run_min=runNum, run_max=runNum, limit=50)[runNum]
+    if rs_tables == False:
+        return False
+    crit_version = {}
+    criteria_list = []
+    for criteria in rs_tables: # Get criteria tag and version number for each table
+        crit_version[criteria] = int(rs_tables[criteria]['meta_data']['version'])
+        criteria_list.append(criteria)
+    crit_tables = get_criteria_tables(runNum, crit_version)
+
+
+    # Get formatted info
+    general_info = format_general_info(rs_tables, criteria_list)
+    display_info = format_rs_results(rs_tables, crit_tables)
 
     return general_info, display_info
-
-
-# def import_RS_ratdb(runs, result, limit, offset):
-
-#     if type(runs) == list:
-#         first_run = runs[0]
-#     else:
-#         first_run = runs
-
-#     query = """
-#         SELECT meta_data, name, timestamp
-#         FROM run_selection
-#         WHERE run_min <= {}
-#         AND run_max <= {}
-#         AND type='RS_REPORT'
-#         ORDER BY run_min DESC
-#         """.format(int(first_run + offset), first_run + limit + offset)
-
-#     conn = engine_nl.connect()
-#     resultQuery = conn.execute(query)
-
-#     data = []
-#     names = []
-#     times = []
-#     criterialist = []
-#     for row in resultQuery.fetchall():
-#         data.append(row[0])
-#         names.append([row[1]])
-#         times.append([row[2]])
-#         if data[-1]['index'] not in criterialist:
-#             criterialist.append(data[-1]['index'])
-
-#     info = {}
-
-#     resultMapping = {'Pass': True, 'Purgatory': None, 'Fail': False, 'All': True}
-
-#     for i in range(len(data)):
-#         if (result == 'All' or data[i]['decision']['result'] == resultMapping[result]) and data[i]['version'] > 2:
-#             if int(data[i]['run_range'][0]) not in info.keys():
-#                 info[int(data[i]['run_range'][0])] = {}
-#             info[int(data[i]['run_range'][0])][data[i]['index']] = data[i]
-#             info[int(data[i]['run_range'][0])][data[i]['index']]["name"] = names[i][0]
-#             info[int(data[i]['run_range'][0])][data[i]['index']]["time"] = times[i][0]
-
-#     if type(runs) == list:
-#         for number in runs:
-#             if int(number) not in info.keys():
-#                 info[int(number)] = -1
-#             else:
-#                 for criteria in criterialist:
-#                     if criteria not in info[int(number)].keys():
-#                         info[int(number)][criteria] = -1
-
-#     query = """
-#         SELECT meta_data
-#         FROM run_selection
-#         WHERE run_min <= {}
-#         AND type='CRITERIA'
-#         """.format(int(first_run), int(first_run))
-
-#     resultQuery = conn.execute(query)
-
-#     criteriaInfo = {}
-
-#     for row in resultQuery.fetchall():
-#         criteriaInfo[row[0]["index"]] = row[0]
-
-#     conn.close()
-
-#     criteriaInfo = OrderedDict(sorted(criteriaInfo.items()))
-#     for v in criteriaInfo:
-#         criteriaInfo[v] = OrderedDict(sorted(criteriaInfo[v].items()))
-#         for k in criteriaInfo[v]:
-#             if isinstance(criteriaInfo[v][k], dict):
-#                 criteriaInfo[v][k] = OrderedDict(sorted(criteriaInfo[v][k].items()))
-
-#     try:
-#         info = OrderedDict(sorted(info.items()))
-#         for v in info: #FIXME: Surely a more elegant way of doing this?
-#             info[v] = OrderedDict(sorted(info[v].items()))
-#             for k in info[v]:
-#                 if isinstance(info[v][k], dict):
-#                     info[v][k] = OrderedDict(sorted(info[v][k].items()))
-#                 for l in info[v][k]:
-#                     if isinstance(info[v][k][l], dict): #decision here!
-#                         info[v][k][l] = OrderedDict(sorted(info[v][k][l].items()))
-#                         for m in info[v][k][l]:
-#                             if isinstance(info[v][k][l][m], dict):
-#                                 info[v][k][l][m] = OrderedDict(sorted(info[v][k][l][m].items()))
-#                                 for n in info[v][k][l][m]:
-#                                     if isinstance(info[v][k][l][m][n], dict):
-#                                         info[v][k][l][m][n] = OrderedDict(sorted(info[v][k][l][m][n].items()))
-#                                         for o in info[v][k][l][m][n]:
-#                                             if isinstance(info[v][k][l][m][n][o], dict):
-#                                                 info[v][k][l][m][n][o] = OrderedDict(sorted(info[v][k][l][m][n][o].items())) 
-#                             elif isinstance(info[v][k][l][m], list):
-#                                 info[v][k][l][m] = sorted(info[v][k][l][m])
-#     except:
-#         pass
-
-#     return info, criteriaInfo

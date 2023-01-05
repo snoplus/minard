@@ -273,6 +273,7 @@ def list_runs_info(limit, offset, result, criteria):
     if filtered_rs_tables is False:
         print('WARNING: No runs found for limit {}, offset {}, result {} and criteria {}'.format(limit, offset, result, criteria))
         return False
+    run_numbers.sort(reverse=True)
 
     # If there aren't enough, keep downloading more runs until we get enough. Either until enough
     # are downloaded, or there are no more tables to download, or reach a hard cap in number of loops (just in case).
@@ -282,6 +283,7 @@ def list_runs_info(limit, offset, result, criteria):
         new_filtered_rs_tables, new_run_numbers, no_more_tables = get_filtered_RS_tables(earliest_run-1, offset, limit, result, criteria)
         filtered_rs_tables.update(new_filtered_rs_tables)
         run_numbers += new_run_numbers
+        run_numbers.sort(reverse=True)
         num_loops += 1
 
     # Only keep the runs that will be listed on the page
@@ -380,6 +382,9 @@ def format_rs_results(rs_tables, crit_tables):
             # A (sub)collapsable header for each rs_module
             if rs_module == 'dqll':  # obsolete
                 continue
+            elif 'error' in rs_table[rs_module]:
+                display_info[criteria]['rs_modules'][rs_module] = "NO DATA"
+                continue
 
             results = rs_table[rs_module]['results']
             if 'notes' in rs_table[rs_module]:
@@ -461,12 +466,16 @@ def format_rs_results(rs_tables, crit_tables):
     return display_info
 
 def format_data(runNum):
-    '''Format information to be used easilt by runselection_run.html template
+    '''Format information to be used easily by runselection_run.html template
     Essentially we want a set of collapsable to look at the results, values
     and criteria threshold for each rs_module, and for each criteria tag.'''
 
     # Download Tables
-    rs_tables = get_RS_reports(run_min=runNum, run_max=runNum, limit=50)[runNum]
+    rs_tables = get_RS_reports(run_min=runNum, run_max=runNum, limit=50)
+    if rs_tables == False:
+        return False, False
+    else:
+        rs_tables = rs_tables[runNum]
     if rs_tables == False:
         return False
     crit_version = {}

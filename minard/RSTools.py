@@ -5,9 +5,7 @@ from .db import engine, engine_nl
 from collections import OrderedDict
 import psycopg2
 import psycopg2.extras
-from datetime import datetime
-from dateutil import tz, parser
-import pytz
+from dateutil import parser
 from .views import app
 
 def file_list_form_builder(formobj, runlists, data):
@@ -43,41 +41,6 @@ def get_run_lists():
         data[str(entry[0])] = int(entry[1])
     conn.close()
     return data
-
-def get_timestamp(local_tz=None, local=False, iso=False):
-    if local_tz is None:
-        local_tz = 'UTC'
-
-    lcl_time = datetime.now(pytz.timezone(local_tz))
-    utc_time = lcl_time.astimezone(pytz.utc)
-
-
-    if local:
-        timestamp = lcl_time
-    else:
-        timestamp = utc_time
-
-    if iso:
-        return timestamp.isoformat()
-    else:
-        return timestamp
-
-def writeNewLists(inputTable, form, added, removed):
-    newTable = inputTable
-    newTable["pass"] += 1
-    newTable["timestamp"] = get_timestamp(iso=True)
-    newTable["name"] = form.name.data
-    newTable["comment"] = form.comment.data
-    if added: 
-        newTable["list_added"] = [v for v in added]
-    else:
-        newTable["list_added"] = []
-    if removed:
-        newTable["list_removed"] = [v for v in removed]
-    else:
-        newTable["list_removed"] = []
-    
-    return newTable
 
 def get_list_history(run):
     """
@@ -150,10 +113,12 @@ def decide_replace_table(first_table, second_table, version=None):
     number, then on timestamp'''
 
     if second_table['meta_data']['version'] == first_table['meta_data']['version']:
-        # Current table and saved one have the same version, so compare times
-        first_time = parser.isoparse(str(first_table['timestamp']).replace(' ', 'T', 1))
-        second_time = parser.isoparse(str(second_table['timestamp']).replace(' ', 'T', 1))
-        if second_time > first_time:
+        first_time = first_table['timestamp']
+        second_time = second_table['timestamp']
+        dt = second_table['timestamp'] - first_table['timestamp']
+        dt_seconds = dt.days*3600*12 + dt.seconds
+
+        if dt_seconds > 0:
             return True
         else:
             return False
@@ -343,7 +308,7 @@ def format_general_info(rs_tables, criteria_list):
     first_table = rs_tables[criteria_list[0]]  # Take first table for general information (no particular reason)
 
     general_info['Run'] = first_table['meta_data']['run_range'][0]
-    general_info['Start timestamp'] = first_table['meta_data']['run_time']['notes']['dt']['timestamp']
+    general_info['Start timestamp'] = str(first_table['meta_data']['run_time']['notes']['dt']['timestamp']).split('.')[0]  # Remove nanoseconds
     general_info['Duration'] = first_table['meta_data']['run_time']['notes']['dt']['orca_duration']
 
     crit_str = ''

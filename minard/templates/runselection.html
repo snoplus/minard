@@ -3,14 +3,6 @@
 {% block head %}
   {{ super() }}
   <style>
-    .btn1 {
-        background-color: #FFD700;
-        padding: 6px 6px;
-        text-align: center;
-        font-size: 14px;
-        margin: 4px 2px;
-        cursor: pointer;
-    }
     .btn2 {
         background-color: #228B22;
         padding: 6px 6px;
@@ -28,7 +20,8 @@
     <div class="page-header">
         <h1 align="center">Run Selection</h1>
     </div>
-    
+
+    <!-- Set up display options -->
     <div class="container">
         <div class="col-md-12">
             <table class="table table-hover">
@@ -41,6 +34,7 @@
                 <th> </th>
             </tr>
             <tr>
+                <!-- Number of displayed runs drop-down -->
                 <th> <select id="lim" onchange="get_limit(this.value, {{offset}}, crit.value, res.value, run.value, low.value, high.value);">
                         <option selected value="{{limit}}">{{limit}}</option>
                         {% for n in [10, 25, 50, 100, 500] %}
@@ -50,15 +44,13 @@
                         {% endfor %}
                     </select>
                 </th>
-        
-                <th>
-                    <input style="margin-bottom: 30px; width: 80px;" type="text" id="run" value={{selected_run}} onKeyDown="if(event.keyCode==13) get_limit(lim.value, 0, crit.value, res.value, this.value, low.value, high.value);"></input>
-                </th>
-                <th>
-                    <input style="margin-bottom: 30px; width: 80px;" type="text" id="low" value={{run_range_low}} onKeyDown="if(event.keyCode==13) get_limit(lim.value, 0, crit.value, res.value, run.value, this.value, high.value);"></input>
-                    - <input style="margin-bottom: 30px; width: 80px;" type="text" id="high" value={{run_range_high}} onKeyDown="if(event.keyCode==13) get_limit(lim.value, 0, crit.value, res.value, run.value, low.value, this.value);"></input>
-                </th>
+                
+                <!-- Run number inputs -->
+                <th> <input style="margin-bottom: 30px; width: 80px;" type="text" id="run" value={{selected_run}} onKeyDown="if(event.keyCode==13) get_limit(lim.value, 0, crit.value, res.value, this.value, low.value, high.value);"></input> </th>
+                <th> <input style="margin-bottom: 30px; width: 80px;" type="text" id="low" value={{run_range_low}} onKeyDown="if(event.keyCode==13) get_limit(lim.value, 0, crit.value, res.value, run.value, this.value, high.value);"></input>
+                    - <input style="margin-bottom: 30px; width: 80px;" type="text" id="high" value={{run_range_high}} onKeyDown="if(event.keyCode==13) get_limit(lim.value, 0, crit.value, res.value, run.value, low.value, this.value);"></input></th>
 
+                <!-- Run-selection outcome drop-down -->
                 <th>
                     <select id="res" onchange="get_limit(lim.value, {{offset}}, crit.value, this.value, run.value, low.value, high.value);">
                     <option selected value="{{result}}">{{result}}</option>
@@ -70,6 +62,7 @@
                     </select>
                 </th>
 
+                <!-- Criteria drop-down -->
                 <th>
                     <select id="crit" onchange="get_limit(lim.value, {{offset}}, this.value, res.value, run.value, low.value, high.value);">
                     <option selected value="{{criteria}}">{{criteria}}</option>
@@ -81,6 +74,7 @@
                     </select>
                 </th>
 
+                <!-- Back and Next buttons -->
                 {% if offset == 0 %}
                     <th> <button type="submit" class="btn2" disabled>Back</button> </th>
                     <th> <button type="submit" class="btn2" onclick="get_limit(lim.value, lim.value, crit.value, res.value, run.value, low.value, high.value)">Next</button> </th>
@@ -95,6 +89,7 @@
             </tr>
             </table>
         
+            <!-- Runs list -->
             <table class="table table-hover">
                 <thead>
                     <tr>

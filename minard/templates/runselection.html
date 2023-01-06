@@ -1,0 +1,149 @@
+{% extends "layout.html" %}
+{% block title %}Run Selection{% endblock %}
+{% block head %}
+  {{ super() }}
+  <style>
+    .btn2 {
+        background-color: #228B22;
+        padding: 6px 6px;
+        color: white;
+        text-align: center;
+        font-size: 14px;
+        margin: 4px 2px;
+        cursor: pointer;
+    }
+  </style>
+{% endblock %}
+{% block body %}
+    {{ super() }}
+
+    <div class="page-header">
+        <h1 align="center">Run Selection</h1>
+    </div>
+
+    <!-- Set up display options -->
+    <div class="container">
+        <div class="col-md-12">
+            <table class="table table-hover">
+            <tr>
+                <th> Limit: </th>
+                <th> Select Run: </th>
+                <th> Run Range: </th>
+                <th> Result: </th>
+                <th> Criteria: </th>
+                <th> </th>
+            </tr>
+            <tr>
+                <!-- Number of displayed runs drop-down -->
+                <th> <select id="lim" onchange="get_limit(this.value, {{offset}}, crit.value, res.value, run.value, low.value, high.value);">
+                        <option selected value="{{limit}}">{{limit}}</option>
+                        {% for n in [10, 25, 50, 100, 500] %}
+                            {% if n != limit %}
+                                <option value="{{n}}">{{n}}</option>
+                            {% endif %}
+                        {% endfor %}
+                    </select>
+                </th>
+                
+                <!-- Run number inputs -->
+                <th> <input style="margin-bottom: 30px; width: 80px;" type="text" id="run" value={{selected_run}} onKeyDown="if(event.keyCode==13) get_limit(lim.value, 0, crit.value, res.value, this.value, low.value, high.value);"></input> </th>
+                <th> <input style="margin-bottom: 30px; width: 80px;" type="text" id="low" value={{run_range_low}} onKeyDown="if(event.keyCode==13) get_limit(lim.value, 0, crit.value, res.value, run.value, this.value, high.value);"></input>
+                    - <input style="margin-bottom: 30px; width: 80px;" type="text" id="high" value={{run_range_high}} onKeyDown="if(event.keyCode==13) get_limit(lim.value, 0, crit.value, res.value, run.value, low.value, this.value);"></input></th>
+
+                <!-- Run-selection outcome drop-down -->
+                <th>
+                    <select id="res" onchange="get_limit(lim.value, {{offset}}, crit.value, this.value, run.value, low.value, high.value);">
+                    <option selected value="{{result}}">{{result}}</option>
+                    {% for n in ["All", "Pass", "Fail", "Purgatory"] %}
+                        {% if n != result %}
+                            <option value="{{n}}">{{n}}</option>
+                        {% endif %}
+                    {% endfor %}
+                    </select>
+                </th>
+
+                <!-- Criteria drop-down -->
+                <th>
+                    <select id="crit" onchange="get_limit(lim.value, {{offset}}, this.value, res.value, run.value, low.value, high.value);">
+                    <option selected value="{{criteria}}">{{criteria}}</option>
+                    {% for n in ["scintillator", "partial_fill_antinu", "partial_fill", "water"] %}  <!-- FIXME: make this dynamic !-->
+                        {% if n != criteria %}
+                            <option value="{{n}}">{{n}}</option>
+                        {% endif %}
+                    {% endfor %}
+                    </select>
+                </th>
+
+                <!-- Back and Next buttons -->
+                {% if offset == 0 %}
+                    <th> <button type="submit" class="btn2" disabled>Back</button> </th>
+                    <th> <button type="submit" class="btn2" onclick="get_limit(lim.value, lim.value, crit.value, res.value, run.value, low.value, high.value)">Next</button> </th>
+                {% else %}
+                    {% if limit > offset %}
+                        <th> <button type="submit" class="btn2" disabled>Back</button> </th>
+                    {% else %}
+                        <th> <button type="submit" class="btn2" onclick="get_limit(lim.value, {{offset - limit}}, crit.value, res.value, run.value, low.value, high.value)">Back</button> </th>
+                    {% endif %}
+                    <th> <button type="submit" class="btn2" onclick="get_limit(lim.value, {{offset + limit}}, crit.value, res.value, run.value, low.value, high.value)">Next</button> </th>
+                {% endif %}
+            </tr>
+            </table>
+        
+            <!-- Runs list -->
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Run</th>
+                        <th>Result</th>
+                        <th>Criteria</th>
+                        <th>Overlord</th>
+                        <th>Last review</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if run_info == False %}
+                        <tr class="bg-danger" >
+                            <td>
+                                {{"N/A"}}
+                            </td>
+                            <td colspan="10" style="text-align:center;">
+                                <b> No RS results present for selected range. </b>
+                            </td>
+                        </tr>
+                    {% else %}
+                        {% for run_number in run_info.keys() %}
+                            <tr>
+                                <td><a href="{{ url_for('runselection_run_number', run_number=run_number)}}">{{run_number}}</a></td>
+                                {% if run_info[run_number][criteria]["meta_data"]["decision"]["result"] == True %}
+                                <td><font color="green">Pass</font></td>
+                                {% elif run_info[run_number][criteria]["meta_data"]["decision"]["result"] == None %}
+                                <td>Purgatory</td>
+                                {% else %}
+                                <td><font color="red">Fail</font></td>
+                                {% endif %}
+                                <td>{{ run_info[run_number][criteria]["meta_data"]["index"] }}</td>
+                                <td>{{ run_info[run_number][criteria]["name"] }}</td>
+                                <td>{{ run_info[run_number][criteria]["timestamp"] }}</td>
+                            </tr> 
+                        {% endfor %}
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+{% endblock %}
+{% block script %}
+  <script>
+    function get_limit(limit, offset, criteria, result, selected_run, run_range_low, run_range_high){
+      params = {};
+      params["limit"] = limit;
+      params["offset"] = offset;
+      params["criteria"] = criteria;
+      params["result"] = result;
+      params["selected_run"] = selected_run;
+      params["run_range_low"] = run_range_low;
+      params["run_range_high"] = run_range_high;
+      window.location.replace($SCRIPT_ROOT + "/runselection?" + $.param(params));
+    }
+  </script>
+{% endblock %}

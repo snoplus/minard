@@ -7,6 +7,7 @@ from redis import Redis
 from os.path import join
 import json
 import HLDQTools
+import RSTools
 import requests
 from .tools import parseiso, total_seconds
 from collections import deque, namedtuple
@@ -1888,6 +1889,46 @@ def scint_level():
     av_data = scintillator_level.get_av_z_offset(run_range_low, run_range_high)
     rope_data = scintillator_level.get_av_rope_data(run_range_low, run_range_high)
     return render_template('scint_level.html', scint_data=scint_data, av_data=av_data, rope_data=rope_data, run_range_low=run_range_low, run_range_high=run_range_high)
+
+
+@app.route('/runselection')
+def runselection():
+    limit = request.args.get("limit", 25, type=int)
+    offset = request.args.get("offset", 0, type=int)
+    result = request.args.get("result", "All", type=str)
+    criteria = request.args.get("criteria", "scintillator", type=str)
+    selected_run = request.args.get("selected_run", 0, type=int)
+    run_range_low = request.args.get("run_range_low", 0, type=int)
+    run_range_high = request.args.get("run_range_high", 0, type=int)
+    run_info = RSTools.list_runs_info(limit, offset, result, criteria, selected_run, run_range_low, run_range_high)
+    return render_template('runselection.html', run_info=run_info, criteria=criteria, limit=limit, offset=offset, result=result, selected_run=selected_run, run_range_low=run_range_low, run_range_high=run_range_high)
+
+@app.route('/runselection/<int:run_number>', methods=['GET', 'POST'])
+def runselection_run_number(run_number):
+    # run_info, criteria_info = RSTools.import_RS_ratdb(run_number, 'All', 0, 0)
+    general_info, display_info = RSTools.format_data(run_number)
+    list_history = RSTools.get_list_history(run_number)
+    lists = RSTools.get_run_lists()
+    list_data = RSTools.get_current_lists_run(run_number)
+    if request.form:
+        form = RSTools.file_list_form_builder(request.form, lists, list_data)
+    else:
+        form = RSTools.file_list_form_builder(-1, lists, list_data)
+
+    if request.method == 'POST':
+        if form.validate():
+            try:
+                RSTools.update_run_lists(form, run_number, lists, list_data)
+            except Exception as e:
+                flash(str(e), 'danger')
+                return redirect(url_for('runselection_run_number', run_number=run_number))
+            flash('Successfully submitted', 'success')
+            return redirect(url_for('runselection_run_number', run_number=run_number))
+        else:
+            flash("Unsuccessful: error submitting form", 'danger')
+
+    return render_template('runselection_run.html', run_number=run_number, general_info=general_info, display_info=display_info, list_history=list_history, lists=lists.keys(), form=form)
+
 
 @app.route('/light_level')
 def light_level():

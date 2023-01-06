@@ -1893,12 +1893,15 @@ def scint_level():
 
 @app.route('/runselection')
 def runselection():
-    limit = request.args.get("limit", 10, type=int)
+    limit = request.args.get("limit", 25, type=int)
     offset = request.args.get("offset", 0, type=int)
     result = request.args.get("result", "All", type=str)
     criteria = request.args.get("criteria", "scintillator", type=str)
-    run_info = RSTools.list_runs_info(limit, offset, result, criteria)
-    return render_template('runselection.html', run_info=run_info, criteria=criteria, limit=limit, offset=offset, result=result)
+    selected_run = request.args.get("selected_run", 0, type=int)
+    run_range_low = request.args.get("run_range_low", 0, type=int)
+    run_range_high = request.args.get("run_range_high", 0, type=int)
+    run_info = RSTools.list_runs_info(limit, offset, result, criteria, selected_run, run_range_low, run_range_high)
+    return render_template('runselection.html', run_info=run_info, criteria=criteria, limit=limit, offset=offset, result=result, selected_run=selected_run, run_range_low=run_range_low, run_range_high=run_range_high)
 
 @app.route('/runselection/<int:run_number>', methods=['GET', 'POST'])
 def runselection_run_number(run_number):

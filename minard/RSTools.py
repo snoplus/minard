@@ -194,13 +194,17 @@ def get_RS_reports(criteria=None, run_min=None, run_max=None, limit=None):
 
     return rs_tables
 
-def get_filtered_RS_tables(run_max, offset, limit, result, criteria):
+def get_filtered_RS_tables(run_min, run_max, offset, limit, result, criteria):
     '''Download run-selection tables in range, and keep only ones with desired result'''
 
     # Download a few more runs than limit, in case some don't meet conditions
-    rs_tables = get_RS_reports(criteria=criteria, run_max=run_max, limit = (offset + limit) * 2)
+    rs_tables = get_RS_reports(criteria=criteria, run_min=run_min, run_max=run_max, limit = (offset + limit) * 2)
     if rs_tables is False:
         return False, False, True
+    # Remove nanoseconds and timezone info from timestamps
+    for run in rs_tables:
+        for crit in rs_tables[run]:
+            rs_tables[run][crit]['timestamp'] = str(rs_tables[run][crit]['timestamp']).split('.')[0]
 
     no_more_tables = False
     if len(rs_tables) < ((offset + limit) * 2):
@@ -227,16 +231,31 @@ def get_filtered_RS_tables(run_max, offset, limit, result, criteria):
 
     return filtered_rs_tables, run_numbers, no_more_tables
 
-def list_runs_info(limit, offset, result, criteria):
+def list_runs_info(limit, offset, result, criteria, selected_run, run_range_low, run_range_high):
     '''Want a list of runs that satisfy condition from (latest run - offset)
     to (latest run - offset - limit). Where the runs considered here are only
     those that satisfy the conditions (i.e. we always want to display a number
     of runs = limit, no matter the conditions.'''
 
+    # Get run number limits
+    run_min = None
+    run_max = None
+    if selected_run != 0:
+        run_min = selected_run
+        run_max = selected_run
+    else:
+        if run_range_low != 0:
+            run_min = run_range_low
+        if run_range_high != 0:
+            run_max = run_range_high
+
     # Get filtered runs (download twice as many runs as needed, then filter by result)
-    filtered_rs_tables, run_numbers, no_more_tables = get_filtered_RS_tables(None, offset, limit, result, criteria)
+    filtered_rs_tables, run_numbers, no_more_tables = get_filtered_RS_tables(run_min, run_max, offset, limit, result, criteria)
     if filtered_rs_tables is False:
-        print('WARNING: No runs found for limit {}, offset {}, result {} and criteria {}'.format(limit, offset, result, criteria))
+        print('WARNING: No runs found for run_min {}, run_max {}, limit {}, offset {}, result {} and criteria {}'.format(run_min, run_max, limit, offset, result, criteria))
+        return False
+    elif len(run_numbers) == 0:
+        print('WARNING: No runs found for run_min {}, run_max {}, limit {}, offset {}, result {} and criteria {}'.format(run_min, run_max, limit, offset, result, criteria))
         return False
     run_numbers.sort(reverse=True)
 
@@ -245,7 +264,7 @@ def list_runs_info(limit, offset, result, criteria):
     num_loops = 0
     while (len(run_numbers) <= (offset + limit)) and (no_more_tables == False) and (num_loops <= 100):
         earliest_run = run_numbers[-1]
-        new_filtered_rs_tables, new_run_numbers, no_more_tables = get_filtered_RS_tables(earliest_run-1, offset, limit, result, criteria)
+        new_filtered_rs_tables, new_run_numbers, no_more_tables = get_filtered_RS_tables(run_min, earliest_run-1, offset, limit, result, criteria)
         filtered_rs_tables.update(new_filtered_rs_tables)
         run_numbers += new_run_numbers
         run_numbers.sort(reverse=True)
@@ -254,7 +273,8 @@ def list_runs_info(limit, offset, result, criteria):
     # Only keep the runs that will be listed on the page
     final_rs_tables = OrderedDict()
     for i in range(offset, (offset+limit)):
-        final_rs_tables[run_numbers[i]] = filtered_rs_tables[run_numbers[i]]
+        if i < len(run_numbers):
+            final_rs_tables[run_numbers[i]] = filtered_rs_tables[run_numbers[i]]
 
     return final_rs_tables
 

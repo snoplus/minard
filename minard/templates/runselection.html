@@ -1,93 +1,154 @@
 {% extends "layout.html" %}
-{% block title %}Run Selection {% endblock %}
+{% block title %}Run Selection{% endblock %}
 {% block head %}
-    {{ super() }}
+  {{ super() }}
+  <style>
+    .btn1 {
+        background-color: #FFD700;
+        padding: 6px 6px;
+        text-align: center;
+        font-size: 14px;
+        margin: 4px 2px;
+        cursor: pointer;
+    }
+    .btn2 {
+        background-color: #228B22;
+        padding: 6px 6px;
+        color: white;
+        text-align: center;
+        font-size: 14px;
+        margin: 4px 2px;
+        cursor: pointer;
+    }
+  </style>
 {% endblock %}
 {% block body %}
     {{ super() }}
+
+    <div class="page-header">
+        <h1 align="center">Run Selection</h1>
+    </div>
+    
     <div class="container">
-        <div class="row">
-            <h1>Run Selection</h1>
-            <div class="col-md-2">
+        <div class="col-md-12">
+            <table class="table table-hover">
+            <tr>
+                <th> Limit: </th>
+                <th> Select Run: </th>
+                <th> Run Range: </th>
+                <th> Result: </th>
+                <th> Criteria: </th>
+                <th> </th>
+            </tr>
+            <tr>
+                <th> <select id="lim" onchange="get_limit(this.value, {{offset}}, crit.value, res.value, run.value, low.value, high.value);">
+                        <option selected value="{{limit}}">{{limit}}</option>
+                        {% for n in [10, 25, 50, 100, 500] %}
+                            {% if n != limit %}
+                                <option value="{{n}}">{{n}}</option>
+                            {% endif %}
+                        {% endfor %}
+                    </select>
+                </th>
+        
+                <th>
+                    <input style="margin-bottom: 30px; width: 80px;" type="text" id="run" value={{selected_run}} onKeyDown="if(event.keyCode==13) get_limit(lim.value, 0, crit.value, res.value, this.value, low.value, high.value);"></input>
+                </th>
+                <th>
+                    <input style="margin-bottom: 30px; width: 80px;" type="text" id="low" value={{run_range_low}} onKeyDown="if(event.keyCode==13) get_limit(lim.value, 0, crit.value, res.value, run.value, this.value, high.value);"></input>
+                    - <input style="margin-bottom: 30px; width: 80px;" type="text" id="high" value={{run_range_high}} onKeyDown="if(event.keyCode==13) get_limit(lim.value, 0, crit.value, res.value, run.value, low.value, this.value);"></input>
+                </th>
+
+                <th>
+                    <select id="res" onchange="get_limit(lim.value, {{offset}}, crit.value, this.value, run.value, low.value, high.value);">
+                    <option selected value="{{result}}">{{result}}</option>
+                    {% for n in ["All", "Pass", "Fail", "Purgatory"] %}
+                        {% if n != result %}
+                            <option value="{{n}}">{{n}}</option>
+                        {% endif %}
+                    {% endfor %}
+                    </select>
+                </th>
+
+                <th>
+                    <select id="crit" onchange="get_limit(lim.value, {{offset}}, this.value, res.value, run.value, low.value, high.value);">
+                    <option selected value="{{criteria}}">{{criteria}}</option>
+                    {% for n in ["scintillator", "partial_fill_antinu", "partial_fill", "water"] %}  <!-- FIXME: make this dynamic !-->
+                        {% if n != criteria %}
+                            <option value="{{n}}">{{n}}</option>
+                        {% endif %}
+                    {% endfor %}
+                    </select>
+                </th>
+
                 {% if offset == 0 %}
-                <button class="btn btn-outline-primary btn-lg" disabled>Back</button>
-                <a class="btn btn-outline-primary btn-lg" href="{{ url_for("runselection", limit=limit, offset=offset+limit, criteria=criteria, result=result) }}">Next</a>
+                    <th> <button type="submit" class="btn2" disabled>Back</button> </th>
+                    <th> <button type="submit" class="btn2" onclick="get_limit(lim.value, lim.value, crit.value, res.value, run.value, low.value, high.value)">Next</button> </th>
                 {% else %}
                     {% if limit > offset %}
-                    <a class="btn btn-outline-primary btn-lg" href="{{ url_for("runselection", limit=limit, offset=0, criteria=criteria, result=result) }}">Back</a>
+                        <th> <button type="submit" class="btn2" disabled>Back</button> </th>
                     {% else %}
-                    <a class="btn btn-outline-primary btn-lg" href="{{ url_for("runselection", limit=limit, offset=offset-limit, criteria=criteria, result=result) }}">Back</a>
+                        <th> <button type="submit" class="btn2" onclick="get_limit(lim.value, {{offset - limit}}, crit.value, res.value, run.value, low.value, high.value)">Back</button> </th>
                     {% endif %}
-                    <a class="btn btn-outline-primary btn-lg" href="{{ url_for("runselection", limit=limit, offset=offset+limit, criteria=criteria, result=result) }}">Next</a>
+                    <th> <button type="submit" class="btn2" onclick="get_limit(lim.value, {{offset + limit}}, crit.value, res.value, run.value, low.value, high.value)">Next</button> </th>
                 {% endif %}
-            </div>
-            <div class="col-md-10 text-right">
-                Result:
-                <select onchange="location=this.options[this.selectedIndex].value;">
-                    {% for i, text in [("All", "All"), ("Pass", "Pass"), ("Fail", "Fail"), ("Purgatory", "Purgatory")] %}
-                        <option {% if result == i %}selected="selected" {% endif %}value="{{url_for("runselection", limit=limit, offset=offset, criteria=criteria, result=i)}}">{{ text }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-            <div class="col-md-10 text-right">
-                Criteria:
-                <select onchange="location=this.options[this.selectedIndex].value;">
-                    {% for i, text in [("scintillator", "scintillator"), ("partial_fill_antinu", "partial_fill_antinu"), ("partial_fill", "partial_fill"), ("water", "water")] %} <!-- FIXME: make this dynamic !-->
-                        <option {% if criteria == i %}selected="selected" {% endif %}value="{{url_for("runselection", limit=limit, offset=offset, criteria=i, result=result)}}">{{ text }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-            <div class="col-md-10 text-right">
-                Runs per page:
-                <select onchange="location=this.options[this.selectedIndex].value;">
-                    {% for i, text in [(10,"10"), (25, "25"), (50, "50"), (100, "100")] %}
-                        <option {% if limit == i %}selected="selected" {% endif %}value="{{url_for("runselection", limit=i, offset=offset, criteria=criteria, result=result)}}">{{ text }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-md-12">
-                <table class="table table-hover">
-                    <thead>
-                        <tr>
-                            <th>Run</th>
-                            <th>Result</th>
-                            <th>Criteria</th>
-                            <th>Overlord</th>
-                            <th>Last review</th>
+            </tr>
+            </table>
+        
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Run</th>
+                        <th>Result</th>
+                        <th>Criteria</th>
+                        <th>Overlord</th>
+                        <th>Last review</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if run_info == False %}
+                        <tr class="bg-danger" >
+                            <td>
+                                {{"N/A"}}
+                            </td>
+                            <td colspan="10" style="text-align:center;">
+                                <b> No RS results present for selected range. </b>
+                            </td>
                         </tr>
-                    </thead>
-                    <tbody>
-                        {% if run_info == False %}
-                            <tr class="bg-danger" >
-                                <td>
-                                    {{"N/A"}}
-                                </td>
-                                <td colspan="10" style="text-align:center;">
-                                    <b> No RS results present for selected range. </b>
-                                </td>
-                            </tr>
-                        {% else %}
-                            {% for run_number in run_info.keys() %}
-                                <tr>
-                                    <td><a href="{{ url_for('runselection_run_number', run_number=run_number)}}">{{run_number}}</a></td>
-                                    {% if run_info[run_number][criteria]["meta_data"]["decision"]["result"] == True %}
-                                    <td><font color="green">Pass</font></td>
-                                    {% elif run_info[run_number][criteria]["meta_data"]["decision"]["result"] == None %}
-                                    <td>Purgatory</td>
-                                    {% else %}
-                                    <td><font color="red">Fail</font></td>
-                                    {% endif %}
-                                    <td>{{ run_info[run_number][criteria]["meta_data"]["index"] }}</td>
-                                    <td>{{ run_info[run_number][criteria]["name"] }}</td>
-                                    <td>{{ run_info[run_number][criteria]["timestamp"] }}</td>
-                                </tr> 
-                            {% endfor %}
-                        {% endif %}
-                    </tbody>
-                </table>
-            </div>
+                    {% else %}
+                        {% for run_number in run_info.keys() %}
+                            <tr>
+                                <td><a href="{{ url_for('runselection_run_number', run_number=run_number)}}">{{run_number}}</a></td>
+                                {% if run_info[run_number][criteria]["meta_data"]["decision"]["result"] == True %}
+                                <td><font color="green">Pass</font></td>
+                                {% elif run_info[run_number][criteria]["meta_data"]["decision"]["result"] == None %}
+                                <td>Purgatory</td>
+                                {% else %}
+                                <td><font color="red">Fail</font></td>
+                                {% endif %}
+                                <td>{{ run_info[run_number][criteria]["meta_data"]["index"] }}</td>
+                                <td>{{ run_info[run_number][criteria]["name"] }}</td>
+                                <td>{{ run_info[run_number][criteria]["timestamp"] }}</td>
+                            </tr> 
+                        {% endfor %}
+                    {% endif %}
+                </tbody>
+            </table>
         </div>
     </div>
+{% endblock %}
+{% block script %}
+  <script>
+    function get_limit(limit, offset, criteria, result, selected_run, run_range_low, run_range_high){
+      params = {};
+      params["limit"] = limit;
+      params["offset"] = offset;
+      params["criteria"] = criteria;
+      params["result"] = result;
+      params["selected_run"] = selected_run;
+      params["run_range_low"] = run_range_low;
+      params["run_range_high"] = run_range_high;
+      window.location.replace($SCRIPT_ROOT + "/runselection?" + $.param(params));
+    }
+  </script>
 {% endblock %}

@@ -1903,8 +1903,8 @@ def runselection():
     run_info = RSTools.list_runs_info(limit, offset, result, criteria, selected_run, run_range_low, run_range_high)
     return render_template('runselection.html', run_info=run_info, criteria=criteria, limit=limit, offset=offset, result=result, selected_run=selected_run, run_range_low=run_range_low, run_range_high=run_range_high)
 
-@app.route('/runselection/<int:run_number>', methods=['GET', 'POST'])
-def runselection_run_number(run_number):
+@app.route('/runselection_run/<int:run_number>', methods=['GET', 'POST'])
+def runselection_run(run_number):
     # run_info, criteria_info = RSTools.import_RS_ratdb(run_number, 'All', 0, 0)
     general_info, display_info = RSTools.format_data(run_number)
     list_history = RSTools.get_list_history(run_number)
@@ -1921,9 +1921,9 @@ def runselection_run_number(run_number):
                 RSTools.update_run_lists(form, run_number, lists, list_data)
             except Exception as e:
                 flash(str(e), 'danger')
-                return redirect(url_for('runselection_run_number', run_number=run_number))
+                return redirect(url_for('runselection_run', run_number=run_number))
             flash('Successfully submitted', 'success')
-            return redirect(url_for('runselection_run_number', run_number=run_number))
+            return redirect(url_for('runselection_run', run_number=run_number))
         else:
             flash("Unsuccessful: error submitting form", 'danger')
 

@@ -257,7 +257,7 @@
     <!-- Run List Control Section -->
     <div class="row">
       <div class="col-md-12">
-        <form action="{{ url_for('runselection_run_number', run_number=run_number)}}" method="POST" role="form">
+        <form action="{{ url_for('runselection_run', run_number=run_number)}}" method="POST" role="form">
           {% macro form_checkbox(field) -%}
               <div class="checkbox">
                   <label class="active"><input type="checkbox" name="{{ field.name }}" {% if field.data %}checked="checked"{% endif %}>{{ field.label.text }}</input></label>

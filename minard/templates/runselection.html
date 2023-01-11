@@ -113,7 +113,7 @@
                     {% else %}
                         {% for run_number in run_info.keys() %}
                             <tr>
-                                <td><a href="{{ url_for('runselection_run_number', run_number=run_number)}}">{{run_number}}</a></td>
+                                <td><a href="{{ url_for('runselection_run', run_number=run_number)}}">{{run_number}}</a></td>
                                 {% if run_info[run_number][criteria]["meta_data"]["decision"]["result"] == True %}
                                 <td><font color="green">Pass</font></td>
                                 {% elif run_info[run_number][criteria]["meta_data"]["decision"]["result"] == None %}

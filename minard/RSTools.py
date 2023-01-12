@@ -30,7 +30,7 @@ def file_list_form_builder(formobj, runlists, data):
 
 def get_current_lists_run(run):
     conn = engine.connect()
-    result = conn.execute("SELECT list FROM evaluated_runs WHERE run={}".format(run))
+    result = conn.execute("SELECT list FROM evaluated_runs WHERE run=%s" % (run,))
     return [int(row[0]) for row in result.fetchall()]
 
 def get_run_lists():
@@ -48,7 +48,7 @@ def get_list_history(run):
     """
     # key | run | uploaded_to | removed_from | name | timestamp | comment
     conn = engine.connect()
-    result = conn.execute("SELECT timestamp, uploaded_to, removed_from, comment, name FROM rs_history WHERE run={} ORDER BY timestamp DESC".format(int(run)))
+    result = conn.execute("SELECT timestamp, uploaded_to, removed_from, comment, name FROM rs_history WHERE run=%s ORDER BY timestamp DESC", (run,))
     data = OrderedDict()
     for i, entry in enumerate(result.fetchall()):
         data[str(i)] = {}
@@ -82,14 +82,14 @@ def update_run_lists(form, run, lists, data):
         if key in lists:
             if (getattr(form, key).data == True and lists[key] not in data): # need new entry
                 # Add run to run list
-                result = cursor.execute("INSERT INTO evaluated_runs(run, list, evaluator) VALUES({},{},'{}')".format(int(run), int(lists[key]), name))
+                result = cursor.execute("INSERT INTO evaluated_runs(run, list, evaluator) VALUES(%s, %s, '%s')", (int(run), int(lists[key]), name))
                 # Update run history
-                result = cursor.execute("INSERT INTO rs_history(run,uploaded_to,removed_from,name,comment) VALUES({},'{}',NULL,'{}','{}')".format(int(run), str(key), name, comment))
+                result = cursor.execute("INSERT INTO rs_history(run,uploaded_to,removed_from,name,comment) VALUES(%s,'%s',NULL,'%s','%s')", (int(run), str(key), name, comment))
             elif (getattr(form, key).data == False and lists[key] in data): # need to delete entry
                 # Remove run from run list
-                result = cursor.execute("DELETE FROM evaluated_runs WHERE run = {} AND list = {}".format(int(run), int(lists[key])))
+                result = cursor.execute("DELETE FROM evaluated_runs WHERE run = %s AND list = %s", (int(run), int(lists[key])))
                 # Update run history
-                result = cursor.execute("INSERT INTO rs_history(run,uploaded_to,removed_from,name,comment) VALUES({},NULL,'{}','{}','{}')".format(int(run), str(key), name, comment))
+                result = cursor.execute("INSERT INTO rs_history(run,uploaded_to,removed_from,name,comment) VALUES(%s,NULL,'%s','%s','%s')", (int(run), str(key), name, comment))
     
     """
     Now, update the nearlineDB with the name and time
@@ -144,14 +144,14 @@ def get_RS_reports(criteria=None, run_min=None, run_max=None, limit=None):
     the latest timestamp).'''
 
     # Get tables in descending order, with hardcoded max at 100 to avoid slow down if misused
-    query = "SELECT meta_data, name, timestamp FROM run_selection WHERE type = 'RS_REPORT'".format(criteria)
+    query = "SELECT meta_data, name, timestamp FROM run_selection WHERE type = 'RS_REPORT'"
     conditions = []
     if criteria is not None:
-        conditions.append("criteria = '{}'".format(str(criteria)))
+        conditions.append("criteria = '%s'" % str(criteria))
     if run_min is not None:
-        conditions.append("run_min >= {}".format(int(run_min)))
+        conditions.append("run_min >= %d" % int(run_min))
     if run_max is not None:
-        conditions.append("run_max <= {}".format(int(run_max)))
+        conditions.append("run_max <= %d" % int(run_max))
 
     if len(conditions) > 0:
         for i in range(0, len(conditions)):
@@ -159,7 +159,7 @@ def get_RS_reports(criteria=None, run_min=None, run_max=None, limit=None):
 
     query += " ORDER BY run_min DESC"
     if limit is not None:
-        query += " LIMIT {}".format(limit)
+        query += " LIMIT %d" % (limit)
 
     conn = engine_nl.connect()
     resultQuery = conn.execute(query)
@@ -173,7 +173,6 @@ def get_RS_reports(criteria=None, run_min=None, run_max=None, limit=None):
         rs_tables_list.append(tempt_dict)
 
     if len(rs_tables_list) == 0:
-        print("ERROR: No RS table found for criteria tag '{}', run min {} and run_max {}, ".format(criteria, run_min, run_max))
         return False
     
     # Repackage and check for duplicates
@@ -252,10 +251,8 @@ def list_runs_info(limit, offset, result, criteria, selected_run, run_range_low,
     # Get filtered runs (download twice as many runs as needed, then filter by result)
     filtered_rs_tables, run_numbers, no_more_tables = get_filtered_RS_tables(run_min, run_max, offset, limit, result, criteria)
     if filtered_rs_tables is False:
-        print('WARNING: No runs found for run_min {}, run_max {}, limit {}, offset {}, result {} and criteria {}'.format(run_min, run_max, limit, offset, result, criteria))
         return False
     elif len(run_numbers) == 0:
-        print('WARNING: No runs found for run_min {}, run_max {}, limit {}, offset {}, result {} and criteria {}'.format(run_min, run_max, limit, offset, result, criteria))
         return False
     run_numbers.sort(reverse=True)
 
@@ -287,10 +284,10 @@ def get_criteria_tables(runNum, crit_version):
 
     # Download criteria tables that match run number and criteria tag(s)
     query = "SELECT meta_data, timestamp FROM run_selection"
-    query += " WHERE run_min <= {} AND (run_max IS NULL OR run_max >= {}) AND type = 'CRITERIA'".format(int(runNum), int(runNum))
+    query += " WHERE run_min <= %d AND (run_max IS NULL OR run_max >= %d) AND type = 'CRITERIA'" % (int(runNum), int(runNum))
     query += " AND ("
     for criteria in crit_version:
-        query += "criteria = '{}' OR ".format(criteria)
+        query += "criteria = '%s' OR " % criteria
     query = query[:-4]  # Remove last ' OR '
     query += ") ORDER BY timestamp DESC LIMIT 50"
 
@@ -318,7 +315,6 @@ def get_criteria_tables(runNum, crit_version):
     # Check if we got a criteria table for each inputted criteria
     for crit in crit_version:
         if crit not in crit_tables:
-            print('WARNING: No criteria table found for {} criteria.'.format(crit))
             crit_tables[crit] = False
 
     return crit_tables
@@ -410,9 +406,9 @@ def format_rs_results(rs_tables, crit_tables):
                         for subcheck in notes[check]:
                             string = subcheck
                             if isinstance(notes[check][subcheck], float):
-                                string += ': {:.2f}'.format(notes[check][subcheck])
+                                string += (': %.2f' % notes[check][subcheck])
                             else:
-                                string += ': {}'.format(notes[check][subcheck])
+                                string += (': %s' % (notes[check][subcheck]))
                             display_info[criteria]['rs_modules'][rs_module]['checks'][check]['Value'][subcheck] = string
                     else:
                         display_info[criteria]['rs_modules'][rs_module]['checks'][check]['Value'] = notes[check]
@@ -425,9 +421,9 @@ def format_rs_results(rs_tables, crit_tables):
                                 if subcheck in crits:
                                     string = subcheck
                                     if isinstance(crits[subcheck], float):
-                                        string += ': {:.2f}'.format(crits[subcheck])
+                                        string += ': %.2f' % (crits[subcheck])
                                     else:
-                                        string += ': {}'.format(crits[subcheck])
+                                        string += ': %s' % (crits[subcheck])
                                     display_info[criteria]['rs_modules'][rs_module]['checks'][check]['Threshold'][subcheck] = string
                             if len(display_info[criteria]['rs_modules'][rs_module]['checks'][check]['Threshold']) == 0:
                                 display_info[criteria]['rs_modules'][rs_module]['checks'][check]['Threshold'] = ''
@@ -441,9 +437,9 @@ def format_rs_results(rs_tables, crit_tables):
                             else:
                                 string = subcheck
                                 if isinstance(crits[check][subcheck], float):
-                                    string += ': {:.2f}'.format(crits[check][subcheck])
+                                    string += (': %.2f' % (crits[check][subcheck]))
                                 else:
-                                    string += ': {}'.format(crits[check][subcheck])
+                                    string += (': %s' % (crits[check][subcheck]))
                                 display_info[criteria]['rs_modules'][rs_module]['checks'][check]['Threshold'][subcheck] = string
                     else:
                         display_info[criteria]['rs_modules'][rs_module]['checks'][check]['Threshold'] = crits[check]

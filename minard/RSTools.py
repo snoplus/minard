@@ -72,7 +72,7 @@ def update_run_lists(form, run, lists, data):
 
     # Connect to detector database, to update run lists and run list histories
     conn = psycopg2.connect(dbname=app.config['DB_NAME'],
-                            user=app.config['DB_USER_EXPERT'],
+                            user=app.config['DB_OPERATOR'],
                             host=app.config['DB_HOST'],
                             password=form.password.data)
     conn.set_isolation_level(psycopg2.extensions.ISOLATION_LEVEL_AUTOCOMMIT)
@@ -82,23 +82,23 @@ def update_run_lists(form, run, lists, data):
         if key in lists:
             if (getattr(form, key).data == True and lists[key] not in data): # need new entry
                 # Add run to run list
-                result = cursor.execute("INSERT INTO evaluated_runs(run, list, evaluator) VALUES(%s, %s, '%s')", (int(run), int(lists[key]), name))
+                result = cursor.execute("INSERT INTO evaluated_runs(run, list, evaluator) VALUES(%s, %s, %s)", (int(run), int(lists[key]), name))
                 # Update run history
-                result = cursor.execute("INSERT INTO rs_history(run,uploaded_to,removed_from,name,comment) VALUES(%s,'%s',NULL,'%s','%s')", (int(run), str(key), name, comment))
+                result = cursor.execute("INSERT INTO rs_history(run,uploaded_to,removed_from,name,comment) VALUES(%s,%s,NULL,%s,%s)", (int(run), str(key), name, comment))
             elif (getattr(form, key).data == False and lists[key] in data): # need to delete entry
                 # Remove run from run list
                 result = cursor.execute("DELETE FROM evaluated_runs WHERE run = %s AND list = %s", (int(run), int(lists[key])))
                 # Update run history
-                result = cursor.execute("INSERT INTO rs_history(run,uploaded_to,removed_from,name,comment) VALUES(%s,NULL,'%s','%s','%s')", (int(run), str(key), name, comment))
+                result = cursor.execute("INSERT INTO rs_history(run,uploaded_to,removed_from,name,comment) VALUES(%s,NULL,%s,%s,%s)", (int(run), str(key), name, comment))
     
     """
     Now, update the nearlineDB with the name and time
     """
 
     conn_nl = psycopg2.connect(dbname=app.config['DB_NAME_NEARLINE'],
-                               user="snotdaq",
+                               user=app.config['DB_OPERATOR'],
                                host=app.config['DB_HOST_NEARLINE'],
-                               password=app.config['DB_EXPERT_PASS_NEARLINE'],
+                               password=form.password.data,
                                port=app.config['DB_PORT_NEARLINE'])
     conn_nl.set_isolation_level(psycopg2.extensions.ISOLATION_LEVEL_AUTOCOMMIT)
 

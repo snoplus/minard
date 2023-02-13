@@ -34,7 +34,7 @@
         {% endif %}
       </tr>
     </table>
-    <div class="alert alert-info"> If you are the current shifter, please fill out the below information at the start of your shift. If you are not the current shifter, do not fill in this form. After hitting Submit, make sure the current shifter and expert information about update properly. If multiple people are on shift, the shift leader should fill this out. This information will only be used for email and text alarm alerts. 
+    <div class="alert alert-info"> If you are the current shifter, please fill out the below information at the start of your shift. If you are not the current shifter, do not fill in this form. After hitting Submit, make sure the current shifter and expert information about update properly. If multiple people are on shift, the shift leader should fill this out. This information will only be used for email and text alarm alerts. If you do not receive an email after filling out this form, email your on-call expert. 
     </div>
     <form action="shifter_information" method="POST" role="form">
       <table class="table table-hover">
@@ -56,8 +56,8 @@
          </tr>
          <tr>
            <td> {{ render_field(form.email) }} </td>
-           <td> Optional, leave empty to not receive email alerts.<br>
-                Use full address (eg, username@aol.com) </td>
+           <td> Full address (eg, username@gmail.com). DO NOT USE yahoo email. <br>
+                If you do not receive an email after filling out this form, email your on-call expert. </td>
          </tr>
       </table>
       <button type="submit">Submit</button>

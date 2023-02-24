@@ -13,7 +13,6 @@ def load_presn_runs(offset, limit):
     The logic to limit and split the results per page was implemented.
     """
     now_local = datetime.now()
-    #timelimit = timedelta(days=7)
     timelimit = timedelta(hours=100)
     server = couchdb.Server("http://snoplus:"+app.config["COUCHDB_PASSWORD"]+"@"+app.config["COUCHDB_HOSTNAME"])
     db = server["pre-supernova"]
@@ -38,7 +37,7 @@ def load_presn_runs(offset, limit):
                 results.append(dict(db.get(run_id).items()))
             except KeyError:
                 app.logger.warning("Code returned KeyError searching for presn information in the couchDB. Run Number: %d" % run)
-
+    results.sort(reverse=True)
     return results, total, offset, limit
 
 def load_presn_search(search, start, end, offset, limit):
@@ -129,7 +128,6 @@ def load_presn_search(search, start, end, offset, limit):
                     results.append(dict(db.get(run_id).items()))
             except KeyError:
                 app.logger.warning("Code returned KeyError searching for presn information in the couchDB. Run Number: %d" % run)
-
     return results, total, offset, limit
 
 def presn_run_detail(run_number):

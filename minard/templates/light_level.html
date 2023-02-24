@@ -1,0 +1,132 @@
+{% extends "layout.html" %}
+{% block title %}Light Levels{% endblock %}
+{% block head %}
+    <!-- metrics-graphics stylesheet goes above super() because we want bootstrap's style
+    (which is linked in super()) to override it. -->
+    <link rel="stylesheet" type="text/css"  href="{{ url_for('static',filename='css/metricsgraphics.css') }}">
+    <link rel="stylesheet" type="text/css"  href="{{ url_for('static',filename='css/mg_line_brushing.css') }}">
+    {{ super() }}
+{% endblock %}
+{% block body %}
+    {{ super() }}
+<div class="container">
+    <div class="row">
+        Run Range:
+        <input type="text" id="run_range_low" value={{run_range_low}} style="width:80px;"> - 
+        <input type="text" id="run_range_high" value={{run_range_high}} style="width:80px;"> &nbsp; &nbsp;
+        Fiducial Volume:
+        <select id="fv"> 
+            <option selected value="{{fv}}">{{fv/1000.0}} m</option>
+            {% for fvs in [3000, 5000, 8500] %}
+                {% if fvs != fv %}
+                    <option value="{{fvs}}">{{fvs/1000.0}} m</option>
+                {% endif %}
+            {% endfor %}
+        </select> &nbsp; &nbsp;
+        Nhits:
+        <select id="nhits_select"> 
+            <option selected value="{{nhits_select}}">{{nhits_select}}</option>
+            {% for selections in ["Nhits Corrected", "Nhits Clean"] %}
+                {% if selections != nhits_select %}
+                    <option value="{{selections}}">{{selections}}</option>
+                {% endif %}
+            {% endfor %}
+        </select> &nbsp; &nbsp;
+        <button type=button onclick="history();">Update Plots</button> <br> <br>
+        <a href="{{ url_for('light_level_summary') }}">Fill list of processed runs</a>
+    </div>
+    <div class="row">
+        <div class="col-md-12" id="main">
+            <h4 align="center"> Peak of <sup>210</sup>Po nhits, FV cut = {{ fv/1000.0 }} m  </h4>
+            {% if not light_levels %}
+                <h2 align="left"> No data available </h2>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block script %}
+    <script src="{{ url_for('static', filename='js/d3.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/moment.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/moment-timezone-with-data.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/tzscale.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/metricsgraphics.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/mg_line_brushing.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/stream_utilities.js') }}"></script>
+    <script>
+
+        var dname = "peak";
+        if(document.getElementById("nhits_select").value == "Nhits Clean"){
+            dname = "peak_clean";
+        }
+
+        if (url_params.run_range_low) {
+            document.getElementById("run_range_low").value = url_params.run_range_low;
+        }
+        if (url_params.run_range_high) {
+            document.getElementById("run_range_high").value = url_params.run_range_high;
+        }
+        if (url_params.fv) {
+            document.getElementById("fv").value = url_params.fv;
+        }
+        if (url_params.nhits_select) {
+            document.getElementById("nhits_select").value = url_params.nhits_select;
+        }
+
+        var ldata = {{ light_levels | safe }};
+
+        var lparams = {
+            chart_type: 'point',
+            area: false,
+            data: ldata,
+            width: $('#main').width(),
+            left: 100,
+            height: 400,
+            target: "#main",
+            x_accessor:'run',
+            y_accessor: dname,
+            point_size: 4.0,
+            y_label: "Po210 nhits (mm)",
+            x_label: "Run number",
+            yax_count: 5,
+            xax_count: 4,
+            min_y_from_data: true,
+            y_mouseover: function(d, i) {
+                return 'Po210 peak: ' + format_int(d[dname]);
+            },
+        };
+
+        MG.data_graphic(lparams);
+
+        d3.selectAll('.mg-voronoi path').on('click', function(d, i) {
+            window.location.replace($SCRIPT_ROOT + "/light_level_plots/" + d.point['run']); 
+            console.log(d.point['run'], i);
+        });
+
+        function history() {
+            var params = {};
+            try {
+                params['run_range_low'] = document.getElementById("run_range_low").value;
+            } catch (e) {
+                params['run_range_low'] = 300000;
+            }
+            try {
+                params['run_range_high'] = document.getElementById("run_range_high").value;
+            } catch (e) {
+                params['run_range_high'] = 350000;
+            }
+            try {
+                params['fv'] = document.getElementById("fv").value;
+            } catch (e) {
+                params['fv'] = 3000;
+            }
+            try {
+                params['nhits_select'] = document.getElementById("nhits_select").value;
+            } catch (e) {
+                params['nhits_select'] = "Nhits Corrected";
+            }
+            window.location.replace($SCRIPT_ROOT + "/light_level?" + $.param(params));
+        }
+
+    </script>
+{% endblock %}

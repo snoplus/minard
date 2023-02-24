@@ -7,6 +7,7 @@ from redis import Redis
 from os.path import join
 import json
 import HLDQTools
+import RSTools
 import requests
 from .tools import parseiso, total_seconds
 from collections import deque, namedtuple
@@ -39,6 +40,7 @@ import scintillator_level
 import burst as burst_f
 import presn as presn_f
 import pca_processing as pcaprocessing_f
+from light_level import get_light_level, get_light_level_clean, get_all_light_levels
 from shifter_information import get_shifter_information, set_shifter_information, ShifterInfoForm, get_experts, get_supernova_experts
 from run_list import golden_run_list
 from .polling import polling_runs, polling_info, polling_info_card, polling_check, get_cmos_rate_history, polling_summary, get_most_recent_polling_info, get_vmon, get_base_current_history, get_vmon_history
@@ -225,7 +227,7 @@ def detector_state_check(run=None):
     if run is None:
         run = detector_state.get_run_state(None)['run']
 
-    trig_messages, hv_messages, off_messages, fec_messages, channels = detector_state.get_detector_state_check(run)
+    trig_messages, hv_messages, relay_messages, off_messages, fec_messages, channels = detector_state.get_detector_state_check(run)
     alarms = detector_state.get_alarms(run)
 
     if alarms is None:
@@ -247,7 +249,7 @@ def detector_state_check(run=None):
             flash("unable to get daq log for run %i" % run, 'danger')
             warnings = None
 
-    return render_template('detector_state_check.html', run=run, trig_messages=trig_messages, hv_messages=hv_messages, fec_messages=fec_messages, off_messages=off_messages, channels=channels, alarms=alarms, warnings=warnings, builder_warnings=builder_warnings)
+    return render_template('detector_state_check.html', run=run, trig_messages=trig_messages, hv_messages=hv_messages, fec_messages=fec_messages, off_messages=off_messages, relay_messages=relay_messages, channels=channels, alarms=alarms, warnings=warnings, builder_warnings=builder_warnings)
 
 @app.route('/channel-database')
 def channel_database():
@@ -790,10 +792,18 @@ def get_SH():
         high = redis.get('l2:highnhit')
         highEvs = redis.get('l2:highEvs')
         highSurv = redis.get('l2:highsurv')
-        settings = [nhit3,nhit5,nhit7,nhit10,window,xwindow,ywindow,ext,high,highEvs,highSurv]
+        ibdNHitMeV = redis.get('l2:ibdnhitmev')
+        ibdFirstE = redis.get('l2:ibdfirste')
+        ibdTimeLow = redis.get('l2:ibdtimelow')
+        ibdTimeHigh = redis.get('l2:ibdtimehigh')
+        ibdCount = redis.get('l2:ibdcount')
+        ibdWindow = redis.get('l2:ibdwindow')
+        ibdCoinc = redis.get('l2:ibdcoinc')
+        ibdExt = redis.get('l2:ibdext')
+        settings = [nhit3,nhit5,nhit7,nhit10,window,xwindow,ywindow,ext,high,highEvs,highSurv,ibdNHitMeV,ibdFirstE,ibdTimeLow,ibdTimeHigh,ibdCount,ibdWindow,ibdCoinc,ibdExt]
     except ValueError:
         # no files
-        settings = [0,0,0,0,0,0,0,0,0,0,0]
+        settings = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
     return jsonify(settings=settings)
 
 @app.route('/graph')
@@ -1953,13 +1963,89 @@ def scint_level():
     rope_data = scintillator_level.get_av_rope_data(run_range_low, run_range_high)
     return render_template('scint_level.html', scint_data=scint_data, av_data=av_data, rope_data=rope_data, run_range_low=run_range_low, run_range_high=run_range_high)
 
+
+@app.route('/runselection')
+def runselection():
+    limit = request.args.get("limit", 25, type=int)
+    offset = request.args.get("offset", 0, type=int)
+    result = request.args.get("result", "All", type=str)
+    criteria = request.args.get("criteria", "scintillator", type=str)
+    selected_run = request.args.get("selected_run", 0, type=int)
+    run_range_low = request.args.get("run_range_low", 0, type=int)
+    run_range_high = request.args.get("run_range_high", 0, type=int)
+    run_info = RSTools.list_runs_info(limit, offset, result, criteria, selected_run, run_range_low, run_range_high)
+    return render_template('runselection.html', run_info=run_info, criteria=criteria, limit=limit, offset=offset, result=result, selected_run=selected_run, run_range_low=run_range_low, run_range_high=run_range_high)
+
+@app.route('/runselection_run/<int:run_number>', methods=['GET', 'POST'])
+def runselection_run(run_number):
+    # run_info, criteria_info = RSTools.import_RS_ratdb(run_number, 'All', 0, 0)
+    general_info, display_info = RSTools.format_data(run_number)
+    list_history = RSTools.get_list_history(run_number)
+    lists = RSTools.get_run_lists()
+    list_data = RSTools.get_current_lists_run(run_number)
+    if request.form:
+        form = RSTools.file_list_form_builder(request.form, lists, list_data)
+    else:
+        form = RSTools.file_list_form_builder(-1, lists, list_data)
+
+    if request.method == 'POST':
+        if form.validate():
+            try:
+                RSTools.update_run_lists(form, run_number, lists, list_data)
+            except Exception as e:
+                flash(str(e), 'danger')
+                return redirect(url_for('runselection_run', run_number=run_number))
+            flash('Successfully submitted', 'success')
+            return redirect(url_for('runselection_run', run_number=run_number))
+        else:
+            flash("Unsuccessful: error submitting form", 'danger')
+
+    return render_template('runselection_run.html', run_number=run_number, general_info=general_info, display_info=display_info, list_history=list_history, lists=lists.keys(), form=form)
+
+
+@app.route('/light_level')
+def light_level():
+    run_range_low = request.args.get("run_range_low", 300000, type=int)
+    run_range_high = request.args.get("run_range_high", 0, type=int)
+    fv = request.args.get("fv", 3000, type=int)
+    nhits_select = request.args.get("nhits_select","Nhits Corrected", type=str)
+
+    if run_range_high == 0:
+        run_range_high = detector_state.get_latest_run()
+
+    if nhits_select == "Nhits Corrected":
+        light_levels = get_light_level(run_range_low, run_range_high, fv)
+    else:
+        light_levels = get_light_level_clean(run_range_low, run_range_high, fv)
+
+    return render_template('light_level.html', light_levels=light_levels, run_range_low=run_range_low, run_range_high=run_range_high, fv=fv, nhits_select=nhits_select)
+
+@app.route('/light_level_plots/<run_number>')
+def light_level_plots(run_number):
+    return render_template('light_level_plots.html', run_number=run_number)
+
+
+@app.route('/light_level_summary')
+def light_level_summary():
+    run_range_low = request.args.get("run_range_low", 300000, type=int)
+    run_range_high = request.args.get("run_range_high", 0, type=int)
+    fiducial_volume = request.args.get("fiducial_volume", 3000, type=int)
+    limit = request.args.get("limit", 100, type=int)
+
+    if run_range_high == 0:
+        run_range_high = detector_state.get_latest_run()
+
+    light_levels = get_all_light_levels(run_range_low, run_range_high, fiducial_volume, limit)
+
+    return render_template('light_level_summary.html', light_levels=light_levels, run_range_low=run_range_low, run_range_high=run_range_high, fiducial_volume=fiducial_volume)
+
 @app.route('/radon_monitor')
 def radon_monitor():
 
     year_low = request.args.get("year_low", 2021, type=int)
     month_low = request.args.get("month_low", 1, type=int)
     day_low = request.args.get("day_low", 1, type=int)
-    year_high = request.args.get("year_high", 2022, type=int)
+    year_high = request.args.get("year_high", 2024, type=int)
     month_high = request.args.get("month_high", 1, type=int)
     day_high = request.args.get("day_high", 1, type=int)
     yscale = request.args.get("yscale", "log", type=str)

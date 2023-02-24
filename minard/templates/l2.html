@@ -32,7 +32,7 @@
                   <div class="col-md-12" style="text-align: center">
                     Level 2 is responsible for the immediate analysis of the bursts created by Stonehenge software.<br>
                     The bursts are created "in real-time" looking at the data written by the builder.<br>
-                    There are 4 logical buffers that can trigger a burst.<br>
+                    There are 5 logical buffers that can trigger a burst: 4 `counting` buffers (3,5,7 and 10 high energy events) and 1 IBD buffer (coincidence of IBD interactions).<br>
                     The detector activity is monitored and the thresholds can be adjusted dynamically.<br><br>
                     <i>The main idea is to monitor high NHit bursts of events in order to "catch" a Supernova with minimal latency.</i>
                   </div>
@@ -76,7 +76,7 @@
           <div class="col-md-12">
             <div class="panel panel-default">
               <div class="panel-heading">
-                <h3 class="panel-title" style="text-align: center">Stonehenge settings</h3>
+                <h3 class="panel-title" style="text-align: center">Stonehenge settings: counting buffers</h3>
               </div>
               <div class="panel-body">
                 <table class="table table-hover">
@@ -107,6 +107,43 @@
             </div>
           </div>
         </div>
+
+        <div class="row">
+          <div class="col-md-12">
+            <div class="panel panel-default">
+              <div class="panel-heading">
+                <h3 class="panel-title" style="text-align: center">Stonehenge settings: IBD buffer</h3>
+              </div>
+              <div class="panel-body">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th width="12.5%">NHit_MeV [NHit]</th>
+                            <th width="12.5%">E_first [NHit]</th>
+                            <th width="12.5%">Time_low [ps]</th>
+                            <th width="12.5%">Time_high [&#181;s]</th>
+                            <th width="12.5%">Count</th>
+                            <th width="12.5%">Window [s]</th>
+                            <th width="12.5%">Coincidence [&#181;s]</th>
+                            <th width="12.5%">Ext [NHit]</th>
+                        </tr>
+                    </thead>
+                        <tr>
+                            <td id="nhitmev"> 9 </td>
+                            <td id="ibd1"> 10 </td>
+                            <td id="ibdtlow"> 11 </td>
+                            <td id="ibdthigh"> 12 </td>
+                            <td id="ibdcount"> 13 </td>
+                            <td id="ibdwindow"> 14 </td>
+                            <td id="ibdcoinc"> 15 </td>
+                            <td id="ibdext"> 16 </td>
+                        </tr>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <div class="row">
             {% for id, caption in states %}
                 {% if not loop.first and loop.index0 % 3 == 0 %}

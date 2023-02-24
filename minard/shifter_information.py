@@ -22,7 +22,7 @@ class ShifterInfoForm(Form):
     lastname = StringField('Last Name', [validators.DataRequired()])
     expert = SelectField('Expert', choices=[])
     supernova_expert = SelectField('Supernova Expert', choices=[])
-    email = EmailField('Email', [validators.Optional(), validators.Email()])
+    email = EmailField('Email', [validators.Email()])
 
 def get_experts():
     """

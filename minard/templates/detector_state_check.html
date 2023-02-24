@@ -46,16 +46,6 @@
                     {% endfor %}
                     </ul>
                 {% endif %}
-                <h4> FEC Status </h4>
-                {% if fec_messages | length == 0 %}
-                    <p>No issues!
-                {% else %}
-                    <ul>
-                    {% for message in fec_messages %}
-                        <li>{{ message }}
-                    {% endfor %}
-                    </ul>
-                {% endif %}
                 <h4> Crate Status </h4>
                 {% if off_messages | length == 0 %}
                     <p>No issues!
@@ -66,12 +56,32 @@
                     {% endfor %}
                     </ul>
                 {% endif %}
+                <h4> Front End Card Status </h4>
+                {% if fec_messages | length == 0 %}
+                    <p>No issues!
+                {% else %}
+                    <ul>
+                    {% for message in fec_messages %}
+                        <li>{{ message }}
+                    {% endfor %}
+                    </ul>
+                {% endif %}
                 <h4> High Voltage Status </h4>
                 {% if hv_messages | length == 0 %}
                     <p>No issues!
                 {% else %}
                     <ul>
                     {% for message in hv_messages %}
+                        <li>{{ message }}
+                    {% endfor %}
+                    </ul>
+                {% endif %}
+                <h4> High Voltage Relay Status </h4>
+                {% if relay_messages | length == 0 %}
+                    <p>No issues!
+                {% else %}
+                    <ul>
+                    {% for message in relay_messages %}
                         <li>{{ message }}
                     {% endfor %}
                     </ul>

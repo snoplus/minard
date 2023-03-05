@@ -369,6 +369,8 @@ def get_criteria_tables(runNum, crit_version):
     return crit_tables
 
 def format_general_info(rs_tables, criteria_list):
+    '''Collect information for "General Information" section of the page'''
+
     general_info = OrderedDict()
     first_table = rs_tables[criteria_list[0]]  # Take first table for general information (no particular reason)
 
@@ -399,7 +401,40 @@ def format_general_info(rs_tables, criteria_list):
 
     return general_info
 
+def result_logic(obj):
+    '''
+    Return result (True, False, None) of object.
+    Checks inside object recursively.
+    If any element is False, return False,
+    else if any any element is None, return None,
+    else return True (i.e. if all are True).
+    '''
+
+    result = True
+    if isinstance(obj, list):
+        for sub_obj in obj:
+            res = result_logic(sub_obj)
+            if res == False:
+                return False
+            elif res == None:
+                result = None
+    elif isinstance(obj, dict):
+        for key in obj:
+            res = result_logic(obj[key])
+            if res == False:
+                return False
+            elif res == None:
+                result = None
+    elif obj == True or obj == False:
+        result = obj
+    else:
+        result = None
+
+    return result
+
 def format_rs_results(rs_tables, crit_tables):
+    '''Collect information for the "Run Selection Results" section of the page'''
+
     display_info = OrderedDict()
     for criteria in rs_tables:
         # A collapsable header for each criteria tag
@@ -439,9 +474,10 @@ def format_rs_results(rs_tables, crit_tables):
                     display_info[criteria]['rs_modules'][rs_module]['checks'][check] = OrderedDict()
                     # Get check and overall result
                     display_info[criteria]['rs_modules'][rs_module]['checks'][check]['Check'] = check
-                    if results[check] == True:
+                    overall_res = result_logic(results[check])
+                    if overall_res == True:
                         display_info[criteria]['rs_modules'][rs_module]['checks'][check]['Result'] = "Pass"
-                    elif results[check] == False:
+                    elif overall_res == False:
                         display_info[criteria]['rs_modules'][rs_module]['checks'][check]['Result'] = "Fail"
                     else:
                         display_info[criteria]['rs_modules'][rs_module]['checks'][check]['Result'] = "Purgatory"

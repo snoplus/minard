@@ -1893,6 +1893,7 @@ def scint_level():
 
 @app.route('/runselection')
 def runselection():
+    # Get variable info from webpage (with defaults defined)
     limit = request.args.get("limit", 25, type=int)
     offset = request.args.get("offset", 0, type=int)
     result = request.args.get("result", "All", type=str)
@@ -1900,8 +1901,21 @@ def runselection():
     selected_run = request.args.get("selected_run", 0, type=int)
     run_range_low = request.args.get("run_range_low", 0, type=int)
     run_range_high = request.args.get("run_range_high", 0, type=int)
-    run_info = RSTools.list_runs_info(limit, offset, result, criteria, selected_run, run_range_low, run_range_high)
-    return render_template('runselection.html', run_info=run_info, criteria=criteria, limit=limit, offset=offset, result=result, selected_run=selected_run, run_range_low=run_range_low, run_range_high=run_range_high)
+    year_low = request.args.get("year_low", 0, type=int)
+    month_low = request.args.get("month_low", 0, type=int)
+    day_low = request.args.get("day_low", 0, type=int)
+    year_high = request.args.get("year_high", 0, type=int)
+    month_high = request.args.get("month_high", 0, type=int)
+    day_high = request.args.get("day_high", 0, type=int)
+
+    # Use this to get run info from databases, to display in list
+    run_range = [run_range_low, run_range_high]
+    date_range = [[year_low, month_low, day_low], [year_high, month_high, day_high]]
+    run_info = RSTools.list_runs_info(limit, offset, result, criteria, selected_run, run_range, date_range)
+
+    # Return info to webpage
+    return render_template('runselection.html', run_info=run_info, criteria=criteria, limit=limit, offset=offset, result=result, selected_run=selected_run, run_range_low=run_range_low, run_range_high=run_range_high,
+                           year_low=year_low, month_low=month_low, day_low=day_low, year_high=year_high, month_high=month_high, day_high=day_high)
 
 @app.route('/runselection_run/<int:run_number>', methods=['GET', 'POST'])
 def runselection_run(run_number):

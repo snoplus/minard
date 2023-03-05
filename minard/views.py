@@ -1920,7 +1920,7 @@ def runselection():
 @app.route('/runselection_run/<int:run_number>', methods=['GET', 'POST'])
 def runselection_run(run_number):
     # run_info, criteria_info = RSTools.import_RS_ratdb(run_number, 'All', 0, 0)
-    general_info, display_info = RSTools.format_data(run_number)
+    general_info, display_info, run_prev_next = RSTools.format_data(run_number)
     list_history = RSTools.get_list_history(run_number)
     lists = RSTools.get_run_lists()
     list_data = RSTools.get_current_lists_run(run_number)
@@ -1941,7 +1941,7 @@ def runselection_run(run_number):
         else:
             flash("Unsuccessful: error submitting form", 'danger')
 
-    return render_template('runselection_run.html', run_number=run_number, general_info=general_info, display_info=display_info, list_history=list_history, lists=lists.keys(), form=form)
+    return render_template('runselection_run.html', run_number=run_number, general_info=general_info, display_info=display_info, list_history=list_history, lists=lists.keys(), form=form, run_prev_next=run_prev_next)
 
 
 @app.route('/light_level')

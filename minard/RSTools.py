@@ -162,43 +162,49 @@ def get_RS_reports(criteria=None, run_min=None, run_max=None, limit=None):
     if limit is not None:
         query += " LIMIT %d" % (limit)
 
-    conn = engine_nl.connect()
-    resultQuery = conn.execute(query)
+    try:
+        conn = engine_nl.connect()
+        resultQuery = conn.execute(query)
 
-    rs_tables_list = []
-    for row in resultQuery.fetchall():
-        tempt_dict = {}
-        tempt_dict['meta_data'] = row[0]
-        tempt_dict['name'] = row[1]
-        tempt_dict['timestamp'] = row[2]
-        tempt_dict['run_number'] = row[3]
-        if 'notes' in row[0]['run_time']:
-            tempt_dict['run_start'] = row[0]['run_time']['notes']['dt']['timestamp'].split('.')[0]
-        else:
-            tempt_dict['run_start'] = 'No Data'
-        tempt_dict['result'] = row[0]['decision']['result']
-        rs_tables_list.append(tempt_dict)
+        rs_tables_list = []
+        for row in resultQuery.fetchall():
+            tempt_dict = {}
+            tempt_dict['meta_data'] = row[0]
+            tempt_dict['name'] = row[1]
+            tempt_dict['timestamp'] = row[2]
+            tempt_dict['run_number'] = row[3]
+            if 'notes' in row[0]['run_time']:
+                tempt_dict['run_start'] = row[0]['run_time']['notes']['dt']['timestamp'].split('.')[0]
+            else:
+                tempt_dict['run_start'] = 'No Data'
+            tempt_dict['result'] = row[0]['decision']['result']
+            rs_tables_list.append(tempt_dict)
 
-    if len(rs_tables_list) == 0:
-        return False
-    
-    # Repackage and check for duplicates
-    rs_tables = OrderedDict()
-    for table in rs_tables_list:
-        run_number = table['meta_data']['run_range'][0]
-        criteria = table['meta_data']['index']
-        if run_number not in rs_tables:
-            rs_tables[run_number] = {}
-            rs_tables[run_number][criteria] = table
-        else:
-            if criteria not in rs_tables[run_number]:
+        if len(rs_tables_list) == 0:
+            return False
+        
+        # Repackage and check for duplicates
+        rs_tables = OrderedDict()
+        for table in rs_tables_list:
+            run_number = table['run_number']
+            criteria = table['meta_data']['index']
+            if run_number not in rs_tables:
+                rs_tables[run_number] = {}
                 rs_tables[run_number][criteria] = table
             else:
-                # There is a duplicate
-                if decide_replace_table(rs_tables[run_number][criteria], table):
+                if criteria not in rs_tables[run_number]:
                     rs_tables[run_number][criteria] = table
+                else:
+                    # There is a duplicate
+                    if decide_replace_table(rs_tables[run_number][criteria], table):
+                        rs_tables[run_number][criteria] = table
 
-    return rs_tables
+        return rs_tables
+    except:
+        return False
+    
+    finally:
+        conn.close()
 
 def get_filtered_RS_tables(run_min, run_max, min_runTime, max_runTime, offset, limit, result, criteria):
     '''Download run-selection tables in range, and keep only ones with desired result'''
@@ -367,8 +373,12 @@ def format_general_info(rs_tables, criteria_list):
     first_table = rs_tables[criteria_list[0]]  # Take first table for general information (no particular reason)
 
     general_info['Run'] = first_table['meta_data']['run_range'][0]
-    general_info['Start timestamp'] = str(first_table['meta_data']['run_time']['notes']['dt']['timestamp']).split('.')[0]  # Remove nanoseconds
-    general_info['Duration'] = first_table['meta_data']['run_time']['notes']['dt']['orca_duration']
+    if 'notes' in first_table['meta_data']['run_time']:
+        general_info['Start timestamp'] = str(first_table['meta_data']['run_time']['notes']['dt']['timestamp']).split('.')[0]  # Remove nanoseconds
+        general_info['Duration'] = first_table['meta_data']['run_time']['notes']['dt']['orca_duration']
+    else:
+        general_info['Start timestamp'] = 'No Data'
+        general_info['Duration'] = 'No Data'
 
     crit_str = ''
     for i in range(len(criteria_list) - 1):
@@ -489,6 +499,37 @@ def format_rs_results(rs_tables, crit_tables):
 
     return display_info
 
+def get_neighbouring_runs(runNum):
+    '''Return the run numbers of the previous and next runs'''
+
+    # Get tables in descending order, with hardcoded max at 100 to avoid slow down if misused
+    query_next = "SELECT run_min FROM run_selection WHERE type = 'RS_REPORT' AND run_min >= %d" % int(runNum + 1)
+    query_next += " ORDER BY run_min ASC LIMIT 1"
+    query_prev = "SELECT run_min FROM run_selection WHERE type = 'RS_REPORT' AND run_max <= %d" % int(runNum - 1)
+    query_prev += " ORDER BY run_min DESC LIMIT 1"
+
+    run_neighbours = [False, False]
+
+    try:
+        conn = engine_nl.connect()
+
+        resultQuery_prev = conn.execute(query_prev)
+        for row in resultQuery_prev.fetchall():
+            run_neighbours[0] = row[0]
+            break
+        resultQuery_next = conn.execute(query_next)
+        for row in resultQuery_next.fetchall():
+            run_neighbours[1] = row[0]
+            break
+
+        return run_neighbours
+    except:
+        return run_neighbours
+    
+    finally:
+        conn.close()
+    
+
 def format_data(runNum):
     '''Format information to be used easily by runselection_run.html template
     Essentially we want a set of collapsable to look at the results, values
@@ -514,4 +555,7 @@ def format_data(runNum):
     general_info = format_general_info(rs_tables, criteria_list)
     display_info = format_rs_results(rs_tables, crit_tables)
 
-    return general_info, display_info
+    # Get previous and next run numbers
+    run_prev_next = get_neighbouring_runs(runNum)
+
+    return general_info, display_info, run_prev_next

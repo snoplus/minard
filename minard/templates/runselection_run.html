@@ -3,12 +3,35 @@
 {% block head %}
   {{ super() }}
   <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/pca.css') }}" media="screen">
+  <style>
+    .btn2 {
+        background-color: #228B22;
+        padding: 6px 6px;
+        color: white;
+        text-align: center;
+        font-size: 14px;
+        margin: 4px 2px;
+        cursor: pointer;
+    }
+  </style>
 {% endblock %}
 {% block body %}
   {{ super() }}
 
   <!-- Start Page -->
   <div class="container">
+    <th>
+      {% if run_prev_next[0] == False %}
+        <button type="submit" class="btn2" disabled>Back</button>
+      {% else %}
+        <button type="submit" class="btn2" onclick="change_page({{run_prev_next[0]}})">Back</button>
+      {% endif %}
+      {% if run_prev_next[1] == False %}
+        <button type="submit" class="btn2" disabled>Next</button>
+      {% else %}
+        <button type="submit" class="btn2" onclick="change_page({{run_prev_next[1]}})">Next</button>
+      {% endif %}
+    </th>
 
     <!-- Page Title -->
     <div class="row">
@@ -334,4 +357,9 @@
 
 {% block script %}
   <script src="{{ url_for('static', filename='js/burst_form.js') }}"></script>
+  <script>
+    function change_page(run_num) {
+      window.location.replace($SCRIPT_ROOT + "/runselection_run/" + String(run_num));
+    }
+  </script>
 {% endblock %}

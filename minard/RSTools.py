@@ -493,11 +493,10 @@ def format_rs_results(rs_tables, crit_tables):
                     elif isinstance(notes[check], dict):
                         display_info[criteria]['rs_modules'][rs_module]['checks'][check]['Value'] = OrderedDict()
                         for subcheck in notes[check]:
-                            string = subcheck
                             if isinstance(notes[check][subcheck], float):
-                                string += (': %.2f' % notes[check][subcheck])
+                                string = ('%.2f' % notes[check][subcheck])
                             else:
-                                string += (': %s' % (notes[check][subcheck]))
+                                string = notes[check][subcheck]
                             display_info[criteria]['rs_modules'][rs_module]['checks'][check]['Value'][subcheck] = string
                     else:
                         display_info[criteria]['rs_modules'][rs_module]['checks'][check]['Value'] = notes[check]

@@ -1924,20 +1924,19 @@ def runselection_run(run_number):
     list_history = RSTools.get_list_history(run_number)
     lists = RSTools.get_run_lists()
     list_data = RSTools.get_current_lists_run(run_number)
+
+    is_pass_form = False
     if request.form:
         # Find out which form is being used: run_list or pass
         # (run_list has more elements than just: name, comment, password)
-        is_list_form = False
-        for key in request.form.keys():
-            if key not in ['name', 'comment', 'password']:
-                is_list_form = True
-                break
+        if 'criteria' in request.form.keys():
+            is_pass_form = True
 
         # Update relenvent form
-        if is_list_form:
-            list_form = RSTools.file_list_form_builder(request.form, lists, list_data)
-        else:
+        if is_pass_form:
             pass_form = RSTools.file_list_form_builder(request.form, display_info)
+        else:
+            list_form = RSTools.file_list_form_builder(request.form, lists, list_data)
     else:
         list_form = RSTools.file_list_form_builder(-1, lists, list_data)
         pass_form = RSTools.file_pass_form_builder(-1, display_info)
@@ -1945,7 +1944,10 @@ def runselection_run(run_number):
     if request.method == 'POST':
         if list_form.validate():
             try:
-                RSTools.update_run_lists(list_form, run_number, lists, list_data)
+                if is_pass_form:
+                    RSTools.pass_run(pass_form, run_number)
+                else:
+                    RSTools.update_run_lists(list_form, run_number, lists, list_data)
             except Exception as e:
                 flash(str(e), 'danger')
                 return redirect(url_for('runselection_run', run_number=run_number))
@@ -1954,7 +1956,7 @@ def runselection_run(run_number):
         else:
             flash("Unsuccessful: error submitting form", 'danger')
 
-    return render_template('runselection_run.html', run_number=run_number, general_info=general_info, display_info=display_info, list_history=list_history, lists=lists.keys(), list_form=list_form, run_prev_next=run_prev_next)
+    return render_template('runselection_run.html', run_number=run_number, general_info=general_info, display_info=display_info, list_history=list_history, lists=lists.keys(), list_form=list_form, pass_form=pass_form, run_prev_next=run_prev_next)
 
 
 @app.route('/light_level')

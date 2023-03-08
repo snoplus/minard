@@ -36,6 +36,7 @@ def file_pass_form_builder(formobj, display_info):
     for (i, criteria) in enumerate(display_info.keys()):
 
         setattr(FilePassForm, 'name', StringField('Name', [validators.Length(min=1), validators.InputRequired(), validators.Regexp('[A-Za-z0-9\s]{1,}', message='First and second name required.')]))
+        setattr(FilePassForm, 'criteria', StringField('criteria', [validators.InputRequired()]))
         setattr(FilePassForm, 'comment', StringField('Comment', [validators.InputRequired()]))
         setattr(FilePassForm, 'password', PasswordField('Password', [validators.InputRequired()]))
 
@@ -123,6 +124,52 @@ def update_run_lists(form, run, lists, data):
     result_nl = cursor_nl.execute("UPDATE run_selection SET name=%s WHERE run_min=%s AND run_max=%s AND type='RS_REPORT'", (form.name.data, run, run))
 
     conn_nl.close()
+
+def pass_run(form, run_number):
+    """
+    Re-upload the table, with an overall pass, then update the rs_history tables with only a comment
+    about who passed the run and why.
+    """
+
+    # Remove troublesome characters from entries
+    name = str(form.name.data).replace("'", '').replace('"', '')
+    comment = str(form.comment.data).replace("'", '').replace('"', '')
+    criteria = str(form.criteria.data).replace("'", '').replace('"', '')
+
+    # Get RS table
+    RS_report = get_RS_reports(criteria=criteria, run_min=run_number, run_max=run_number)[run_number][criteria]['meta_data']
+
+    # Change result
+    RS_report['decision']['result'] = True
+
+    # Create run list history comment
+    list_com =  '{} passed run manually for {} crietria: {}'.format(name, criteria, comment)
+
+    # Upload new RS_report
+    c_nl = False
+    try:
+        conn_nl = engine_nl.connect()
+        c_nl = True
+        result = conn_nl.execute("INSERT INTO run_selection (run_min, run_max, name, criteria, type, \
+            meta_data) VALUES (%s, %s, %s, %s, %s, %s)" % (int(run_number), int(run_number), name, criteria, 'RS_REPORT', RS_report))
+    except:
+        print('ERROR uploading')
+        
+    # Update run history
+    c = False
+    try:
+        conn = engine.connect()
+        c = True
+        result = conn.execute("INSERT INTO rs_history(run, uploaded_to, removed_from, name, comment) \
+                              VALUES(%s,NULL,NULL,%s,%s)" % (int(run_number), name, list_com))
+    except:
+        print('ERROR updating run list history')
+
+    finally:
+        if c_nl:
+            conn_nl.close()
+        if c:
+            conn.close()
 
 
 def decide_replace_table(first_table, second_table, version=None):

@@ -1925,14 +1925,27 @@ def runselection_run(run_number):
     lists = RSTools.get_run_lists()
     list_data = RSTools.get_current_lists_run(run_number)
     if request.form:
-        form = RSTools.file_list_form_builder(request.form, lists, list_data)
+        # Find out which form is being used: run_list or pass
+        # (run_list has more elements than just: name, comment, password)
+        is_list_form = False
+        for key in request.form.keys():
+            if key not in ['name', 'comment', 'password']:
+                is_list_form = True
+                break
+
+        # Update relenvent form
+        if is_list_form:
+            list_form = RSTools.file_list_form_builder(request.form, lists, list_data)
+        else:
+            pass_form = RSTools.file_list_form_builder(request.form, display_info)
     else:
-        form = RSTools.file_list_form_builder(-1, lists, list_data)
+        list_form = RSTools.file_list_form_builder(-1, lists, list_data)
+        pass_form = RSTools.file_pass_form_builder(-1, display_info)
 
     if request.method == 'POST':
-        if form.validate():
+        if list_form.validate():
             try:
-                RSTools.update_run_lists(form, run_number, lists, list_data)
+                RSTools.update_run_lists(list_form, run_number, lists, list_data)
             except Exception as e:
                 flash(str(e), 'danger')
                 return redirect(url_for('runselection_run', run_number=run_number))
@@ -1941,7 +1954,7 @@ def runselection_run(run_number):
         else:
             flash("Unsuccessful: error submitting form", 'danger')
 
-    return render_template('runselection_run.html', run_number=run_number, general_info=general_info, display_info=display_info, list_history=list_history, lists=lists.keys(), form=form, run_prev_next=run_prev_next)
+    return render_template('runselection_run.html', run_number=run_number, general_info=general_info, display_info=display_info, list_history=list_history, lists=lists.keys(), list_form=list_form, run_prev_next=run_prev_next)
 
 
 @app.route('/light_level')

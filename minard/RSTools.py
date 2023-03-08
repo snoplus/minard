@@ -29,6 +29,22 @@ def file_list_form_builder(formobj, runlists, data):
     else:
         return FileListForm()
 
+def file_pass_form_builder(formobj, display_info):
+    class FilePassForm(Form):
+        pass
+
+    for (i, criteria) in enumerate(display_info.keys()):
+
+        setattr(FilePassForm, 'name', StringField('Name', [validators.Length(min=1), validators.InputRequired(), validators.Regexp('[A-Za-z0-9\s]{1,}', message='First and second name required.')]))
+        setattr(FilePassForm, 'comment', StringField('Comment', [validators.InputRequired()]))
+        setattr(FilePassForm, 'password', PasswordField('Password', [validators.InputRequired()]))
+
+    if formobj != -1:
+        return FilePassForm(formobj)
+    else:
+        return FilePassForm()
+
+
 def get_current_lists_run(run):
     conn = engine.connect()
     result = conn.execute("SELECT list FROM evaluated_runs WHERE run=%s" % (run,))
@@ -114,8 +130,6 @@ def decide_replace_table(first_table, second_table, version=None):
     number, then on timestamp'''
 
     if second_table['meta_data']['version'] == first_table['meta_data']['version']:
-        first_time = first_table['timestamp']
-        second_time = second_table['timestamp']
         dt = second_table['timestamp'] - first_table['timestamp']
         dt_seconds = dt.days*3600*12 + dt.seconds
 
@@ -162,8 +176,10 @@ def get_RS_reports(criteria=None, run_min=None, run_max=None, limit=None):
     if limit is not None:
         query += " LIMIT %d" % (limit)
 
+    c = False
     try:
         conn = engine_nl.connect()
+        c = True
         resultQuery = conn.execute(query)
 
         rs_tables_list = []
@@ -204,7 +220,8 @@ def get_RS_reports(criteria=None, run_min=None, run_max=None, limit=None):
         return False
     
     finally:
-        conn.close()
+        if c:
+            conn.close()
 
 def get_filtered_RS_tables(run_min, run_max, min_runTime, max_runTime, offset, limit, result, criteria):
     '''Download run-selection tables in range, and keep only ones with desired result'''
@@ -545,8 +562,10 @@ def get_neighbouring_runs(runNum):
 
     run_neighbours = [False, False]
 
+    c = False
     try:
         conn = engine_nl.connect()
+        c = True
 
         resultQuery_prev = conn.execute(query_prev)
         for row in resultQuery_prev.fetchall():
@@ -562,7 +581,8 @@ def get_neighbouring_runs(runNum):
         return run_neighbours
     
     finally:
-        conn.close()
+        if c:
+            conn.close()
     
 
 def format_data(runNum):

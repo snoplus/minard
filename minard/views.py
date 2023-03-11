@@ -1925,6 +1925,12 @@ def runselection_run(run_number):
     lists = RSTools.get_run_lists()
     list_data = RSTools.get_current_lists_run(run_number)
 
+    if lists == False:
+        lists_keys = False
+    else:
+        lists_keys = lists.keys()
+
+    # Create forms
     is_pass_form = False
     if request.form:
         # Find out which form is being used: run_list or pass
@@ -1934,29 +1940,46 @@ def runselection_run(run_number):
 
         # Update relenvent form
         if is_pass_form:
-            pass_form = RSTools.file_list_form_builder(request.form, display_info)
+            pass_form = RSTools.file_pass_form_builder(request.form, display_info)
         else:
             list_form = RSTools.file_list_form_builder(request.form, lists, list_data)
     else:
         list_form = RSTools.file_list_form_builder(-1, lists, list_data)
         pass_form = RSTools.file_pass_form_builder(-1, display_info)
 
+    # Validate and submit forms
     if request.method == 'POST':
-        if list_form.validate():
-            try:
-                if is_pass_form:
-                    RSTools.pass_run(pass_form, run_number)
+        succeeded = True
+        error_msg = 'Unsuccessful: error submitting form'
+        try:
+            if 'criteria' in request.form.keys():
+                # Passing run form
+                if pass_form.validate():
+                    result, error_msg = RSTools.pass_run(pass_form, run_number)
+                    if not result:
+                        succeeded = False
                 else:
-                    RSTools.update_run_lists(list_form, run_number, lists, list_data)
-            except Exception as e:
-                flash(str(e), 'danger')
-                return redirect(url_for('runselection_run', run_number=run_number))
-            flash('Successfully submitted', 'success')
+                    succeeded = False
+            else:
+                # Changing run lists form
+                if list_form.validate():
+                    result = RSTools.update_run_lists(list_form, run_number, lists, list_data)
+                    if not result:
+                        succeeded = False
+                else:
+                    succeeded = False
+        except Exception as e:
+            flash(str(e), 'danger')
             return redirect(url_for('runselection_run', run_number=run_number))
+        
+        if succeeded:
+            flash('Successfully submitted', 'success')
         else:
-            flash("Unsuccessful: error submitting form", 'danger')
+            flash(error_msg, 'danger')
+        
+        return redirect(url_for('runselection_run', run_number=run_number))
 
-    return render_template('runselection_run.html', run_number=run_number, general_info=general_info, display_info=display_info, list_history=list_history, lists=lists.keys(), list_form=list_form, pass_form=pass_form, run_prev_next=run_prev_next)
+    return render_template('runselection_run.html', run_number=run_number, general_info=general_info, display_info=display_info, list_history=list_history, lists=lists_keys, list_form=list_form, pass_form=pass_form, run_prev_next=run_prev_next)
 
 
 @app.route('/light_level')

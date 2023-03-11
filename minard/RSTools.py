@@ -5,11 +5,14 @@ from .db import engine, engine_nl
 from collections import OrderedDict
 import psycopg2
 import psycopg2.extras
+import json
 from dateutil import parser
 import datetime
 from .views import app
 
 def file_list_form_builder(formobj, runlists, data):
+    if runlists == False or data == False:
+        return False
     class FileListForm(Form):
         pass
 
@@ -30,13 +33,14 @@ def file_list_form_builder(formobj, runlists, data):
         return FileListForm()
 
 def file_pass_form_builder(formobj, display_info):
+    if display_info == False:
+        return False
     class FilePassForm(Form):
         pass
 
-    for (i, criteria) in enumerate(display_info.keys()):
-
+    for criteria in display_info.keys():
         setattr(FilePassForm, 'name', StringField('Name', [validators.Length(min=1), validators.InputRequired(), validators.Regexp('[A-Za-z0-9\s]{1,}', message='First and second name required.')]))
-        setattr(FilePassForm, 'criteria', StringField('criteria', [validators.InputRequired()]))
+        setattr(FilePassForm, 'criteria', StringField('criteria', [validators.Optional()], default=criteria))
         setattr(FilePassForm, 'comment', StringField('Comment', [validators.InputRequired()]))
         setattr(FilePassForm, 'password', PasswordField('Password', [validators.InputRequired()]))
 
@@ -47,17 +51,35 @@ def file_pass_form_builder(formobj, display_info):
 
 
 def get_current_lists_run(run):
-    conn = engine.connect()
-    result = conn.execute("SELECT list FROM evaluated_runs WHERE run=%s" % (run,))
-    return [int(row[0]) for row in result.fetchall()]
+    c = False
+    try:
+        conn = engine.connect()
+        result = conn.execute("SELECT list FROM evaluated_runs WHERE run=%s" % (run,))
+        data =  [int(row[0]) for row in result.fetchall()]
+    except:
+        print('ERROR: Failed downloading current run lists')
+        data = False
+
+    if c:
+        conn.close()
+        
+    return data
 
 def get_run_lists():
-    conn = engine.connect()
-    result = conn.execute("SELECT name, id FROM run_lists ORDER BY name ASC")
-    data = OrderedDict()
-    for entry in result.fetchall():
-        data[str(entry[0])] = int(entry[1])
-    conn.close()
+    c = False
+    try:
+        conn = engine.connect()
+        result = conn.execute("SELECT name, id FROM run_lists ORDER BY name ASC")
+        data = OrderedDict()
+        for entry in result.fetchall():
+            data[str(entry[0])] = int(entry[1])
+    except:
+        print('ERROR: Failed downloading run lists')
+        data = False
+
+    if c:
+        conn.close()
+        
     return data
 
 def get_list_history(run):
@@ -65,17 +87,26 @@ def get_list_history(run):
     Get run list history for this run.
     """
     # key | run | uploaded_to | removed_from | name | timestamp | comment
-    conn = engine.connect()
-    result = conn.execute("SELECT timestamp, uploaded_to, removed_from, comment, name FROM rs_history WHERE run=%s ORDER BY timestamp DESC", (run,))
-    data = OrderedDict()
-    for i, entry in enumerate(result.fetchall()):
-        data[str(i)] = {}
-        data[str(i)]['timestamp'] = str(entry[0])
-        data[str(i)]['list_added'] = str(entry[1])
-        data[str(i)]['list_removed'] = str(entry[2])
-        data[str(i)]['comment'] = str(entry[3])
-        data[str(i)]['name'] = str(entry[4])
-    conn.close()
+    c = False
+    try:
+        conn = engine.connect()
+        c = True
+        result = conn.execute("SELECT timestamp, uploaded_to, removed_from, comment, name FROM rs_history WHERE run=%s ORDER BY timestamp DESC", (run,))
+        data = OrderedDict()
+        for i, entry in enumerate(result.fetchall()):
+            data[str(i)] = {}
+            data[str(i)]['timestamp'] = str(entry[0])
+            data[str(i)]['list_added'] = str(entry[1])
+            data[str(i)]['list_removed'] = str(entry[2])
+            data[str(i)]['comment'] = str(entry[3])
+            data[str(i)]['name'] = str(entry[4])
+    except:
+        print('ERROR: Failed downloading run list history')
+        data = False
+
+    if c:
+        conn.close()
+    
     return data
 
 def update_run_lists(form, run, lists, data):
@@ -88,42 +119,54 @@ def update_run_lists(form, run, lists, data):
     name = str(form.name.data).replace("'", '').replace('"', '')
     comment = str(form.comment.data).replace("'", '').replace('"', '')
 
-    # Connect to detector database, to update run lists and run list histories
-    conn = psycopg2.connect(dbname=app.config['DB_NAME'],
-                            user=app.config['DB_OPERATOR'],
-                            host=app.config['DB_HOST'],
-                            password=form.password.data)
-    conn.set_isolation_level(psycopg2.extensions.ISOLATION_LEVEL_AUTOCOMMIT)
+    c = False
+    c_nl = False
+    try:
+        # Connect to detector database, to update run lists and run list histories
+        conn = psycopg2.connect(dbname=app.config['DB_NAME'],
+                                user=app.config['DB_OPERATOR'],
+                                host=app.config['DB_HOST'],
+                                password=form.password.data)
+        c = True
+        conn.set_isolation_level(psycopg2.extensions.ISOLATION_LEVEL_AUTOCOMMIT)
 
-    cursor = conn.cursor()
-    for key in dir(form):
-        if key in lists:
-            if (getattr(form, key).data == True and lists[key] not in data): # need new entry
-                # Add run to run list
-                result = cursor.execute("INSERT INTO evaluated_runs(run, list, evaluator) VALUES(%s, %s, %s)", (int(run), int(lists[key]), name))
-                # Update run history
-                result = cursor.execute("INSERT INTO rs_history(run,uploaded_to,removed_from,name,comment) VALUES(%s,%s,NULL,%s,%s)", (int(run), str(key), name, comment))
-            elif (getattr(form, key).data == False and lists[key] in data): # need to delete entry
-                # Remove run from run list
-                result = cursor.execute("DELETE FROM evaluated_runs WHERE run = %s AND list = %s", (int(run), int(lists[key])))
-                # Update run history
-                result = cursor.execute("INSERT INTO rs_history(run,uploaded_to,removed_from,name,comment) VALUES(%s,NULL,%s,%s,%s)", (int(run), str(key), name, comment))
+        cursor = conn.cursor()
+        for key in dir(form):
+            if key in lists:
+                if (getattr(form, key).data == True and lists[key] not in data): # need new entry
+                    # Add run to run list
+                    cursor.execute("INSERT INTO evaluated_runs(run, list, evaluator) VALUES(%s, %s, %s)", (int(run), int(lists[key]), name))
+                    # Update run history
+                    cursor.execute("INSERT INTO rs_history(run,uploaded_to,removed_from,name,comment) VALUES(%s,%s,NULL,%s,%s)", (int(run), str(key), name, comment))
+                elif (getattr(form, key).data == False and lists[key] in data): # need to delete entry
+                    # Remove run from run list
+                    cursor.execute("DELETE FROM evaluated_runs WHERE run = %s AND list = %s", (int(run), int(lists[key])))
+                    # Update run history
+                    cursor.execute("INSERT INTO rs_history(run,uploaded_to,removed_from,name,comment) VALUES(%s,NULL,%s,%s,%s)", (int(run), str(key), name, comment))
     
-    """
-    Now, update the nearlineDB with the name and time
-    """
+        """
+        Now, update the nearlineDB with the name and time
+        """
 
-    conn_nl = psycopg2.connect(dbname=app.config['DB_NAME_NEARLINE'],
-                               user=app.config['DB_OPERATOR'],
-                               host=app.config['DB_HOST_NEARLINE'],
-                               password=form.password.data,
-                               port=app.config['DB_PORT_NEARLINE'])
-    conn_nl.set_isolation_level(psycopg2.extensions.ISOLATION_LEVEL_AUTOCOMMIT)
+        conn_nl = psycopg2.connect(dbname=app.config['DB_NAME_NEARLINE'],
+                                user=app.config['DB_OPERATOR'],
+                                host=app.config['DB_HOST_NEARLINE'],
+                                password=form.password.data,
+                                port=app.config['DB_PORT_NEARLINE'])
+        c_nl = True
+        conn_nl.set_isolation_level(psycopg2.extensions.ISOLATION_LEVEL_AUTOCOMMIT)
 
-    cursor_nl = conn_nl.cursor()
-    result_nl = cursor_nl.execute("UPDATE run_selection SET name=%s WHERE run_min=%s AND run_max=%s AND type='RS_REPORT'", (form.name.data, run, run))
+        cursor_nl = conn_nl.cursor()
+        cursor_nl.execute("UPDATE run_selection SET name=%s WHERE run_min=%s AND run_max=%s AND type='RS_REPORT'", (form.name.data, run, run))
+    except Exception as e:
+        print(str(e))
+        return False
 
-    conn_nl.close()
+    if c:
+        conn.close()
+    if c_nl:
+        conn_nl.close()
+    return True
 
 def pass_run(form, run_number):
     """
@@ -141,38 +184,68 @@ def pass_run(form, run_number):
 
     # Change result
     RS_report['decision']['result'] = True
+    json_report = json.dumps(RS_report)
 
     # Create run list history comment
     list_com =  '{} passed run manually for {} crietria: {}'.format(name, criteria, comment)
 
     # Upload new RS_report
     c_nl = False
+    result_nl = False
+    command_ping = ("INSERT INTO run_selection (run_min, run_max, name, criteria, type, " \
+                    "meta_data) VALUES (%s, %s, %s, %s, %s, %s)")
     try:
-        conn_nl = engine_nl.connect()
+        # Connect to detector database, to update run lists and run list histories
+        conn_nl = psycopg2.connect(dbname=app.config['DB_NAME_NEARLINE'],
+                                user=app.config['DB_OPERATOR'],
+                                host=app.config['DB_HOST_NEARLINE'],
+                                password=form.password.data,
+                                port=app.config['DB_PORT_NEARLINE'])
+        conn_nl.set_isolation_level(psycopg2.extensions.ISOLATION_LEVEL_AUTOCOMMIT)
         c_nl = True
-        result = conn_nl.execute("INSERT INTO run_selection (run_min, run_max, name, criteria, type, \
-            meta_data) VALUES (%s, %s, %s, %s, %s, %s)" % (int(run_number), int(run_number), name, criteria, 'RS_REPORT', RS_report))
-    except:
-        print('ERROR uploading')
+        cursor_nl = conn_nl.cursor()
         
-    # Update run history
+        cursor_nl.execute(command_ping, (int(run_number), int(run_number), name, criteria, 'RS_REPORT', json_report))
+        result_nl = True
+    except Exception as e:
+        print('ERROR uploading:', e)
+        
+    # Update run history (if run was updated successfully)
     c = False
-    try:
-        conn = engine.connect()
-        c = True
-        result = conn.execute("INSERT INTO rs_history(run, uploaded_to, removed_from, name, comment) \
-                              VALUES(%s,NULL,NULL,%s,%s)" % (int(run_number), name, list_com))
-    except:
-        print('ERROR updating run list history')
+    result = False
+    command_ping = ("INSERT INTO rs_history (run, uploaded_to, removed_from, name, comment) VALUES(%s, %s, %s, %s, %s)")
+    if result_nl:
+        try:
+            # Connect to detector database, to update run lists and run list histories
+            conn = psycopg2.connect(dbname=app.config['DB_NAME'],
+                                    user=app.config['DB_OPERATOR'],
+                                    host=app.config['DB_HOST'],
+                                    password=form.password.data)
+            conn.set_isolation_level(psycopg2.extensions.ISOLATION_LEVEL_AUTOCOMMIT)
+            c = True
+            cursor = conn.cursor()
+            
+            cursor.execute(command_ping, (int(run_number), str(None), str(None), name, list_com))
+            result = True
+        except Exception as e:
+            print('ERROR updating run list history:', e)
+    
+    # Close connections
+    if c_nl:
+        conn_nl.close()
+    if c:
+        conn.close()
 
-    finally:
-        if c_nl:
-            conn_nl.close()
-        if c:
-            conn.close()
+    error_msg = ''
+    if not result_nl:
+        error_msg += 'ERROR: run not passed - uploading new RS report failed.\n'
+    if not result:
+        error_msg += 'WARNING: run list history not updated - uploading new entry failed.\n'
+
+    return result, error_msg
 
 
-def decide_replace_table(first_table, second_table, version=None):
+def decide_replace_table(first_table, second_table):
     '''Decide whether second_table should replace first_table, first based on version
     number, then on timestamp'''
 
@@ -184,13 +257,6 @@ def decide_replace_table(first_table, second_table, version=None):
             return True
         else:
             return False
-
-    # Versions are different, see if any match the provided one
-    if version is not None:
-        if first_table['meta_data']['version'] == version:
-            return False
-        if second_table['meta_data']['version'] == version:
-            return True
     
     # No version match provided one (or none provided), to take table with latest version
     if second_table['meta_data']['version'] > first_table['meta_data']['version']:
@@ -390,17 +456,20 @@ def list_runs_info(limit, offset, result, criteria, selected_run, run_range, dat
 
 ############ RUNSELECTION_RUN PAGE FUNCTIONS ############
 
-def get_criteria_tables(runNum, crit_version):
-    '''Get criteria tables associated with run, list of criteria tags.
+def get_criteria_tables(runNum, crit_timestamp):
+    '''
+    Get criteria tables associated with run, list of criteria tags.
     crit_version is a dictionary with a key for every criteria tag, and
-    the associate value is the preferred version number'''
+    the associate value is the timestamp (when table was uploaded)
+    '''
 
-    # Download criteria tables that match run number and criteria tag(s)
+    # Download criteria tables that match run number and criteria tag(s),
+    # and existed at the time the RS reports were uploaded
     query = "SELECT meta_data, timestamp FROM run_selection"
     query += " WHERE run_min <= %d AND (run_max IS NULL OR run_max >= %d) AND type = 'CRITERIA'" % (int(runNum), int(runNum))
     query += " AND ("
-    for criteria in crit_version:
-        query += "criteria = '%s' OR " % criteria
+    for criteria in crit_timestamp:
+        query += "(criteria = '%s' AND timestamp <= '%s') OR " % (criteria, crit_timestamp[criteria])
     query = query[:-4]  # Remove last ' OR '
     query += ") ORDER BY timestamp DESC LIMIT 50"
 
@@ -418,15 +487,15 @@ def get_criteria_tables(runNum, crit_version):
     crit_tables = {}
     for table in table_list:
         criteria = table['meta_data']['index']
-        if criteria not in crit_tables and criteria in crit_version:
+        if criteria not in crit_tables and criteria in crit_timestamp:
             crit_tables[criteria] = table
         else:
             # There is a duplicate
-            if decide_replace_table(crit_tables[criteria], table, crit_version[criteria]):
+            if decide_replace_table(crit_tables[criteria], table):
                 crit_tables[criteria] = table
 
     # Check if we got a criteria table for each inputted criteria
-    for crit in crit_version:
+    for crit in crit_timestamp:
         if crit not in crit_tables:
             crit_tables[crit] = False
 
@@ -638,24 +707,30 @@ def format_data(runNum):
     and criteria threshold for each rs_module, and for each criteria tag.'''
 
     # Download Tables
+    failed = False
     rs_tables = get_RS_reports(run_min=runNum, run_max=runNum, limit=50)
     if rs_tables == False:
-        return False, False
+        failed = True
     else:
         rs_tables = rs_tables[runNum]
     if rs_tables == False:
-        return False
-    crit_version = {}
-    criteria_list = []
-    for criteria in rs_tables: # Get criteria tag and version number for each table
-        crit_version[criteria] = int(rs_tables[criteria]['meta_data']['version'])
-        criteria_list.append(criteria)
-    crit_tables = get_criteria_tables(runNum, crit_version)
+        failed = True
+
+    if not failed:
+        crit_version = {}
+        criteria_list = []
+        for criteria in rs_tables: # Get criteria tag and version number for each table
+            crit_version[criteria] = rs_tables[criteria]['timestamp']
+            criteria_list.append(criteria)
+        crit_tables = get_criteria_tables(runNum, crit_version)
 
 
-    # Get formatted info
-    general_info = format_general_info(rs_tables, criteria_list)
-    display_info = format_rs_results(rs_tables, crit_tables)
+        # Get formatted info
+        general_info = format_general_info(rs_tables, criteria_list)
+        display_info = format_rs_results(rs_tables, crit_tables)
+    else:
+        general_info = False
+        display_info = False
 
     # Get previous and next run numbers
     run_prev_next = get_neighbouring_runs(runNum)

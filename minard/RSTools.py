@@ -10,6 +10,9 @@ from dateutil import parser
 import datetime
 from .views import app
 
+
+############ FORM FUNCTIONS ############
+
 def file_list_form_builder(formobj, runlists, data):
     if runlists == False or data == False:
         return False
@@ -310,7 +313,7 @@ def get_RS_reports(criteria=None, run_min=None, run_max=None, limit=None):
             rs_tables_list.append(tempt_dict)
 
         if len(rs_tables_list) == 0:
-            return False
+            return OrderedDict()
         
         # Repackage and check for duplicates
         rs_tables = OrderedDict()
@@ -349,7 +352,7 @@ def get_filtered_RS_tables(run_min, run_max, min_runTime, max_runTime, offset, l
             rs_tables[run][crit]['timestamp'] = str(rs_tables[run][crit]['timestamp']).split('.')[0]
 
     no_more_tables = False
-    if len(rs_tables) < ((offset + limit) * 2):
+    if len(rs_tables) < ((offset + limit) * 2) and limit > 1000:
         no_more_tables = True
 
     ### Check conditions ###
@@ -438,13 +441,18 @@ def list_runs_info(limit, offset, result, criteria, selected_run, run_range, dat
     # If there aren't enough, keep downloading more runs until we get enough. Either until enough
     # are downloaded, or there are no more tables to download, or reach a hard cap in number of loops (just in case).
     num_loops = 0
+    temp_lim = limit
     while (len(run_numbers) <= (offset + limit)) and (no_more_tables == False) and (num_loops <= 100):
-        earliest_run = run_numbers[-1]
-        new_filtered_rs_tables, new_run_numbers, no_more_tables = get_filtered_RS_tables(run_min, earliest_run-1, min_runTime, max_runTime, offset, limit, result, criteria)
+        if len(run_numbers) == 0:
+            earliest_run = None
+        else:
+            earliest_run = run_numbers[-1] - 1
+        new_filtered_rs_tables, new_run_numbers, no_more_tables = get_filtered_RS_tables(run_min, earliest_run, min_runTime, max_runTime, offset, temp_lim, result, criteria)
         filtered_rs_tables.update(new_filtered_rs_tables)
         run_numbers += new_run_numbers
         run_numbers.sort(reverse=True)
         num_loops += 1
+        temp_lim *= 2
 
     # Only keep the runs that will be listed on the page
     final_rs_tables = OrderedDict()

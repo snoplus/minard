@@ -1955,7 +1955,7 @@ def runselection_run(run_number):
             if 'criteria' in request.form.keys():
                 # Passing run form
                 if pass_form.validate():
-                    result, error_msg = RSTools.pass_run(pass_form, run_number)
+                    result, error_msg = RSTools.pass_fail_run(pass_form, run_number)
                     if not result:
                         succeeded = False
                 else:

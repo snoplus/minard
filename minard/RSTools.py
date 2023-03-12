@@ -42,6 +42,15 @@ def file_pass_form_builder(formobj, display_info):
         pass
 
     for criteria in display_info.keys():
+        if display_info[criteria]['criteria_result'] and formobj == -1:
+            setattr(FilePassForm, 'pass_run', BooleanField(label='Pass', default='checked'))
+            setattr(FilePassForm, 'fail_run', BooleanField(label='Fail'))
+        elif (not display_info[criteria]['criteria_result']) and formobj == -1:
+            setattr(FilePassForm, 'pass_run', BooleanField(label='Pass'))
+            setattr(FilePassForm, 'fail_run', BooleanField(label='Fail', default='checked'))
+        else:
+            setattr(FilePassForm, 'pass_run', BooleanField(label='Pass'))
+            setattr(FilePassForm, 'fail_run', BooleanField(label='Fail'))
         setattr(FilePassForm, 'name', StringField('Name', [validators.Length(min=1), validators.InputRequired(), validators.Regexp('[A-Za-z0-9\s]{1,}', message='First and second name required.')]))
         setattr(FilePassForm, 'criteria', StringField('criteria', [validators.Optional()], default=criteria))
         setattr(FilePassForm, 'comment', StringField('Comment', [validators.InputRequired()]))
@@ -171,7 +180,7 @@ def update_run_lists(form, run, lists, data):
         conn_nl.close()
     return True
 
-def pass_run(form, run_number):
+def pass_fail_run(form, run_number):
     """
     Re-upload the table, with an overall pass, then update the rs_history tables with only a comment
     about who passed the run and why.
@@ -185,12 +194,18 @@ def pass_run(form, run_number):
     # Get RS table
     RS_report = get_RS_reports(criteria=criteria, run_min=run_number, run_max=run_number)[run_number][criteria]['meta_data']
 
-    # Change result
-    RS_report['decision']['result'] = True
+    # Change result and create run list history comment
+    if (getattr(form, 'pass_run').data == True) and (getattr(form, 'fail_run').data == True):
+        return False, 'ERROR: tried to pass and fail run'
+    elif getattr(form, 'pass_run').data == True:
+        RS_report['decision']['result'] = True
+        list_com =  'Passed run manually for {} crietria: {}'.format(criteria, comment)
+    elif getattr(form, 'fail_run').data == True:
+        RS_report['decision']['result'] = False
+        list_com =  'Failed run manually for {} crietria: {}'.format(criteria, comment)
+    else:
+        return False, 'WARNING: run neither passed nor failed'
     json_report = json.dumps(RS_report)
-
-    # Create run list history comment
-    list_com =  '{} passed run manually for {} crietria: {}'.format(name, criteria, comment)
 
     # Upload new RS_report
     c_nl = False

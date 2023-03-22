@@ -1893,6 +1893,7 @@ def scint_level():
 
 @app.route('/runselection')
 def runselection():
+    # Get variable info from webpage (with defaults defined)
     limit = request.args.get("limit", 25, type=int)
     offset = request.args.get("offset", 0, type=int)
     result = request.args.get("result", "All", type=str)
@@ -1900,34 +1901,85 @@ def runselection():
     selected_run = request.args.get("selected_run", 0, type=int)
     run_range_low = request.args.get("run_range_low", 0, type=int)
     run_range_high = request.args.get("run_range_high", 0, type=int)
-    run_info = RSTools.list_runs_info(limit, offset, result, criteria, selected_run, run_range_low, run_range_high)
-    return render_template('runselection.html', run_info=run_info, criteria=criteria, limit=limit, offset=offset, result=result, selected_run=selected_run, run_range_low=run_range_low, run_range_high=run_range_high)
+    year_low = request.args.get("year_low", 0, type=int)
+    month_low = request.args.get("month_low", 0, type=int)
+    day_low = request.args.get("day_low", 0, type=int)
+    year_high = request.args.get("year_high", 0, type=int)
+    month_high = request.args.get("month_high", 0, type=int)
+    day_high = request.args.get("day_high", 0, type=int)
+
+    # Use this to get run info from databases, to display in list
+    run_range = [run_range_low, run_range_high]
+    date_range = [[year_low, month_low, day_low], [year_high, month_high, day_high]]
+    run_info = RSTools.list_runs_info(limit, offset, result, criteria, selected_run, run_range, date_range)
+
+    # Return info to webpage
+    return render_template('runselection.html', run_info=run_info, criteria=criteria, limit=limit, offset=offset, result=result, selected_run=selected_run, run_range_low=run_range_low, run_range_high=run_range_high,
+                           year_low=year_low, month_low=month_low, day_low=day_low, year_high=year_high, month_high=month_high, day_high=day_high)
 
 @app.route('/runselection_run/<int:run_number>', methods=['GET', 'POST'])
 def runselection_run(run_number):
     # run_info, criteria_info = RSTools.import_RS_ratdb(run_number, 'All', 0, 0)
-    general_info, display_info = RSTools.format_data(run_number)
+    general_info, display_info, run_prev_next = RSTools.format_data(run_number)
     list_history = RSTools.get_list_history(run_number)
     lists = RSTools.get_run_lists()
     list_data = RSTools.get_current_lists_run(run_number)
-    if request.form:
-        form = RSTools.file_list_form_builder(request.form, lists, list_data)
+
+    if lists == False:
+        lists_keys = False
     else:
-        form = RSTools.file_list_form_builder(-1, lists, list_data)
+        lists_keys = lists.keys()
 
-    if request.method == 'POST':
-        if form.validate():
-            try:
-                RSTools.update_run_lists(form, run_number, lists, list_data)
-            except Exception as e:
-                flash(str(e), 'danger')
-                return redirect(url_for('runselection_run', run_number=run_number))
-            flash('Successfully submitted', 'success')
-            return redirect(url_for('runselection_run', run_number=run_number))
+    # Create forms
+    is_pass_form = False
+    if request.form:
+        # Find out which form is being used: run_list or pass
+        # (run_list has more elements than just: name, comment, password)
+        if 'criteria' in request.form.keys():
+            is_pass_form = True
+
+        # Update relenvent form
+        if is_pass_form:
+            pass_form = RSTools.file_pass_form_builder(request.form, display_info)
         else:
-            flash("Unsuccessful: error submitting form", 'danger')
+            list_form = RSTools.file_list_form_builder(request.form, lists, list_data)
+    else:
+        list_form = RSTools.file_list_form_builder(-1, lists, list_data)
+        pass_form = RSTools.file_pass_form_builder(-1, display_info)
 
-    return render_template('runselection_run.html', run_number=run_number, general_info=general_info, display_info=display_info, list_history=list_history, lists=lists.keys(), form=form)
+    # Validate and submit forms
+    if request.method == 'POST':
+        succeeded = True
+        error_msg = 'Unsuccessful: error submitting form'
+        try:
+            if 'criteria' in request.form.keys():
+                # Passing run form
+                if pass_form.validate():
+                    result, error_msg = RSTools.pass_fail_run(pass_form, run_number)
+                    if not result:
+                        succeeded = False
+                else:
+                    succeeded = False
+            else:
+                # Changing run lists form
+                if list_form.validate():
+                    result = RSTools.update_run_lists(list_form, run_number, lists, list_data)
+                    if not result:
+                        succeeded = False
+                else:
+                    succeeded = False
+        except Exception as e:
+            flash(str(e), 'danger')
+            return redirect(url_for('runselection_run', run_number=run_number))
+        
+        if succeeded:
+            flash('Successfully submitted', 'success')
+        else:
+            flash(error_msg, 'danger')
+        
+        return redirect(url_for('runselection_run', run_number=run_number))
+
+    return render_template('runselection_run.html', run_number=run_number, general_info=general_info, display_info=display_info, list_history=list_history, lists=lists_keys, list_form=list_form, pass_form=pass_form, run_prev_next=run_prev_next)
 
 
 @app.route('/light_level')

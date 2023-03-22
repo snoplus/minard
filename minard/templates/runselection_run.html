@@ -3,12 +3,40 @@
 {% block head %}
   {{ super() }}
   <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/pca.css') }}" media="screen">
+  <style>
+    .btn2 {
+        background-color: #228B22;
+        padding: 6px 6px;
+        color: white;
+        text-align: center;
+        font-size: 14px;
+        margin: 4px 2px;
+        cursor: pointer;
+    }
+    .right_align {
+      float: right;
+      vertical-align: top;
+      margin-left: 5px;
+    }
+  </style>
 {% endblock %}
 {% block body %}
   {{ super() }}
 
   <!-- Start Page -->
   <div class="container">
+    <th>
+      {% if run_prev_next[0] == False %}
+        <button type="submit" class="btn2" disabled>Back</button>
+      {% else %}
+        <button type="submit" class="btn2" onclick="change_page({{run_prev_next[0]}})">Back</button>
+      {% endif %}
+      {% if run_prev_next[1] == False %}
+        <button type="submit" class="btn2" disabled>Next</button>
+      {% else %}
+        <button type="submit" class="btn2" onclick="change_page({{run_prev_next[1]}})">Next</button>
+      {% endif %}
+    </th>
 
     <!-- Page Title -->
     <div class="row">
@@ -86,18 +114,33 @@
                 <!-- Collapsable header title for criteria tag -->
                 <div class="panel-heading">
                   <h4 id="title-{{criteria}}" class="panel-title">
-                    <a data-toggle="collapse" href="#collapse{{criteria}}">
-                      {% if display_info[criteria]["criteria_result"] == true %}
-                        <b><font color="green">{{ criteria }}</font></b>
-                      {% elif display_info[criteria]["criteria_result"] == false %}
-                        <b><font color="red">{{ criteria }}</font></b>
-                      {% else %}
-                        <b>{{ criteria }}</b>
-                      {% endif %}
-                    </a>
+                    <div>
+                      <a data-toggle="collapse" href="#collapse{{criteria}}">
+                        {% if display_info[criteria]["criteria_result"] == true %}
+                          <b><font color="green">{{ criteria }}</font></b>
+                        {% elif display_info[criteria]["criteria_result"] == false %}
+                          <b><font color="red">{{ criteria }}</font></b>
+                        {% else %}
+                          <b><font color="black">{{ criteria }}</font></b>
+                        {% endif %}
+                      </a>
+                      <!-- Add button to pass run manually: opens pop-up window (coded at the end to the Body block) -->
+                      <div class="right_align">
+                        {% if display_info[criteria]["criteria_result"] == true %}
+                          <button type="button" class="btn btn-success btn-sm" data-toggle="modal" disabled>Pass</button>
+                          <button type="button" class="btn btn-danger btn-sm" data-toggle="modal" data-target="#window{{ criteria-}}-fail">Fail</button>
+                        {% elif display_info[criteria]["criteria_result"] == false %}
+                          <button type="button" class="btn btn-success btn-sm" data-toggle="modal" data-target="#window{{ criteria-}}-pass">Pass</button>
+                          <button type="button" class="btn btn-danger btn-sm" data-toggle="modal" disabled>Fail</button>
+                        {% else %}
+                          <button type="button" class="btn btn-success btn-sm" data-toggle="modal" data-target="#window{{ criteria-}}-pass">Pass</button>
+                          <button type="button" class="btn btn-danger btn-sm" data-toggle="modal" data-target="#window{{ criteria }}-fail">Fail</button>
+                        {% endif %}
+                      </div>
+                    </div>
                   </h4>
                 </div>
-      
+
                 <!-- Collapsable body for criteria tag -->
                 <div id="collapse{{criteria}}" class="panel-collapse collapse out">
                   <div class="panel-body" id="{{criteria}}">
@@ -114,7 +157,12 @@
                                     {% if display_info[criteria]["rs_modules"][rs_module]["module_result"] == true %}
                                       <font color="green">{{ rs_module }}</font>
                                     {% elif display_info[criteria]["rs_modules"][rs_module]["module_result"] == false %}
-                                      <font color="red">{{ rs_module }}</font>
+                                      <!-- If overall run result is purgatory, show failed module results as purgatory too -->
+                                      {% if display_info[criteria]["criteria_result"] == None %}
+                                        {{ rs_module }}
+                                      {% else %}
+                                        <font color="red">{{ rs_module }}</font>
+                                      {% endif %}
                                     {% else %}
                                       {{ rs_module }}
                                     {% endif %}
@@ -149,7 +197,12 @@
                                             {% if display_info[criteria]["rs_modules"][rs_module]["checks"][check]["Result"] == "Pass" %}
                                               <tr class="bg-success">
                                             {% elif display_info[criteria]["rs_modules"][rs_module]["checks"][check]["Result"] == "Fail" %}
-                                              <tr class="bg-danger">
+                                              <!-- If overall run result is purgatory, show failed checks as purgatory too -->
+                                              {% if display_info[criteria]["criteria_result"] == None %}
+                                                <tr>
+                                              {% else %}
+                                                <tr class="bg-danger">
+                                              {% endif %}
                                             {% else %}
                                               <tr>
                                             {% endif %}
@@ -214,36 +267,40 @@
     <!-- Run List History Table -->
     <div class="row">
       <div class="col-md-12">
-        <table class="table table-striped">
-          <thead>
-            <tr>
-              <th width="20.0%">Date</th>
-              <th width="20.0%">List added</th>
-              <th width="20.0%">List removed</th>
-              <th width="20.0%">Comment</th>
-              <th width="20.0%">Name</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for pass in list_history.keys() %}
+        {% if list_history == False %}
+          <h1 style="text-align:center"><font color="red">NO DATA</font></h1>
+        {% else %}
+          <table class="table table-striped">
+            <thead>
               <tr>
-                <td> {{ list_history[pass]["timestamp"].split(" ",1)[0] }} </td>
-                {% if list_history[pass]["list_added"] == "None" %}
-                  <td>  </td>
-                {% else %}
-                  <td> {{ list_history[pass]["list_added"] }} </td>
-                {% endif %}
-                {% if list_history[pass]["list_removed"] == "None" %}
-                  <td>  </td>
-                {% else %}
-                  <td> {{ list_history[pass]["list_removed"] }} </td>
-                {% endif %}
-                <td> {{ list_history[pass]["comment"] }} </td>
-                <td> {{ list_history[pass]["name"] }} </td>
+                <th width="20.0%">Date</th>
+                <th width="20.0%">List added</th>
+                <th width="20.0%">List removed</th>
+                <th width="20.0%">Comment</th>
+                <th width="20.0%">Name</th>
               </tr>
-            {% endfor %}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {% for pass in list_history.keys() %}
+                <tr>
+                  <td> {{ list_history[pass]["timestamp"].split(" ",1)[0] }} </td>
+                  {% if list_history[pass]["list_added"] == "None" %}
+                    <td>  </td>
+                  {% else %}
+                    <td> {{ list_history[pass]["list_added"] }} </td>
+                  {% endif %}
+                  {% if list_history[pass]["list_removed"] == "None" %}
+                    <td>  </td>
+                  {% else %}
+                    <td> {{ list_history[pass]["list_removed"] }} </td>
+                  {% endif %}
+                  <td> {{ list_history[pass]["comment"] }} </td>
+                  <td> {{ list_history[pass]["name"] }} </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        {% endif %}
       </div>
     </div>
 
@@ -257,81 +314,199 @@
     <!-- Run List Control Section -->
     <div class="row">
       <div class="col-md-12">
-        <form action="{{ url_for('runselection_run', run_number=run_number)}}" method="POST" role="form">
-          {% macro form_checkbox(field) -%}
-              <div class="checkbox">
-                  <label class="active"><input type="checkbox" name="{{ field.name }}" {% if field.data %}checked="checked"{% endif %}>{{ field.label.text }}</input></label>
-              </div>
-          {%- endmacro %}
-          <div class="alert alert-info">
-              <p>Note: When you press Submit, the run lists will be updated. Please ensure the boxes checked are the correct lists for this run!
-          </div>
-          <div class="col-md-6">
-            {% for i in range((lists|length/2)|round|int) %}
-            <tr>
-              {{ form_checkbox(form[lists[i]]) }}
-            </tr>
-            {% endfor %}
-          </div>
-          <div class="col-md-6">
-            {% for i in range((lists|length/2)|round|int, lists|length) %}
-            <tr>
-              {{ form_checkbox(form[lists[i]]) }}
-            </tr>
-            {% endfor %}
-          </div>
-          <div class="col-md-12">
-            {% if form.name.errors %}
+        {% if lists == False %}
+          <h1 style="text-align:center"><font color="red">NO DATA</font></h1>
+        {% else %}
+          <form action="{{ url_for('runselection_run', run_number=run_number)}}" method="POST" role="form">
+            {% macro form_checkbox(field) -%}
+                <div class="checkbox">
+                    <label class="active"><input type="checkbox" name="{{ field.name }}" {% if field.data %}checked="checked"{% endif %}>{{ field.label.text }}</input></label>
+                </div>
+            {%- endmacro %}
+            <div class="alert alert-info">
+                <p>Note: When you press Submit, the run lists will be updated. Please ensure the boxes checked are the correct lists for this run!
+            </div>
+            <div class="col-md-6">
+              {% for i in range((lists|length/2)|round|int) %}
+              <tr>
+                {{ form_checkbox(list_form[lists[i]]) }}
+              </tr>
+              {% endfor %}
+            </div>
+            <div class="col-md-6">
+              {% for i in range((lists|length/2)|round|int, lists|length) %}
+              <tr>
+                {{ form_checkbox(list_form[lists[i]]) }}
+              </tr>
+              {% endfor %}
+            </div>
+            <div class="col-md-12">
+              {% if list_form.name.errors %}
+                <div class="form-group has-error">
+              {% else %}
+                <div class="form-group">
+              {% endif %}
+              <label for="name">{{ list_form.name.label }}</label>
+              <input type="text" class="form-control" name="{{ list_form.name.name }}" placeholder="Dr P. L. Ace Holder" {% if list_form.name.data %}value="{{ list_form.name.data }}"{% endif %}></input>
+              {% if list_form.name.errors %}
+                {% for error in list_form.name.errors %}
+                    <span class="help-block">{{ error }}</span>
+                {% endfor %}
+              {% endif %}
+            </div>
+            <div>
+              {% if list_form.comment.errors %}
+                <div class="form-group has-error">
+              {% else %}
+                <div class="form-group">
+              {% endif %}
+              <label for="comment">{{ list_form.comment.label }}</label>
+              <input type="text" class="form-control" name="{{ list_form.comment.name }}" placeholder="Comment (apostrophes and quotation marks are removed)" {% if list_form.comment.data %}value="{{ list_form.comment.data }}"{% endif %}></input>
+              {% if list_form.comment.errors %}
+                {% for error in list_form.comment.errors %}
+                    <span class="help-block">{{ error }}</span>
+                {% endfor %}
+              {% endif %}
+            </div>
+            {% if list_form.password.errors %}
               <div class="form-group has-error">
             {% else %}
               <div class="form-group">
             {% endif %}
-            <label for="name">{{ form.name.label }}</label>
-            <input type="text" class="form-control" name="{{ form.name.name }}" placeholder="Dr P. L. Ace Holder" {% if form.name.data %}value="{{ form.name.data }}"{% endif %}></input>
-            {% if form.name.errors %}
-              {% for error in form.name.errors %}
-                  <span class="help-block">{{ error }}</span>
-              {% endfor %}
+            <label for="info">{{ list_form.password.label }}</label>
+            <input type="password" class="form-control" name="{{ list_form.password.name }}" placeholder="Password"></input>
+            {% if list_form.password.errors %}
+                {% for error in list_form.password.errors %}
+                    <span class="help-block">{{ error }}</span>
+                {% endfor %}
             {% endif %}
+            </div>
+            <button type="submit" class="btn btn-success">Submit</button>
+            </form>
           </div>
-          <div>
-            {% if form.comment.errors %}
-              <div class="form-group has-error">
-            {% else %}
-              <div class="form-group">
-            {% endif %}
-            <label for="comment">{{ form.comment.label }}</label>
-            <input type="text" class="form-control" name="{{ form.comment.name }}" placeholder="Comment (apostrophes and quotation marks are removed)" {% if form.comment.data %}value="{{ form.comment.data }}"{% endif %}></input>
-            {% if form.comment.errors %}
-              {% for error in form.comment.errors %}
-                  <span class="help-block">{{ error }}</span>
-              {% endfor %}
-            {% endif %}
-          </div>
-          {% if form.password.errors %}
-            <div class="form-group has-error">
-          {% else %}
-            <div class="form-group">
-          {% endif %}
-          <label for="info">{{ form.password.label }}</label>
-          <input type="password" class="form-control" name="{{ form.password.name }}" placeholder="Password"></input>
-          {% if form.password.errors %}
-              {% for error in form.password.errors %}
-                  <span class="help-block">{{ error }}</span>
-              {% endfor %}
-          {% endif %}
-          </div>
-          <button type="submit" class="btn btn-success">Submit</button>
-          </form>
-        </div>
+        {% endif %}
       </div>
     </div>
     <div class="row">
       <div class="col-md-12">
       </div>
     </div>
-  {% endblock %}
+
+  <!-- Write pop-up window to pass run -->
+  {% if display_info != False %}
+    {% for criteria in display_info.keys() %}
+      {% for action in ['pass', 'fail'] %}
+        <!-- Modal -->
+        <div class="modal fade" id="window{{ criteria }}-{{action}}" role="dialog">
+          <div class="modal-dialog modal-lg">
+      
+            <!-- Modal content-->
+            <div class="modal-content">
+
+              <!-- Window title -->
+              <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 class="modal-title">Manually Pass Run for {{ criteria }} Criteria </h4>
+              </div>
+
+              <!-- Window body -->
+              <div class="modal-body">
+                <form action="{{ url_for('runselection_run', run_number=run_number)}}" method="POST" role="form">
+                    <!-- Name entry -->
+                    {% if pass_form.name.errors %}
+                      <div class="form-group has-error">
+                    {% else %}
+                      <div class="form-group">
+                    {% endif %}
+                      <label for="name">{{ pass_form.name.label }}</label>
+                      <input type="text" class="form-control" name="{{ pass_form.name.name }}" placeholder="Dr P. L. Ace Holder" {% if pass_form.name.data %}value="{{ pass_form.name.data }}"{% endif %}></input>
+                    {% if pass_form.name.errors %}
+                      {% for error in pass_form.name.errors %}
+                          <span class="help-block">{{ error }}</span>
+                      {% endfor %}
+                    {% endif %}
+                      </div>
+                    <!-- Comment entry -->
+                    {% if pass_form.comment.errors %}
+                      <div class="form-group has-error">
+                    {% else %}
+                      <div class="form-group">
+                    {% endif %}
+                      <label for="comment">{{ pass_form.comment.label }}</label>
+                      <input type="text" class="form-control" name="{{ pass_form.comment.name }}" placeholder="Comment (apostrophes and quotation marks are removed)" {% if pass_form.comment.data %}value="{{ pass_form.comment.data }}"{% endif %}></input>
+                    {% if pass_form.comment.errors %}
+                      {% for error in pass_form.comment.errors %}
+                          <span class="help-block">{{ error }}</span>
+                      {% endfor %}
+                    {% endif %}
+                      </div>
+                    <!-- Criteria -->
+                    {% if pass_form.criteria.errors %}
+                      <div class="form-group has-error">
+                    {% else %}
+                      <div class="form-group">
+                    {% endif %}
+                      <label for="criteria">{{ pass_form.criteria.label }}</label>
+                      <input type="text" class="form-control" name="{{ pass_form.criteria.name }}" placeholder="{{ criteria }}" {% if pass_form.criteria.data %}value="{{ pass_form.criteria.data }}"{% endif %}></input>
+                    {% if pass_form.criteria.errors %}
+                      {% for error in pass_form.criteria.errors %}
+                          <span class="help-block">{{ error }}</span>
+                      {% endfor %}
+                    {% endif %}
+                      </div>
+                    <!-- Password entry -->
+                    {% if pass_form.password.errors %}
+                      <div class="form-group has-error">
+                    {% else %}
+                      <div class="form-group">
+                    {% endif %}
+                      <label for="info">{{ pass_form.password.label }}</label>
+                      <input type="password" class="form-control" name="{{ pass_form.password.name }}" placeholder="Password"></input>
+                    {% if pass_form.password.errors %}
+                        {% for error in pass_form.password.errors %}
+                            <span class="help-block">{{ error }}</span>
+                        {% endfor %}
+                    {% endif %}
+                      </div>
+                    <!-- Pass or Fail checkbox section -->
+                    <div class="checkbox">
+                      <div class="col-md-6">
+                        {% if display_info[criteria]["criteria_result"] == true %}
+                          <label class="active"><input type="checkbox" name="{{ pass_form.pass_run.name }}" disabled>Pass</input></label>
+                        {% else %}
+                          <label class="active"><input type="checkbox" name="{{ pass_form.pass_run.name }}" {% if action=='pass' %}checked="checked"{% endif %}>Pass</input></label>
+                        {% endif %}
+                      </div>
+                      <div class="col-md-6">
+                        {% if display_info[criteria]["criteria_result"] == false %}
+                          <label class="active"><input type="checkbox" name="{{ pass_form.fail_run.name }}" disabled>Fail</input></label>
+                        {% else %}
+                          <label class="active"><input type="checkbox" name="{{ pass_form.fail_run.name }}" {% if action=='fail' %}checked="checked"{% endif %}>Fail</input></label>
+                        {% endif %}
+                      </div>
+                    </div>
+                    <!-- Submit button  -->
+                    <button type="submit" class="btn btn-success">Submit</button>
+                </form>
+              </div>
+
+              <!-- <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+              </div> -->
+            </div>
+      
+          </div>
+        </div>
+      {% endfor %}
+    {% endfor %}
+  {% endif %}
+{% endblock %}
 
 {% block script %}
   <script src="{{ url_for('static', filename='js/burst_form.js') }}"></script>
+  <script>
+    function change_page(run_num) {
+      window.location.replace($SCRIPT_ROOT + "/runselection_run/" + String(run_num));
+    }
+  </script>
 {% endblock %}

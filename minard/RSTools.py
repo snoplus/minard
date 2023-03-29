@@ -199,10 +199,10 @@ def pass_fail_run(form, run_number):
         return False, 'ERROR: tried to pass and fail run'
     elif getattr(form, 'pass_run').data == True:
         RS_report['decision']['result'] = True
-        list_com =  'Passed run manually for {0:s} crietria: {1:s}'.format(criteria, comment)
+        list_com =  'Passed run manually for %s crietria: %s' % (criteria, comment)
     elif getattr(form, 'fail_run').data == True:
         RS_report['decision']['result'] = False
-        list_com =  'Failed run manually for {0:s} crietria: {1:s}'.format(criteria, comment)
+        list_com =  'Failed run manually for %s crietria: %s' % (criteria, comment)
     else:
         return False, 'WARNING: run neither passed nor failed'
     json_report = json.dumps(RS_report)

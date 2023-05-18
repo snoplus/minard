@@ -909,6 +909,15 @@ def cavity_temp():
     height = request.args.get('height',40,type=int)
     return render_template('cavity_temp.html',step=step,height=height)
 
+@app.route('/psup-temp')
+def psup_temp():
+    if len(request.args) == 0:
+        return redirect(url_for('psup_temp',step=867,height=20,_external=True))
+    step = request.args.get('step', 1, type=int)
+    height = request.args.get('height', 40, type=int)
+    return render_template('psup_temp.html', step=step, height=height)
+
+
 @app.route('/remote-network-monitor')
 def remote_network_monitor():
     if len(request.args) == 0:

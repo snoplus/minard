@@ -1,5 +1,5 @@
 {% extends "layout.html" %}
-{% block title %}Cavity Temperature Timeseries{% endblock %}
+{% block title %}PSUP Temperature Timeseries{% endblock %}
 {% block head %}
     {{ super() }}
     <style>
@@ -42,5 +42,5 @@
         var step = {{ step }};
         var height = {{ height }};
     </script>
-    <script src="{{ url_for('static', filename='js/cavity_temp.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/psup_temp.js') }}"></script>
 {% endblock %}

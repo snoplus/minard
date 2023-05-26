@@ -89,7 +89,7 @@ function add_horizon(expressions, format, colors, extent, offset) {
         });
 }
 
-add_horizon(CAVITY_TEMP_SENSORS.map(function(x) { return "temp-" + x; }),
+add_horizon(CAVITY_TEMP_SENSORS.map(function(x) { return "psuptemp-" + x; }),
             format_rate,
             null,
             [-5,5],

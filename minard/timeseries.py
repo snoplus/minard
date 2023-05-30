@@ -103,6 +103,29 @@ def get_cavity_temp(sensor, start, stop, step):
 
     return values
 
+def get_psup_temp(sensor, start, stop, step):
+    """ Same function as above, but gets the PSUP temp instead
+    """
+    sensor = sensor + 30
+    conn = engine.connect()
+
+    query = ("SELECT floor(extract(epoch from timestamp)/%s)::numeric::integer AS id, avg(temp) "
+             "FROM cavity_temp WHERE timestamp >= to_timestamp(%s) AND "
+             "timestamp <= to_timestamp(%s) "
+             "AND sensor = %s "
+             "GROUP BY floor(extract(epoch from timestamp)/%s)")
+
+    result = conn.execute(query, (step, start, stop, sensor, step))
+    values = [None]*len(range(start,stop,step))
+    rows = result.fetchall()
+
+    for id, temp in rows:
+        try:
+            values[id - start//step] = temp
+        except IndexError:
+            pass
+    return values
+
 def get_timeseries(name, start, stop, step, type=None):
     """
     Returns the time series for `name` from start to stop in increments of

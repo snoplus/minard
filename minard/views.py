@@ -14,6 +14,7 @@ from collections import deque, namedtuple
 from .timeseries import get_timeseries, get_interval, get_hash_timeseries
 from .timeseries import get_timeseries_field, get_hash_interval
 from .timeseries import get_cavity_temp
+from .timeseries import get_psup_temp
 from math import isnan
 import os
 import sys
@@ -909,6 +910,15 @@ def cavity_temp():
     height = request.args.get('height',40,type=int)
     return render_template('cavity_temp.html',step=step,height=height)
 
+@app.route('/psup-temp')
+def psup_temp():
+    if len(request.args) == 0:
+        return redirect(url_for('psup_temp',step=867,height=20,_external=True))
+    step = request.args.get('step', 1, type=int)
+    height = request.args.get('height', 40, type=int)
+    return render_template('psup_temp.html', step=step, height=height)
+
+
 @app.route('/remote-network-monitor')
 def remote_network_monitor():
     if len(request.args) == 0:
@@ -1267,6 +1277,9 @@ def get_metric(expr, start, stop, step):
     if expr.split('-')[0] == 'temp':
         sensor = int(expr.split('-')[1])
         values = get_cavity_temp(sensor, start, stop, step)
+    elif expr.split('-')[0] == 'psuptemp':
+        sensor = int(expr.split('-')[1])
+        values = get_psup_temp(sensor, start, stop, step)
     elif expr in ('L2:gtid', 'L2:run'):
         values = get_timeseries(expr, start, stop, step)
     elif expr in ('gtid', 'run', 'subrun'):

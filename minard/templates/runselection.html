@@ -76,7 +76,7 @@
                 <th>
                     <select id="crit" onchange="get_limit(lim.value, {{offset}}, this.value, res.value, run.value, low.value, high.value, y_low.value, m_low.value, d_low.value, y_high.value, m_high.value, d_high.value);">
                     <option selected value="{{criteria}}">{{criteria}}</option>
-                    {% for n in ["scintillator", "partial_fill_antinu", "partial_fill", "water"] %}  <!-- FIXME: make this dynamic !-->
+                    {% for n in ["scintillator", "scintillator_silver", "scintillator_bronze", "directionality_analysis"] %}  <!-- FIXME: make this dynamic ?-->
                         {% if n != criteria %}
                             <option value="{{n}}">{{n}}</option>
                         {% endif %}

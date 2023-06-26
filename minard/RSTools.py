@@ -52,7 +52,7 @@ def file_pass_form_builder(formobj, display_info):
             setattr(FilePassForm, 'pass_run', BooleanField(label='Pass'))
             setattr(FilePassForm, 'fail_run', BooleanField(label='Fail'))
         setattr(FilePassForm, 'name', StringField('Name', [validators.Length(min=1), validators.InputRequired(), validators.Regexp('[A-Za-z0-9\s]{1,}', message='First and second name required.')]))
-        setattr(FilePassForm, 'criteria', StringField('criteria', [validators.Optional()], default=criteria))
+        setattr(FilePassForm, 'criteria', StringField('Criteria', [validators.InputRequired()], default=criteria))
         setattr(FilePassForm, 'comment', StringField('Comment', [validators.InputRequired()]))
         setattr(FilePassForm, 'password', PasswordField('Password', [validators.InputRequired()]))
 
@@ -130,6 +130,11 @@ def update_run_lists(form, run, lists, data):
     # Remove troublesome characters from entries
     name = str(form.name.data).replace("'", '').replace('"', '')
     comment = str(form.comment.data).replace("'", '').replace('"', '')
+    password = str(form.password.data)
+
+    # Check password
+    if password != app.config['RS_EXPERT_PASS']:
+        return False, 'WARNING: wrong password'
 
     c = False
     c_nl = False
@@ -138,7 +143,7 @@ def update_run_lists(form, run, lists, data):
         conn = psycopg2.connect(dbname=app.config['DB_NAME'],
                                 user=app.config['DB_OPERATOR'],
                                 host=app.config['DB_HOST'],
-                                password=form.password.data)
+                                password=app.config['DB_OPERATOR_PASS'])
         c = True
         conn.set_isolation_level(psycopg2.extensions.ISOLATION_LEVEL_AUTOCOMMIT)
 
@@ -163,7 +168,7 @@ def update_run_lists(form, run, lists, data):
         conn_nl = psycopg2.connect(dbname=app.config['DB_NAME_NEARLINE'],
                                 user=app.config['DB_OPERATOR'],
                                 host=app.config['DB_HOST_NEARLINE'],
-                                password=form.password.data,
+                                password=app.config['DB_OPERATOR_PASS'],
                                 port=app.config['DB_PORT_NEARLINE'])
         c_nl = True
         conn_nl.set_isolation_level(psycopg2.extensions.ISOLATION_LEVEL_AUTOCOMMIT)
@@ -190,6 +195,11 @@ def pass_fail_run(form, run_number):
     name = str(form.name.data).replace("'", '').replace('"', '')
     comment = str(form.comment.data).replace("'", '').replace('"', '')
     criteria = str(form.criteria.data).replace("'", '').replace('"', '')
+    password = str(form.password.data)
+
+    # Check password
+    if password != app.config['RS_EXPERT_PASS']:
+        return False, 'WARNING: wrong password'
 
     # Get RS table
     RS_report = get_RS_reports(criteria=criteria, run_min=run_number, run_max=run_number)[run_number][criteria]['meta_data']
@@ -217,7 +227,7 @@ def pass_fail_run(form, run_number):
         conn_nl = psycopg2.connect(dbname=app.config['DB_NAME_NEARLINE'],
                                 user=app.config['DB_OPERATOR'],
                                 host=app.config['DB_HOST_NEARLINE'],
-                                password=form.password.data,
+                                password=app.config['DB_OPERATOR_PASS'],
                                 port=app.config['DB_PORT_NEARLINE'])
         conn_nl.set_isolation_level(psycopg2.extensions.ISOLATION_LEVEL_AUTOCOMMIT)
         c_nl = True
@@ -238,7 +248,7 @@ def pass_fail_run(form, run_number):
             conn = psycopg2.connect(dbname=app.config['DB_NAME'],
                                     user=app.config['DB_OPERATOR'],
                                     host=app.config['DB_HOST'],
-                                    password=form.password.data)
+                                    password=app.config['DB_OPERATOR_PASS'])
             conn.set_isolation_level(psycopg2.extensions.ISOLATION_LEVEL_AUTOCOMMIT)
             c = True
             cursor = conn.cursor()

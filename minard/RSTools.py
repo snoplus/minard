@@ -279,7 +279,7 @@ def decide_replace_table(first_table, second_table):
 
     if second_table['meta_data']['version'] == first_table['meta_data']['version']:
         dt = second_table['timestamp'] - first_table['timestamp']
-        dt_seconds = dt.days*3600*12 + dt.seconds
+        dt_seconds = dt.days*3600*24 + dt.seconds
 
         if dt_seconds > 0:
             return True

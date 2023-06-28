@@ -1399,7 +1399,7 @@ def pcatellie():
 
     start_run = request.args.get("start_run", 0)
     installed_only = request.args.get("installed_only", False)
-    runs = redisdb.runs_after_run('ie_runs_by_number', start_run)
+    runs = redisdb.runs_after_run('pca_runs_by_number', start_run)
     # Deal with expired runs
     runs = [run for run in runs if (len(run) > 0)]
     # Revert the order so the last run is at top of list

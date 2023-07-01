@@ -64,9 +64,15 @@
                   <td style="text-align: center; vertical-align: middle;"><a href="{{ url_for('pca_tellie_table', run=runlist['runrange'][0]) }}">{{  runlist['runrange'][0] }} table</a></td>
                   <td style="text-align: center; vertical-align: middle;"><a href="{{ url_for('pca_proc', first_run=runlist['runrange'][0]) }}">{{  runlist['runrange'][0] }}</a></td>
                   <td style="text-align: center; vertical-align: middle;"><a href="{{ url_for('pca_set_bench', run=runlist['runrange'][0]) }}">{{  runlist["runrange"] }}</a></td>
-                  <td style="text-align: center; vertical-align: middle;"><a class='btn btn-sm passfail' href="{{ url_for('pca_tellie_log', run_number=runlist['runrange'][0]) }}">{{ print_status(runlist['status']) }}</a></td>
-                  <td style="text-align: center; vertical-align: middle;"><a class='btn btn-sm passfail' href="{{ url_for('pca_tellie_tw', run_number=runlist['runrange'][0]) }}">{{ print_status_TW(runlist['status']) }}</a></td>
-                  <td style="text-align: center; vertical-align: middle;"><a class='btn btn-sm passfail' href="{{ url_for('pca_tellie_gf', run_number=runlist['runrange'][0]) }}">{{ print_status_GF(runlist['status']) }}</a></td>
+                  {% if runlist['status'] | int < 0 %}
+                    <td style="text-align: center; vertical-align: middle;"><font color="red">No file</font></td>
+                    <td style="text-align: center; vertical-align: middle;"><font color="red">No file</font></td>
+                    <td style="text-align: center; vertical-align: middle;"><font color="red">No file</font></td>
+                  {% else %}
+                    <td style="text-align: center; vertical-align: middle;"><a class='btn btn-sm passfail' href="{{ url_for('pca_tellie_log', run_number=runlist['runrange'][0]) }}">{{ print_status(runlist['status']) }}</a></td>
+                    <td style="text-align: center; vertical-align: middle;"><a class='btn btn-sm passfail' href="{{ url_for('pca_tellie_tw', run_number=runlist['runrange'][0]) }}">{{ print_status_TW(runlist['status']) }}</a></td>
+                    <td style="text-align: center; vertical-align: middle;"><a class='btn btn-sm passfail' href="{{ url_for('pca_tellie_gf', run_number=runlist['runrange'][0]) }}">{{ print_status_GF(runlist['status']) }}</a></td>
+                  {% endif %}
                 </tr>
                 {% endfor %}
               </tbody>

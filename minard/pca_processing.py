@@ -39,11 +39,15 @@ def parse_log_file(run):
     """
     Loads and parses PCA log ratdb file.
     Returns: the status of the PCA calibration, from file.
+    If the file does not exist, returns negative value that is handled in html.
     """
     file_path = os.getcwd() + "/minard/static/pcatellie/pca_constants/PCA_log_" + run + "_0.ratdb"
-    with open(file_path, 'r') as input_file:
-        log = json.load(input_file)
-    return bin(log['PCA_status']).replace("0b", "")
+    try:
+        with open(file_path, 'r') as input_file:
+            log = json.load(input_file)
+            return bin(log['PCA_status']).replace("0b", "")
+    except:
+        return bin(-222).replace("0b", "")
 
 def load_set(first_run):
     """

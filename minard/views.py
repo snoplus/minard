@@ -1924,10 +1924,10 @@ def runselection():
     # Use this to get run info from databases, to display in list
     run_range = [run_range_low, run_range_high]
     date_range = [[year_low, month_low, day_low], [year_high, month_high, day_high]]
-    run_info = RSTools.list_runs_info(limit, offset, result, criteria, selected_run, run_range, date_range)
+    run_info, drop_down_crits = RSTools.list_runs_info(limit, offset, result, criteria, selected_run, run_range, date_range)
 
     # Return info to webpage
-    return render_template('runselection.html', run_info=run_info, criteria=criteria, limit=limit, offset=offset, result=result, selected_run=selected_run, run_range_low=run_range_low, run_range_high=run_range_high,
+    return render_template('runselection.html', run_info=run_info, drop_down_crits=drop_down_crits, criteria=criteria, limit=limit, offset=offset, result=result, selected_run=selected_run, run_range_low=run_range_low, run_range_high=run_range_high,
                            year_low=year_low, month_low=month_low, day_low=day_low, year_high=year_high, month_high=month_high, day_high=day_high)
 
 @app.route('/runselection_run/<int:run_number>', methods=['GET', 'POST'])

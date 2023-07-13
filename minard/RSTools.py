@@ -485,7 +485,10 @@ def list_runs_info(limit, offset, result, criteria, selected_run, run_range, dat
         if i < len(run_numbers):
             final_rs_tables[run_numbers[i]] = filtered_rs_tables[run_numbers[i]]
 
-    return final_rs_tables
+    # Get list of criteria to put in drop-down menu (in order)
+    drop_down_crits = app.config['DROP_DOWN_MENU_CRITS']
+
+    return final_rs_tables, drop_down_crits
 
 ############ RUNSELECTION_RUN PAGE FUNCTIONS ############
 

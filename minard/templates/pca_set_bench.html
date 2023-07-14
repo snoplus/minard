@@ -1,0 +1,370 @@
+{% extends "layout.html" %}
+{% block title %}PCA Benchmnarking{% endblock %}
+{% block head %}
+  {{ super() }}
+{% endblock %}
+{% block body %}
+  {{ super() }}
+
+  <div class="container">
+
+    <div class="row">
+      <div class="col-md-12">
+        <h1 style="text-align:center">TELLIE PCA Benchmarking: {{ data['Run1'] }} vs {{ data['Run2'] }}</h1>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-12">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h1 class="panel-title"><b>General</b></h1>
+          </div>
+          <div class="panel-body">
+            <div class="row">
+              <div class="col-md-12">
+                <table class="table table-striped">
+                  <thead>
+                    <tr>
+                      <th width="25.0%">Parameter</th>
+                      <th width="10.0%">Value</th>
+                      <th width="65.0%">Note</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>Run1</td>
+                      <td>{{ data["Run1"] }}</td>
+                      <td>First run of the new PCA dataset</td>
+                    </tr>
+                    <tr>
+                      <td>Run2</td>
+                      <td>{{ data["Run2"] }}</td>
+                      <td>First run of the previous PCA dataset</td>
+                    </tr>
+                    <tr>
+                      <td>Offline PMTs</td>
+                      <td>{{ data["PMTOff"] }}</td>
+                      <td>Number of offline PMTs (new dataset)</td>
+                    </tr>
+                    <tr>
+                      <td>PMTs with ZERO occupancy</td>
+                      <td><span style="color:red">{{ data["PMTZeroOc"] }}</span></td>
+                      <td>Number of PMTs reporting 0 valid hits</td>
+                    </tr>
+                    <tr>
+                      <td>PMTs with LOW occupancy</td>
+                      <td>{{ data["PMTLowOc"] }}</td>
+                      <td>Number of PMTs reporting low number of valid hits</td>
+                    </tr>
+                    <tr>
+                      <td>Succesfully calibrated PMTs</td>
+                      <td><span style="color:green">{{ data["PMTGoodCal"] }}</span></td>
+                      <td>Number of PMTs with valid calibration</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-12">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h1 class="panel-title"><b>Cable delays</b></h1>
+          </div>
+          <div class="panel-body">
+            <div class="row">
+              <div class="col-md-12">
+                <table class="table table-striped">
+                  <thead>
+                    <tr>
+                      <th width="10.0%">Parameter</th>
+                      <th width="65.0%">Value</th>
+                      <th width="25.0%">Note</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>Outliers: ID</td>
+                      <td><span style="color:purple">{{ data["out_ID"] }}</span></td>
+                      <td>PMTs with calibration very different to previous</td>
+                    </tr>
+                    <tr>
+                      <td>Outliers: cable delay</td>
+                      <td><span style="color:red">{{ data["out_diff"] }}</span></td>
+                      <td>The values of cable delay for outlier PMTs</td>
+                    </tr>
+                    <tr>
+                      <td>Newly calibrated</td>
+                      <td>{% for pmt in data["nowGood"] %}
+                      <a href="{{ url_for('pca_tellie_pmt', pmt=pmt, set=(data['Run1']-1) ) }}">{{pmt}}, </a>
+                      {% endfor %}</td>
+                      <td>PMTs that have valid calibration now (didn't have previously)</td>
+                    </tr>
+                    <tr>
+                      <td>Previously calibrated</td>
+                      <td>{{ data["nowBad"] }}</td>
+                      <td>PMTs that were previously calibrated, but cannot be now</td>
+                    </tr>
+                    <tr>
+                      <td>Minimal change</td>
+                      <td>{{ data["minDiff"] }}</td>
+                      <td>The most negative change to single cable delay</td>
+                    </tr>
+                    <tr>
+                      <td>Maximal change</td>
+                      <td>{{ data["maxDiff"] }}</td>
+                      <td>The most positive change to single cable delay</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-12">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h1 class="panel-title"><b>Time Walk</b></h1>
+          </div>
+          <div class="panel-body">
+            <div class="row">
+              <div class="col-md-12">
+                <table class="table table-striped">
+                  <thead>
+                    <tr>
+                      <th width="25.0%">Parameter</th>
+                      <th width="25.0%">Value</th>
+                      <th width="50.0%">Note</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>IDs1</td>
+                      <td><span style="color:green">{{ data["IDs1"] }}</span></td>
+                      <td>Number of valid PMTs for new dataset</td>
+                    </tr>
+                    <tr>
+                      <td>IDs2</td>
+                      <td><span style="color:green">{{ data["IDs2"] }}</span></td>
+                      <td>Number of valid PMTs for previous dataset</td>
+                    </tr>
+                    <tr>
+                      <td>off1</td>
+                      <td><span style="color:red">{{ data["off1"] }}</span></td>
+                      <td>Number of offline PMTs for new dataset</td>
+                    </tr>
+                    <tr>
+                      <td>off2</td>
+                      <td><span style="color:red">{{ data["off2"] }}</span></td>
+                      <td>Number of offline PMTs for previous dataset</td>
+                    </tr>
+                    <tr>
+                      <td>goodCount</td>
+                      <td><span style="color:blue">{{ data["goodCount"] }}</span></td>
+                      <td>PMTs that were succesfully calibrated in both datasets</td>
+                    </tr>
+                    <tr>
+                      <td>badCount</td>
+                      <td><span style="color:purple">{{ data["badCount"] }}</span></td>
+                      <td>PMTs that were only calibrated in one dataset</td>
+                    </tr>
+                    <tr>
+                      <td>min_grad</td>
+                      <td>{{ data["min_grad"] }}</td>
+                      <td>Minimum value of gradient (fit)</td>
+                    </tr>
+                    <tr>
+                      <td>max_grad</td>
+                      <td>{{ data["max_grad"] }}</td>
+                      <td>Maximum value of gradient (fit)</td>
+                    </tr>
+                    <tr>
+                      <td>min_inter</td>
+                      <td>{{ data["min_inter"] }}</td>
+                      <td>Minimum value of intercept (fit)</td>
+                    </tr>
+                    <tr>
+                      <td>max_inter</td>
+                      <td>{{ data["max_inter"] }}</td>
+                      <td>Maximum value of intercept (fit)</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-12">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h1 class="panel-title"><b>Peak fit</b></h1>
+          </div>
+          <div class="panel-body">
+            <div class="row">
+              <div class="col-md-12">
+                <table class="table table-striped">
+                  <thead>
+                    <tr>
+                      <th width="10.0%">Parameter</th>
+                      <th width="50.0%">Value</th>
+                      <th width="40.0%">Note</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>root1</td>
+                      <td>{{ data["root1"] }}</td>
+                      <td>The location of the bechmarking root file (new dataset)</td>
+                    </tr>
+                    <tr>
+                      <td>root2</td>
+                      <td>{{ data["root2"] }}</td>
+                      <td>The location of the bechmarking root file (previous dataset)</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-12">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h3 class="panel-title"><b>Cable delays</b></h3>
+          </div>
+          <div class="panel-body">
+            <div class="row">
+              <div class="col-md-6">
+                <img src="{{ url_for('static', filename="pcatellie/bench/" + run + "/cd_comp_cable.png") }}" alt="alt" class="img-responsive">
+              </div>
+              <div class="col-md-6">
+                <img src="{{ url_for('static', filename="pcatellie/bench/" + run + "/cd_comp_cable2.png") }}" alt="alt" class="img-responsive">
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-md-6">
+                <img src="{{ url_for('static', filename="pcatellie/bench/" + run + "/cd_comp_cableCard.png") }}" alt="alt" class="img-responsive">
+              </div>
+              <div class="col-md-6">
+                <img src="{{ url_for('static', filename="pcatellie/bench/" + run + "/cd_comp_cableCard2.png") }}" alt="alt" class="img-responsive">
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-md-6">
+                <img src="{{ url_for('static', filename="pcatellie/bench/" + run + "/cd_comp_cableDiff.png") }}" alt="alt" class="img-responsive">
+              </div>
+              <div class="col-md-6">
+                <img src="{{ url_for('static', filename="pcatellie/bench/" + run + "/cd_comp_cableDiffCard.png") }}" alt="alt" class="img-responsive">
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-md-3"></div>
+              <div class="col-md-6">
+                <img src="{{ url_for('static', filename="pcatellie/bench/" + run + "/cd_comp_cableDiffHist.png") }}" alt="alt" class="img-responsive">
+              </div>
+              <div class="col-md-3"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-12">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h3 class="panel-title"><b>Cable delays - Flat maps</b></h3>
+          </div>
+          <div class="panel-body">
+            <div class="row">
+              <div class="col-md-6">
+                <img src="{{ url_for('static', filename="pcatellie/bench/" + run + "/cd_comp_cableFlat.png") }}" alt="alt" class="img-responsive">
+              </div>
+              <div class="col-md-6">
+                <img src="{{ url_for('static', filename="pcatellie/bench/" + run + "/cd_comp_cableFlat2.png") }}" alt="alt" class="img-responsive">
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-md-6">
+                <img src="{{ url_for('static', filename="pcatellie/bench/" + run + "/cd_comp_cableFlatDiff.png") }}" alt="alt" class="img-responsive">
+              </div>
+              <div class="col-md-6">
+                <img src="{{ url_for('static', filename="pcatellie/bench/" + run + "/cd_comp_cableFlatDiffZoom.png") }}" alt="alt" class="img-responsive">
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-12">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h3 class="panel-title"><b>Time Walk</b></h3>
+          </div>
+          <div class="panel-body">
+            <div class="row">
+              <div class="col-md-6">
+                <img src="{{ url_for('static', filename="pcatellie/bench/" + run + "/tw_comp_grad.png") }}" alt="alt" class="img-responsive">
+              </div>
+              <div class="col-md-6">
+                <img src="{{ url_for('static', filename="pcatellie/bench/" + run + "/tw_comp_inter.png") }}" alt="alt" class="img-responsive">
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-12">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h3 class="panel-title"><b>Peak Fit</b></h3>
+          </div>
+          <div class="panel-body">
+            <div class="row">
+              <div class="col-md-6">
+                <img src="{{ url_for('static', filename="pcatellie/bench/" + run + "/peak_comp_1.png") }}" alt="alt" class="img-responsive">
+              </div>
+              <div class="col-md-6">
+                <img src="{{ url_for('static', filename="pcatellie/bench/" + run + "/peak_comp_2.png") }}" alt="alt" class="img-responsive">
+              </div>
+            </div>
+          </div>
+          <div class="panel-body">
+            <div class="row">
+              <div class="col-md-6">
+                <img src="{{ url_for('static', filename="pcatellie/bench/" + run + "/peak_comp_3.png") }}" alt="alt" class="img-responsive">
+              </div>
+              <div class="col-md-6">
+                <img src="{{ url_for('static', filename="pcatellie/bench/" + run + "/peak_comp_4.png") }}" alt="alt" class="img-responsive">
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+{% endblock %}

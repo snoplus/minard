@@ -40,6 +40,7 @@ import activity
 import scintillator_level
 import burst as burst_f
 import presn as presn_f
+import pca_processing as pcaprocessing_f
 from light_level import get_light_level, get_light_level_clean, get_all_light_levels
 from shifter_information import get_shifter_information, set_shifter_information, ShifterInfoForm, get_experts, get_supernova_experts
 from run_list import golden_run_list
@@ -1411,7 +1412,7 @@ def pcatellie():
 
     start_run = request.args.get("start_run", 0)
     installed_only = request.args.get("installed_only", False)
-    runs = redisdb.runs_after_run('pca_tellie_runs_by_number', start_run)
+    runs = redisdb.runs_after_run('pca_runs_by_number', start_run)
     # Deal with expired runs
     runs = [run for run in runs if (len(run) > 0)]
     # Revert the order so the last run is at top of list
@@ -1464,6 +1465,78 @@ def burst_run_detail(run_number, subrun, sub):
 @app.route('/burst_run_detail_l3/<int:run_number>/<int:subrun>/<int:sub>')
 def burst_run_detail_l3(run_number, subrun, sub):
     return render_template('burst_run_detail_l3.html', data=burst_f.burst_run_detail(run_number, subrun, sub, 3)[0], files=burst_f.burst_run_detail(run_number, subrun, sub, 3)[1], runtype=burst_f.get_run_type(run_number))
+
+@app.route('/pcatellie_processing')
+def pcatellie_processing():
+    return render_template('pcatellie_processing.html', data=pcaprocessing_f.load_pca_runlist(), limits=pcaprocessing_f.load_limits())
+
+@app.route('/pca_tellie_log/<run_number>')
+def pca_tellie_log(run_number):
+    return render_template('pca_tellie_log.html', data=pcaprocessing_f.load_pca_log_data(run_number))
+
+@app.route('/pca_tellie_tw/<run_number>')
+def pca_tellie_tw(run_number):
+    return render_template('pca_tellie_tw.html', data=pcaprocessing_f.load_pca_tw_data(run_number))
+
+@app.route('/pca_tellie_gf/<run_number>')
+def pca_tellie_gf(run_number):
+    return render_template('pca_tellie_gf.html', data=pcaprocessing_f.load_pca_gf_data(run_number))
+
+@app.route('/pca_tellie_flag/<view>/<run>/<flag>')
+def pca_tellie_flag(view, run, flag):
+    return render_template('pca_tellie_flag.html', data=pcaprocessing_f.load_pca_flag_data(view, run, flag))
+
+@app.route('/pca_tellie_pmt_flags/<run>/<pmt>')
+def pca_tellie_pmt_flags(run, pmt):
+    return render_template('pca_tellie_pmt_flags.html', data=pcaprocessing_f.load_pca_pmt_data(run, pmt))
+
+@app.route('/pca_set/<int:first_run>')
+def pca_set(first_run):
+    return render_template('pca_set.html', data=pcaprocessing_f.load_set(first_run))
+
+@app.route('/pca_proc/<int:first_run>')
+def pca_proc(first_run):
+    return render_template('pca_proc.html', data=first_run, run=str(first_run))
+
+@app.route('/pca_tellie_run_val1/<int:run>')
+def pca_tellie_run_val1(run):
+    o = request.args.get('o',type=int)
+    return render_template('pca_tellie_run_val1.html', data=pcaprocessing_f.load_run(run, o), run=str(run))
+
+@app.route('/pca_tellie_run_fits/<int:run>')
+def pca_tellie_run_fits(run):
+    o = request.args.get('o',type=int)
+    return render_template('pca_tellie_run_fits.html', data=pcaprocessing_f.load_run(run, o), run=str(run))
+
+@app.route('/pca_tellie_run_val2/<int:run>')
+def pca_tellie_run_val2(run):
+    o = request.args.get('o',type=int)
+    return render_template('pca_tellie_run_val2.html', data=pcaprocessing_f.load_run(run, o), run=str(run))
+
+@app.route('/pca_tellie_fibre/<string:fibre>')
+def pca_tellie_fibre(fibre):
+    return render_template('pca_tellie_fibre.html', data=pcaprocessing_f.load_fibre(fibre))
+
+@app.route('/pca_tellie_table/<int:run>')
+def pca_tellie_table(run):
+    return render_template('pca_tellie_table.html', run=run)
+
+@app.route('/pca_tellie_tables/')
+def pca_tellie_tables():
+    return render_template('pca_tellie_tables.html')
+
+@app.route('/pca_tellie_pmt/<int:set>/<int:pmt>')
+def pca_tellie_pmt(set, pmt):
+    return render_template('pca_tellie_pmt.html', pmt=pmt, set=set)
+
+@app.route('/pca_tellie_pmt_all/', methods=['GET'])
+def pca_tellie_pmt_all():
+    pmt = request.args.get("pmt", 5)
+    return render_template('pca_tellie_pmt_all.html', pmt=pmt, data=pcaprocessing_f.load_sets())
+
+@app.route('/pca_set_bench/<int:run>')
+def pca_set_bench(run):
+    return render_template('pca_set_bench.html', data=pcaprocessing_f.load_bench(run), run=str(run) )
 
 @app.route('/burst_form')
 def burst_form():

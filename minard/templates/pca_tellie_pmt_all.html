@@ -1,0 +1,67 @@
+{% extends "layout.html" %}
+{% block title %}PCA PMT details{% endblock %}
+{% block head %}
+  {{ super() }}
+{% endblock %}
+{% block body %}
+  {{ super() }}
+
+  {% set Spmt = pmt|string %}
+
+  <div class="container">
+
+    {% for pca_set in data %}
+    {% set Sset = pca_set|string %}
+
+    <h2 style="text-align: center">SET: {{ pca_set }}</h2>
+    <div class="row">
+      <div class="col-md-12">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h3 class="panel-title"><b>PCA data</b></h3>
+          </div>
+          <div class="panel-body">
+            <div class="row">
+              <div class="col-md-6">
+                <img src="{{ url_for('static', filename="pcatellie/SET_" + Sset + "/PMTs/PMT-" + Spmt + "-Tec.png") }}" alt="alt" class="img-responsive">
+              </div>
+              <div class="col-md-6">
+                <img src="{{ url_for('static', filename="pcatellie/SET_" + Sset + "/PMTs/PMT-" + Spmt + "-TW.png") }}" alt="alt" class="img-responsive">
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-md-6">
+                <img src="{{ url_for('static', filename="pcatellie/SET_" + Sset + "/PMTs/PMT-" + Spmt + "-QHS.png") }}" alt="alt" class="img-responsive">
+              </div>
+              <div class="col-md-6">
+                <img src="{{ url_for('static', filename="pcatellie/SET_" + Sset + "/PMTs/PMT-" + Spmt + "-QHL.png") }}" alt="alt" class="img-responsive">
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-12">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h3 class="panel-title"><b>TW compare</b></h3>
+          </div>
+          <div class="panel-body">
+            <div class="row">
+              <div class="col-md-2"></div>
+              <div class="col-md-8">
+                <img src="{{ url_for('static', filename="pcatellie/SET_" + Sset + "/PMTs/TW_PMT-" + Spmt + ".png") }}" alt="alt" class="img-responsive">
+              </div>
+              <div class="col-md-2"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+
+  </div>
+
+{% endblock %}

@@ -1,0 +1,129 @@
+{% extends "layout.html" %}
+{% block title %}PCA PMT Flags{% endblock %}
+{% block head %}
+  {{ super() }}
+{% endblock %}
+{% block body %}
+  {{ super() }}
+
+  <div class="container">
+
+    <div class="row">
+      <div class="col-md-12">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h2 style="text-align:center">TELLIE PCA Run: {{ data[0] }}</h2>
+          </div>
+          <div class="panel-body">
+            <h3 style="text-align:center">PMT: {{ data[1] }} flags</h3>
+            <h4 style="text-align:center">Crate: {{ data[4][0] }} Card: {{ data[4][1] }} Channel: {{ data[4][2] }} </h4>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-12">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h4 class="panel-title" style="text-align:center">Time Walk Flags</h4>
+          </div>
+          <div class="panel-body">
+            <div class="col-md-12">
+              <div id="container-tw">
+                {% if data[2]: %}
+                  {% for flag in data[2]: %}
+                  <div class="item" style="margin-top:8px; margin-top:8px">
+                    <a style="color:black; font-size:15px" href="{{ url_for('pca_tellie_flag', view='tw', run=data[0], flag=flag['bit']) }}">{{ flag['bit'] }}: {{ flag['name'] }}</a>
+                  </div>
+                  {% endfor %}
+                {% else: %}
+                  <div class="item btn-warning">
+                    No Time Walk flags were raised for PMT {{ data[1] }} in {{ data[0] }}.
+                  </div>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-12">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h4 class="panel-title" style="text-align:center">Gain Fit Flags</h4>
+          </div>
+          <div class="panel-body">
+            <div class="col-md-12">
+              <div id="container-gf">
+                {% if data[3]: %}
+                  {% for flag in data[3]: %}
+                  <div class="item" style="margin-top:8px; margin-top:8px">
+                    <a style="color:black; font-size:15px" href="{{ url_for('pca_tellie_flag', view='gf', run=data[0], flag=flag['bit']) }}">{{ flag['bit'] }}: {{ flag['name'] }}</a>
+                  </div>
+                  {% endfor %}
+                {% else: %}
+                  <div class="item btn-warning">
+                    No Gain Fit flags were raised for PMT {{ data[1] }} in {{ data[0] }}.
+                  </div>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-12">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h4 class="panel-title" style="text-align:center">Plots</h4>
+          </div>
+          <div class="panel-body">
+            <div class="col-md-3"></div>
+            <div class="col-md-6">
+              <img src="{{ url_for('static', filename="pcatellie/SET_" + data[0] + "/PMTs/PMT-" + data[1] + "-Tec.png" ) }}" alt="alt" class="img-responsive">
+            </div>
+            <div class="col-md-3"></div>
+            <div class="col-md-6">
+              <img src="{{ url_for('static', filename="pcatellie/SET_" + data[0] + "/PMTs/PMT-" + data[1] + "-QHS.png" ) }}" alt="alt" class="img-responsive">
+            </div>
+            <div class="col-md-6">
+              <img src="{{ url_for('static', filename="pcatellie/SET_" + data[0] + "/PMTs/PMT-" + data[1] + "-QHL.png" ) }}" alt="alt" class="img-responsive">
+            </div>
+            <div class="col-md-6">
+              <img src="{{ url_for('static', filename="pcatellie/SET_" + data[0] + "/PMTs/PMT-" + data[1] + "-TW.png" ) }}" alt="alt" class="img-responsive">
+            </div>
+            <div class="col-md-6">
+              <img src="{{ url_for('static', filename="pcatellie/SET_" + data[0] + "/PMTs/TW_PMT-" + data[1] + ".png" ) }}" alt="alt" class="img-responsive">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+{% endblock %}
+{% block script %}
+<script src="/static/js/masonry.pkgd.min.js"></script>
+<script>
+  $( document ).ready(function() {
+
+    // masonry init
+    $('#container-tw').masonry({
+      columnWidth: 175,
+      itemSelector: '.item'
+    });
+    $('#container-gf').masonry({
+      columnWidth: 175,
+      itemSelector: '.item'
+    });
+
+    $(".item").addClass('btn btn-info btn-xs wrappable');
+  });
+</script>
+{% endblock %}

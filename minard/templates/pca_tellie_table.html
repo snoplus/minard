@@ -1,0 +1,114 @@
+{% extends "layout.html" %}
+{% block title %}PCA Table{% endblock %}
+{% block head %}
+  {{ super() }}
+{% endblock %}
+{% block body %}
+  {{ super() }}
+
+  <div class="container">
+
+    <div class="row">
+      <div class="col-md-12">
+        <h1 style="text-align:center">TELLIE PCA table: dataset starting {{ run }}</h1>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-12">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h3 class="panel-title"><b>Internal pulse width</b></h3>
+          </div>
+          <div class="panel-body">
+            <div class="row">
+              <div class="col-md-12">
+                <img src="{{ url_for('static', filename="pcatellie/tables/" + run|string + "/tab_ipw.png") }}" alt="alt" class="img-responsive">
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-md-2"></div>
+              <div class="col-md-8">
+                <img src="{{ url_for('static', filename="pcatellie/tables/" + run|string + "/tab_ipw_H.png") }}" alt="alt" class="img-responsive">
+              </div>
+              <div class="col-md-2"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-12">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h3 class="panel-title"><b>PCA offsets</b></h3>
+          </div>
+          <div class="panel-body">
+            <div class="row">
+              <div class="col-md-12">
+                <img src="{{ url_for('static', filename="pcatellie/tables/" + run|string + "/tab_pca_offset.png") }}" alt="alt" class="img-responsive">
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-md-2"></div>
+              <div class="col-md-8">
+                <img src="{{ url_for('static', filename="pcatellie/tables/" + run|string + "/tab_pca_offset_H.png") }}" alt="alt" class="img-responsive">
+              </div>
+              <div class="col-md-2"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-12">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h3 class="panel-title"><b>Angular systematic effect</b></h3>
+          </div>
+          <div class="panel-body">
+            <div class="row">
+              <div class="col-md-12">
+                <img src="{{ url_for('static', filename="pcatellie/tables/" + run|string + "/tab_angB.png") }}" alt="alt" class="img-responsive">
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-md-2"></div>
+              <div class="col-md-8">
+                <img src="{{ url_for('static', filename="pcatellie/tables/" + run|string + "/tab_angB_H.png") }}" alt="alt" class="img-responsive">
+              </div>
+              <div class="col-md-2"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-12">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h3 class="panel-title"><b>Fitted fibre direction</b></h3>
+          </div>
+          <div class="panel-body">
+            <div class="row">
+              <div class="col-md-4">
+                <img src="{{ url_for('static', filename="pcatellie/tables/" + run|string + "/tab_dir1vs2.png") }}" alt="alt" class="img-responsive">
+              </div>
+              <div class="col-md-4">
+                <img src="{{ url_for('static', filename="pcatellie/tables/" + run|string + "/tab_dir1vsDB.png") }}" alt="alt" class="img-responsive">
+              </div>
+              <div class="col-md-4">
+                <img src="{{ url_for('static', filename="pcatellie/tables/" + run|string + "/tab_dir2vsDB.png") }}" alt="alt" class="img-responsive">
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  {% endblock %}

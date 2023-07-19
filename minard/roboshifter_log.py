@@ -4,6 +4,6 @@
 def get_roboshifter_log():
     log = ""
     with open("/home/david/alarmgui/logs/roboshifter.log", "r") as f:
-        for line in reversed(f):
+        for line in reversed(list(f)):
             log += line
     return log

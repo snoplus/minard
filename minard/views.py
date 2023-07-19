@@ -219,14 +219,16 @@ def update_pmtic_resistors():
 @app.route('/roboshifter-log')
 def roboshifter_log():
     try:
-        if request.args.get("date") != "current":
-            log = get_historic_roboshifter_log(request.args.get("date"))
+        selected = request.args.get("date")
+        if selected != "current":
+            log = get_historic_roboshifter_log(selected)
         else:
             log = get_roboshifter_log()
     except:
+        selected = "current"
         log = get_roboshifter_log()
     dates = get_roboshifter_log_dates()
-    return render_template('roboshifter_log.html', roboshifter_log=log, dates=dates, selected_opt=request.args.get("date"))
+    return render_template('roboshifter_log.html', roboshifter_log=log, dates=dates, selected_opt=selected)
 
 @app.route('/calculate-resistors')
 def calculate_resistors():

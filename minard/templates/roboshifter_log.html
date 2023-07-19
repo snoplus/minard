@@ -1,0 +1,13 @@
+{% extends "layout.html" %}
+{% block title %}Roboshifter Log{% endblock %}
+{% block body %}
+    <div class="row">
+        <div class="col-md-12">
+            <pre>
+                {%- for l in roboshifter_log -%}
+                    {{ l }}
+                {%- endfor -%}
+            </pre>
+        </div>
+    </div>
+{% endblock %}

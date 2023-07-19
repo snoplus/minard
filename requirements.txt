@@ -13,3 +13,4 @@ couchdb==1.0.1
 wtforms==2.1
 email_validator==1.1.1
 werkzeug==0.16.1
+Pillow==6.2.2

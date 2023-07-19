@@ -19,11 +19,11 @@
     <p></p>
     <div class="container">
         <div class="col-md-12">
-            <form method="post" action="{{ url_for('roboshifter_log') }}" role='form'>
+            <form method="get" action="{{ url_for('roboshifter_log') }}" role='form'>
                 <select name="date" onchange="this.form.submit()">
-                    <option value="current" {% if selected_opt == 'current'  %} SELECTED {% endif %}>Current</option>
+                    <option value="current" {% if selected_opt == "current" %} SELECTED {% endif %}>Current</option>
                     {% for d in dates %}
-                        <option value="{{ d }}" {% if selected_opt == d %} SELECTED {% endif %} >{{ d }}</option>
+                        <option value="{{ d }}" {% if selected_opt == d %} SELECTED {% endif %}>{{ d[:-3] }}</option>
                     {% endfor %}
                 </select>
             </form>

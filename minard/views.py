@@ -216,16 +216,17 @@ def update_pmtic_resistors():
         return redirect(url_for('calculate_resistors', crate=form.crate.data, slot=form.slot.data))
     return render_template('update_pmtic_resistors.html', crate=crate, slot=slot, form=form, pc=pc)
 
-@app.route('/roboshifter-log', methods=["GET", "POST"])
+@app.route('/roboshifter-log')
 def roboshifter_log():
-    if request.method == "POST" and request.form.get("date") != "current":
-        log = get_historic_roboshifter_log(request.form.get("date"))
-        selected = request.form.get("date")
-    else:
+    try:
+        if request.args.get("date") != "current":
+            log = get_historic_roboshifter_log(request.args.get("date"))
+        else:
+            log = get_roboshifter_log()
+    except:
         log = get_roboshifter_log()
-        selected = "current"
     dates = get_roboshifter_log_dates()
-    return render_template('roboshifter_log.html', roboshifter_log=log, dates=dates, selected_opt=selected)
+    return render_template('roboshifter_log.html', roboshifter_log=log, dates=dates, selected_opt=request.args.get("date"))
 
 @app.route('/calculate-resistors')
 def calculate_resistors():

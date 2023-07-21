@@ -2070,7 +2070,7 @@ def runselection_run(run_number):
 
 @app.route('/light_level')
 def light_level():
-    run_range_low = request.args.get("run_range_low", 300000, type=int)
+    run_range_low = request.args.get("run_range_low", 350000, type=int)
     run_range_high = request.args.get("run_range_high", 0, type=int)
     fv = request.args.get("fv", 3000, type=int)
     nhits_select = request.args.get("nhits_select","Nhits Corrected", type=str)

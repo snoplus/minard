@@ -3,6 +3,55 @@
 
 {% block head %}
     {{ super() }}
+    <style>
+        pre {
+            tab-size: 4;
+            counter-reset: linecounter;
+        }
+
+        pre span.line {
+            counter-increment: linecounter;
+        }
+        
+        .line {
+            background: #0000;
+            color: #000;
+            opacity: 1.0;
+        }
+
+        pre span.line::before{
+            content: counter(linecounter);
+            width: 30px;
+            display: inline-block;
+            border-right: 1px dotted #fff;
+            padding-right: 3px;
+            margin-right: 5px;
+            text-align: right;
+        }
+    </style>
+    <script type="text/javascript">
+        function addLineClass(pre){
+            var lines = pre.innerText.split("\n");
+            while(pre.childNodes.length > 0) {
+                pre.removeChild(pre.childNodes[0]);
+            }
+            for(var i =0; i < lines.length; i++){
+                var span = document.createElement("span");
+                span.className = "line";
+                span.innerText = lines[i];
+                pre.appendChild(span);
+                pre.appendChild(document.createTextNode("\n"))
+            }
+        }
+        window.addEventListener("load", function () {
+            var pres = document.getElementsByTagName("pre");
+            for(var i = 0; i < pres.length; i++){
+                addLineClass(pres[i]);
+            }
+        }, false);
+    </script>
+
+
 {% endblock %}
 
 {% block body %}

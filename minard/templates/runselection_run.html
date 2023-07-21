@@ -447,7 +447,7 @@
                       <div class="form-group">
                     {% endif %}
                       <label for="criteria">{{ pass_form.criteria.label }}</label>
-                      <input type="text" class="form-control" name="{{ pass_form.criteria.name }}" placeholder="{{ criteria }}" {% if pass_form.criteria.data %}value="{{ pass_form.criteria.data }}"{% endif %}></input>
+                      <input type="text" class="form-control" name="{{ pass_form.criteria.name }}" placeholder="{{ criteria }}" {% if pass_form.criteria.data %}value="{{ criteria }}"{% endif %}></input>
                     {% if pass_form.criteria.errors %}
                       {% for error in pass_form.criteria.errors %}
                           <span class="help-block">{{ error }}</span>

@@ -44,6 +44,13 @@ add:
     COUCHDB_HOSTNAME=[hostname]
     COUCHDB_PASSWORD=[password]
 
+If you are testing the run-selection pages, you will also need to add:
+
+    DROP_DOWN_MENU_CRITS=['scintillator', 'scintillator_silver', 'scintillator_bronze', 'directionality_analysis']
+    RS_EXPERT_PASS=[password]
+
+(DROP_DOWN_MENU_CRITS can be any list of criteria, this is a standard example)
+
 Now, export the environment variable MINARD_SETTINGS to point to the
 configuration file:
 

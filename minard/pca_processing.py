@@ -8,7 +8,7 @@ import detectorviz
 from . import app
 from .db import engine, engine_nl
 
-scratch = os.getcwd() + "/minard/static/pcatellie/scratch"
+scratch = os.getcwd() + "/static/pcatellie/scratch"
 
 def load_pca_runlist():
     """
@@ -41,7 +41,7 @@ def parse_log_file(run):
     Returns: the status of the PCA calibration, from file.
     If the file does not exist, returns negative value that is handled in html.
     """
-    file_path = os.getcwd() + "/minard/static/pcatellie/pca_constants/PCA_log_" + run + "_0.ratdb"
+    file_path = os.getcwd() + "/static/pcatellie/pca_constants/PCA_log_" + run + "_0.ratdb"
     try:
         with open(file_path, 'r') as input_file:
             log = json.load(input_file)
@@ -310,11 +310,11 @@ class FuzzyDict(dict):
 
 def get_pca_log(run_name):
     """ Return the run object LOG for the given pca run """
-    return ratdbloader.load_ratdb(os.getcwd() + "/minard/static/pcatellie/pca_constants/PCA_log_" + run_name + "_0.ratdb")
+    return ratdbloader.load_ratdb(os.getcwd() + "/static/pcatellie/pca_constants/PCA_log_" + run_name + "_0.ratdb")
 
 def get_pca_tw(run_name):
     """ Return the run object TW for the given pca run """
-    data = FuzzyDict(ratdbloader.load_ratdb(os.getcwd() + "/minard/static/pcatellie/pca_constants/PCATW_" + run_name + "_0.ratdb"))
+    data = FuzzyDict(ratdbloader.load_ratdb(os.getcwd() + "/static/pcatellie/pca_constants/PCATW_" + run_name + "_0.ratdb"))
     data['name'] = run_name
     data['path'] = "/pcatellie/"
     data['status'] = data.pop('PCATW_status')
@@ -322,7 +322,7 @@ def get_pca_tw(run_name):
 
 def get_pca_gf(run_name):
     """ Return the run object GF for the given pca run """
-    data = FuzzyDict(ratdbloader.load_ratdb(os.getcwd() + "/minard/static/pcatellie/pca_constants/PCAGF_" + run_name + "_0.ratdb"))
+    data = FuzzyDict(ratdbloader.load_ratdb(os.getcwd() + "/static/pcatellie/pca_constants/PCAGF_" + run_name + "_0.ratdb"))
     data['name'] = run_name
     data['path'] = "/pcatellie/"
     data['status'] = data.pop('PCAGF_status')

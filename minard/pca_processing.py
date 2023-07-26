@@ -324,7 +324,7 @@ def get_pca_tw(run_name):
 
 def get_pca_gf(run_name):
     """ Return the run object GF for the given pca run """
-    final_path = path_for_files + "pcatellie/pca_constants/PCAGF_" + run_name + "_0.ratdb"
+    final_path = path_for_files + "pca_constants/PCAGF_" + run_name + "_0.ratdb"
     data = ratdbloader.load_ratdb(final_path)
     data['name'] = run_name
     data['status'] = data.pop('PCAGF_status')

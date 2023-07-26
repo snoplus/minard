@@ -85,9 +85,10 @@ def load_ratdb(file_path):
     with open(file_path, 'r') as input_file:
         try:
             print 'Input File: ', input_file
-            return FuzzyDict(json.load(input_file))
+            return json.load(input_file)
+            ###return FuzzyDict(json.load(input_file))
         except:
-            raise RuntimeError("Failed in {}".format(file_path))
+            raise RuntimeError("Failed in {0}".format(file_path))
 
 
 

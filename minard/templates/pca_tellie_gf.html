@@ -53,7 +53,7 @@
                           <td>{{ data[1][i]['doc'] }}</td>
                           <td>{{ data[1][i]['type'] }}</td>
                           <td>{{ data[2][i] }}</td>
-                          <td><img src="{{ url_for('static', filename="pcatellie" + data[3](data[1][i])) }}" alt="alt" class="ondemand img-responsive"></td>
+                          <td><img src="{{ url_for('static', filename=data[3](data[1][i])[1:]) }}" alt="alt" class="ondemand img-responsive"></td>
                       {% endif %}
                     {% endfor %}
                   </tbody>

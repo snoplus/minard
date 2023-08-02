@@ -8,8 +8,8 @@ import detectorviz
 from . import app
 from .db import engine, engine_nl
 
-path_for_files = app.static_folder + "/pcatellie/"
-scratch = path_for_files + "scratch"
+path_for_files = "/mnt/"
+scratch = "/var/www/minard/static/scratch"
 
 def load_pca_runlist():
     """
@@ -311,21 +311,22 @@ class FuzzyDict(dict):
 
 def get_pca_log(run_name):
     """ Return the run object LOG for the given pca run """
-    return ratdbloader.load_ratdb(path_for_files + "pca_constants/PCA_log_" + run_name + "_0.ratdb")
+    final_path = path_for_files + "pca_constants/PCA_log_" + run_name + "_0.ratdb"
+    return ratdbloader.load_ratdb(final_path)
 
 def get_pca_tw(run_name):
     """ Return the run object TW for the given pca run """
-    data = FuzzyDict(ratdbloader.load_ratdb(path_for_files + "pca_constants/PCATW_" + run_name + "_0.ratdb"))
+    final_path = path_for_files + "pca_constants/PCATW_" + run_name + "_0.ratdb"
+    data = ratdbloader.load_ratdb(final_path)
     data['name'] = run_name
-    data['path'] = "/pcatellie/"
     data['status'] = data.pop('PCATW_status')
     return data
 
 def get_pca_gf(run_name):
     """ Return the run object GF for the given pca run """
-    data = FuzzyDict(ratdbloader.load_ratdb(path_for_files + "pcatellie/pca_constants/PCAGF_" + run_name + "_0.ratdb"))
+    final_path = path_for_files + "pca_constants/PCAGF_" + run_name + "_0.ratdb"
+    data = ratdbloader.load_ratdb(final_path)
     data['name'] = run_name
-    data['path'] = "/pcatellie/"
     data['status'] = data.pop('PCAGF_status')
     return data
 
@@ -347,7 +348,7 @@ def load_pca_log_data(run_number):
     subview = "log"
     run = get_pca_log(run_number)
     flags = pca_flags.flags[subview]
-    status_int = run['status']
+    status_int = run['PCA_status']
     hits = [flag for flag_num, flag in enumerate(flags)
             if status_int & 2**flag_num]
 

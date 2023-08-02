@@ -130,7 +130,7 @@ def image_for_run_mode_flag(scratch_dir, run, mode, flag, scale=6):
 
     image_base = os.path.join(scratch_dir, run['name'])
     image_path = os.path.join(image_base,
-                              "{}-flag-{:02d}.bmp".format(mode, flag['bit']))
+                              "{0}-flag-{1:02d}.bmp".format(mode, flag['bit']))
 
     if not os.path.exists(image_path):
         if not os.path.exists(image_base):

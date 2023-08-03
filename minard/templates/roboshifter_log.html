@@ -1,6 +1,20 @@
 {% extends "layout.html" %}
 {% block title %}Roboshifter Log{% endblock %}
 
+{% macro render_field(field) %}
+  <dt>{{ field.label }}
+  <dd>{{ field(**kwargs)|safe }}
+  {% if field.errors %}
+    <ul class=errors>
+    {% for error in field.errors %}
+      <li>{{ error }}</li>
+    {% endfor %}
+    </ul>
+  {% endif %}
+  </dd>
+{% endmacro %}
+
+
 {% block head %}
     {{ super() }}
     <style>
@@ -59,7 +73,11 @@
     <div class="row">
         <div class="col-md-6 col-md-offset-3">
             <center>
-                <h2 style="display:inline">Roboshifter Logs</h2>
+                {% if logdate %}
+                    <h2 style="display:inline">Roboshifter Logs for {{ logdate }} </h2> 
+                {% else %}
+                    <h2 style="display:inline">Roboshifter Logs</h2>
+                {% endif %}
             </center>
         </div>
     </div>
@@ -69,12 +87,7 @@
     <div class="container">
         <div class="col-md-12">
             <form method="get" action="{{ url_for('roboshifter_log') }}" role='form'>
-                <select name="date" onchange="this.form.submit()">
-                    <option value="current" {% if selected_opt == "current" %} SELECTED {% endif %}>Current</option>
-                    {% for d in dates %}
-                        <option value="{{ d }}" {% if selected_opt == d %} SELECTED {% endif %}>{{ d[:-3] }}</option>
-                    {% endfor %}
-                </select>
+                {{ render_field(form.date) }}
             </form>
         </div>
     </div>

@@ -437,6 +437,9 @@ def list_runs_info(limit, offset, result, criteria, selected_run, run_range, dat
     those that satisfy the conditions (i.e. we always want to display a number
     of runs = limit, no matter the conditions.'''
 
+    # Get list of criteria to put in drop-down menu (in order)
+    drop_down_crits = app.config['DROP_DOWN_MENU_CRITS']
+
     # Get run number limits
     run_min = None
     run_max = None
@@ -460,7 +463,7 @@ def list_runs_info(limit, offset, result, criteria, selected_run, run_range, dat
     # Get filtered runs (download twice as many runs as needed, then filter by result)
     filtered_rs_tables, run_numbers, no_more_tables = get_filtered_RS_tables(run_min, run_max, min_runTime, max_runTime, offset, limit, result, criteria)
     if filtered_rs_tables is False:
-        return False
+        return False, drop_down_crits
     run_numbers.sort(reverse=True)
 
     # If there aren't enough, keep downloading more runs until we get enough. Either until enough
@@ -484,9 +487,6 @@ def list_runs_info(limit, offset, result, criteria, selected_run, run_range, dat
     for i in range(offset, (offset+limit)):
         if i < len(run_numbers):
             final_rs_tables[run_numbers[i]] = filtered_rs_tables[run_numbers[i]]
-
-    # Get list of criteria to put in drop-down menu (in order)
-    drop_down_crits = app.config['DROP_DOWN_MENU_CRITS']
 
     return final_rs_tables, drop_down_crits
 

@@ -1,6 +1,8 @@
 {% extends "layout.html" %}
 {% block title %}Run Selection Plots{% endblock %}
 {% block head %}
+    <link rel="stylesheet" type="text/css"  href="{{ url_for('static',filename='css/metricsgraphics.css') }}">
+    <link rel="stylesheet" type="text/css"  href="{{ url_for('static',filename='css/mg_line_brushing.css') }}">
   {{ super() }}
   <style>
     .btn2 {
@@ -119,7 +121,7 @@
             x_accessor:'date',
             y_accessor:'value',
             point_size: 4.0,
-            y_label: "Integrated Duration of Runs (timescale)",
+            y_label: "Duration of Runs (timescale)",
             x_label: "Date",
             decimals: 5,
             legend: ['Physics', 'Passed', 'Failed', 'Purgatory'],

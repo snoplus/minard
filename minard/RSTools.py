@@ -781,11 +781,6 @@ def pass_fail_plot_info(criteria, date_range):
     ''' calculates the cumulative number of days of physics, passed, failed and purgatory runs 
         based on input criteria and date range '''
     data = []
-    timestamps = []
-    phys_time = []
-    pass_time = []
-    fail_time = []
-    purg_time = []
     # Get date limits
     min_runTime = None
     max_runTime = None
@@ -804,8 +799,7 @@ def pass_fail_plot_info(criteria, date_range):
     purg = 0
     for run_number in rs_tables.keys():
         # get timestamps
-        time = rs_tables[run_number][criteria]['timestamp'].strftime('%Y-%m-%d %H:%M:%S')
-        timestamps.append(time)
+        time = rs_tables[run_number][criteria]['timestamp'].strftime("%Y-%m-%dT%H:%M:%S.%f")
         # get run length and convert into days
         run_length = rs_tables[run_number][criteria]['run_duration']/(60**2*24)
         # get result (pass=True, fail=False, purgatory=None)
@@ -818,15 +812,13 @@ def pass_fail_plot_info(criteria, date_range):
             failed += run_length
         if result == None:
             purg += run_length
-        phys_time.append(phys)
-        pass_time.append(passed)
-        fail_time.append(failed)
-        purg_time.append(purg)
-    data.append(timestamps)
-    data.append(phys_time)
-    data.append(pass_time)
-    data.append(fail_time)
-    data.append(purg_time)
+        rs_result = {}
+        rs_result['timestamp'] = time
+        rs_result['phys_total'] = phys
+        rs_result['pass_total'] = passed
+        rs_result['fail_total'] = failed
+        rs_result['purg_total'] = purg
+        data.append(rs_result)
     return data, drop_down_crits
 
 def get_RS_reports_date_range(criteria=None, min_runTime=None, max_runTime=None):

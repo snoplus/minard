@@ -144,7 +144,14 @@
             x_label: "Date",
             decimals: 5,
             legend: ['Physics', 'Passed', 'Failed', 'Purgatory'],
+    
+	<!-- Adding the unit (days) to the mouse over legend and fixing the value to 3 decimal places -->
             interpolate: 'linear',
+                        y_mouseover: function(d, i) {
+		 var y = parseFloat(d['value']).toFixed(3);
+                return y + ' (days)';
+
+            },
         };
 
         MG.data_graphic(dparams);

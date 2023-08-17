@@ -1,6 +1,8 @@
 {% extends "layout.html" %}
 {% block title %}Run Selection Plots{% endblock %}
 {% block head %}
+    <!-- metrics-graphics stylesheet goes above super() because we want bootstrap's style
+    (which is linked in super()) to override it. -->
     <link rel="stylesheet" type="text/css"  href="{{ url_for('static',filename='css/metricsgraphics.css') }}">
     <link rel="stylesheet" type="text/css"  href="{{ url_for('static',filename='css/mg_line_brushing.css') }}">
   {{ super() }}
@@ -35,17 +37,17 @@
             <tr>
                 <!-- Run date inputs -->
                 <th>
-                    <input style="margin-bottom: 30px; width: 40px;" type="text" id="y_low" value={{year_low}} onKeyDown="if(event.keyCode==13) get_limit(0, crit.value, this.value, m_low.value, d_low.value, y_high.value, m_high.value, d_high.value);"></input>
-                    <input style="margin-bottom: 30px; width: 25px;" type="text" id="m_low" value={{month_low}} onKeyDown="if(event.keyCode==13) get_limit(0, crit.value, y_low.value, this.value, d_low.value, y_high.value, m_high.value, d_high.value);"></input>
-                    <input style="margin-bottom: 30px; width: 25px;" type="text" id="d_low" value={{day_low}} onKeyDown="if(event.keyCode==13) get_limit(0, crit.value, y_low.value, m_low.value, this.value, y_high.value, m_high.value, d_high.value);"></input>
+                    <input style="margin-bottom: 30px; width: 40px;" type="text" id="y_low" value={{year_low}}></input>
+                    <input style="margin-bottom: 30px; width: 25px;" type="text" id="m_low" value={{month_low}}></input>
+                    <input style="margin-bottom: 30px; width: 25px;" type="text" id="d_low" value={{day_low}}></input>
                     -
-                    <input style="margin-bottom: 30px; width: 40px;" type="text" id="y_high" value={{year_high}} onKeyDown="if(event.keyCode==13) get_limit(0, crit.value, y_low.value, m_low.value, d_low.value, this.value, m_high.value, d_high.value);"></input>
-                    <input style="margin-bottom: 30px; width: 25px;" type="text" id="m_high" value={{month_high}} onKeyDown="if(event.keyCode==13) get_limit(0, crit.value, y_low.value, m_low.value, d_low.value, y_high.value, this.value, d_high.value);"></input>
-                    <input style="margin-bottom: 30px; width: 25px;" type="text" id="d_high" value={{day_high}} onKeyDown="if(event.keyCode==13) get_limit(0, crit.value, y_low.value, m_low.value, d_low.value, y_high.value, m_high.value, this.value);"></input>
+                    <input style="margin-bottom: 30px; width: 40px;" type="text" id="y_high" value={{year_high}}></input>
+                    <input style="margin-bottom: 30px; width: 25px;" type="text" id="m_high" value={{month_high}}></input>
+                    <input style="margin-bottom: 30px; width: 25px;" type="text" id="d_high" value={{day_high}} onKeyDown=></input>
                 </th>
                 <!-- Criteria drop-down -->
                 <th>
-                    <select id="crit" onchange="get_limit({{offset}}, this.value, y_low.value, m_low.value, d_low.value, y_high.value, m_high.value, d_high.value);">
+                    <select id="crit">
                     <option selected value="{{criteria}}">{{criteria}}</option>
                     {% for n in drop_down_crits %}
                         {% if n != criteria %}
@@ -54,14 +56,24 @@
                     {% endfor %}
                     </select>
                 </th>
-    <th class="col-xs-3 col-xs-offset-0">
-      <button type=button onclick="history();">Update Plots</button>
-    </th>
-            </tr>
-            </table>
-<div id="chart"></div>
+                <!-- Button to update plots with the run dates & criteria -->
+                <th class="col-xs-3 col-xs-offset-0">
+                    <button type=button onclick="history();">Update Plot</button>
+</th>
+</tr>
+</table>
+<!-- Plot goes here -->
+    <div class="row">
+    <div class="col-md-12" id="main">
+      <br>
+      {% if not rs_plot_data %}
+        <h2 align="left"> No data available </h2>
+      {% endif %}
+    </div>
         </div>
     </div>
+</div>
+
 {% endblock %}
 
 {% block script %}
@@ -74,22 +86,25 @@
     <script src="{{ url_for('static', filename='js/stream_utilities.js') }}"></script>
     <script>
         if (url_params.month_low) {
-            document.getElementById("month_low").value = url_params.month_low;
+            document.getElementById("m_low").value = url_params.month_low;
         }
         if (url_params.month_high) {
-            document.getElementById("month_high").value = url_params.month_high;
+            document.getElementById("m_high").value = url_params.month_high;
         }
         if (url_params.year_low) {
-            document.getElementById("year_low").value = url_params.year_low;
+            document.getElementById("y_low").value = url_params.year_low;
         }
         if (url_params.year_high) {
-            document.getElementById("year_high").value = url_params.year_high;
+            document.getElementById("y_high").value = url_params.year_high;
         }
         if (url_params.day_low) {
-            document.getElementById("day_low").value = url_params.day_low;
+            document.getElementById("d_low").value = url_params.day_low;
         }
         if (url_params.day_high) {
-            document.getElementById("day_high").value = url_params.day_high;
+            document.getElementById("d_high").value = url_params.day_high;
+        }
+        if (url_params.criteria) {
+            document.getElementById("crit").value = url_params.criteria;
         }
 
         var rs_plot_data = {{ rs_plot_data | safe }};
@@ -116,23 +131,20 @@
         var dparams = {
             area: false,
             data: [phys, pass, fail, purg],
-            width: 1000,
+            width: $('#main').width(),
             left: 100,
             right: 100,
             height: 500,
-            target: "#chart",
+            target: "#main",
             time_scale: cscale,
             x_accessor:'date',
             y_accessor:'value',
             point_size: 4.0,
-            y_label: "Time (days)",
+            y_label: "Integrated Duration of Runs (timescale)",
             x_label: "Date",
             decimals: 5,
             legend: ['Physics', 'Passed', 'Failed', 'Purgatory'],
             interpolate: 'linear',
-            // y_mouseover: function(d, i) {
-            //     return 'Rate: ' + format_rate(d['value']) + ' (Hz)';
-            // },
         };
 
         MG.data_graphic(dparams);
@@ -140,34 +152,39 @@
         function history() {
             var params = {};
             try {
-                params['month_low'] = document.getElementById("month_low").value;
+                params['month_low'] = document.getElementById("m_low").value;
             } catch (e) {
                 params['month_low'] = 7;
             }
             try {
-                params['month_high'] = document.getElementById("month_high").value;
+                params['month_high'] = document.getElementById("m_high").value;
             } catch (e) {
                 params['month_high'] = 8;
             }
             try {
-                params['year_low'] = document.getElementById("year_low").value;
+                params['year_low'] = document.getElementById("y_low").value;
             } catch (e) {
                 params['year_low'] = 2023;
             }
             try {
-                params['year_high'] = document.getElementById("year_high").value;
+                params['year_high'] = document.getElementById("y_high").value;
             } catch (e) {
                 params['year_high'] = 2023;
             }
             try {
-                params['day_low'] = document.getElementById("day_low").value;
+                params['day_low'] = document.getElementById("d_low").value;
             } catch (e) {
                 params['day_low'] = 1;
             }
             try {
-                params['day_high'] = document.getElementById("day_high").value;
+                params['day_high'] = document.getElementById("d_high").value;
             } catch (e) {
                 params['day_high'] = 1;
+            }
+            try {
+                params['criteria'] = document.getElementById("crit").value;
+            } catch (e) {
+                params['criteria'] = "scintillator_silver";
             }
             window.location.replace($SCRIPT_ROOT + "/runselection_plots?" + $.param(params));
         }

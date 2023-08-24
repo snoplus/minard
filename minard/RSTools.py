@@ -798,10 +798,12 @@ def pass_fail_plot_info(criteria, date_range):
     failed = 0
     purg = 0
     for run_number in rs_tables.keys():
+        # check run duration was found and if it was convert into days, skip if not
+        if rs_tables[run_number][criteria]['run_duration'] == 'No Data':
+            continue
+        run_length = rs_tables[run_number][criteria]['run_duration']/(60**2*24)
         # get timestamps
         time = rs_tables[run_number][criteria]['timestamp'].strftime("%Y-%m-%dT%H:%M:%S.%f")
-        # get run length and convert into days
-        run_length = rs_tables[run_number][criteria]['run_duration']/(60**2*24)
         # get result (pass=True, fail=False, purgatory=None)
         result = rs_tables[run_number][criteria]['result']
         # add number of days to cumulative sum
@@ -848,7 +850,10 @@ def get_RS_reports_date_range(criteria=None, min_runTime=None, max_runTime=None)
             tempt_dict = {}
             tempt_dict['meta_data'] = row[0]
             tempt_dict['result'] = row[0]['decision']['result']
-            tempt_dict['run_duration'] = row[0]['run_time']['notes']['dt']['orca_duration']
+            if 'notes' in row[0]['run_time']:
+                tempt_dict['run_duration'] = row[0]['run_time']['notes']['dt']['orca_duration']
+            else:
+                tempt_dict['run_duration'] = 'No Data'
             tempt_dict['timestamp'] = row[1]
             tempt_dict['run_number'] = row[2]
             rs_tables_list.append(tempt_dict)

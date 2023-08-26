@@ -791,7 +791,9 @@ def pass_fail_plot_info(criteria, date_range):
     # Get list of criteria to put in drop-down menu (in order)
     drop_down_crits = app.config['DROP_DOWN_MENU_CRITS']
     # download physics runs in given date range
-    rs_tables = get_RS_reports_date_range(criteria=criteria, min_runTime=min_runTime, max_runTime=max_runTime)
+    rs_tables = get_RS_reports_date_range(criteria=criteria)
+    if rs_tables is False:
+        return False, drop_down_crits
     # Loop through RS tables and sum up the cumulative number of days of each result
     phys = 0
     passed = 0
@@ -801,9 +803,19 @@ def pass_fail_plot_info(criteria, date_range):
         # check run duration was found and if it was convert into days, skip if not
         if rs_tables[run_number][criteria]['run_duration'] == 'No Data':
             continue
+        # Get run time and put into specific format
+        run_start_time = str(rs_tables[run_number][criteria]['run_start']).replace(' ', 'T')
+        # get the run date to apply date range to
+        run_start_lst = rs_tables[run_number][criteria]['run_start'].split(' ')[0].split('-')
+        run_start_date = datetime.date(int(run_start_lst[0]), int(run_start_lst[1]), int(run_start_lst[2]))
+        # if no date conditions were given, skip the filter
+        if not min_runTime is None:
+            if run_start_date < min_runTime:
+                continue
+        if not max_runTime is None:
+            if run_start_date > max_runTime:
+                continue
         run_length = rs_tables[run_number][criteria]['run_duration']/(60**2*24)
-        # get timestamps
-        time = rs_tables[run_number][criteria]['timestamp'].strftime("%Y-%m-%dT%H:%M:%S.%f")
         # get result (pass=True, fail=False, purgatory=None)
         result = rs_tables[run_number][criteria]['result']
         # add number of days to cumulative sum
@@ -815,7 +827,7 @@ def pass_fail_plot_info(criteria, date_range):
         if result == None:
             purg += run_length
         rs_result = {}
-        rs_result['timestamp'] = time
+        rs_result['timestamp'] = run_start_time
         rs_result['phys_total'] = phys
         rs_result['pass_total'] = passed
         rs_result['fail_total'] = failed
@@ -828,14 +840,10 @@ def get_RS_reports_date_range(criteria=None, min_runTime=None, max_runTime=None)
     (takes one with latest version, and if they have the same version, the one with
     the latest timestamp).'''
     # Get tables within given data range and for given criteria in ascending order
-    query = "SELECT meta_data, timestamp, run_min FROM run_selection WHERE type = 'RS_REPORT'"
+    query = "SELECT meta_data, run_min FROM run_selection WHERE type = 'RS_REPORT'"
     conditions = []
     if criteria is not None:
         conditions.append("criteria = '%s'" % str(criteria))
-    if min_runTime is not None:
-        conditions.append("timestamp >= '%s'" % min_runTime.strftime('%Y-%m-%d'))
-    if max_runTime is not None:
-        conditions.append("timestamp <= '%s'" % max_runTime.strftime('%Y-%m-%d'))
     if len(conditions) > 0:
         for i in range(0, len(conditions)):
             query += " AND " + conditions[i]
@@ -852,10 +860,10 @@ def get_RS_reports_date_range(criteria=None, min_runTime=None, max_runTime=None)
             tempt_dict['result'] = row[0]['decision']['result']
             if 'notes' in row[0]['run_time']:
                 tempt_dict['run_duration'] = row[0]['run_time']['notes']['dt']['orca_duration']
+                tempt_dict['run_start'] = row[0]['run_time']['notes']['dt']['timestamp']
             else:
                 tempt_dict['run_duration'] = 'No Data'
-            tempt_dict['timestamp'] = row[1]
-            tempt_dict['run_number'] = row[2]
+            tempt_dict['run_number'] = row[1]
             rs_tables_list.append(tempt_dict)
         if len(rs_tables_list) == 0:
             return OrderedDict()

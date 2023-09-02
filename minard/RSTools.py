@@ -840,7 +840,7 @@ def get_RS_reports_date_range(criteria=None, min_runTime=None, max_runTime=None)
     (takes one with latest version, and if they have the same version, the one with
     the latest timestamp).'''
     # Get tables within given data range and for given criteria in ascending order
-    query = "SELECT meta_data, run_min FROM run_selection WHERE type = 'RS_REPORT'"
+    query = "SELECT meta_data, run_min, timestamp FROM run_selection WHERE type = 'RS_REPORT'"
     conditions = []
     if criteria is not None:
         conditions.append("criteria = '%s'" % str(criteria))
@@ -864,6 +864,7 @@ def get_RS_reports_date_range(criteria=None, min_runTime=None, max_runTime=None)
             else:
                 tempt_dict['run_duration'] = 'No Data'
             tempt_dict['run_number'] = row[1]
+            tempt_dict['timestamp'] = row[2]
             rs_tables_list.append(tempt_dict)
         if len(rs_tables_list) == 0:
             return OrderedDict()

@@ -62,15 +62,26 @@
 </th>
 </tr>
 </table>
+<!-- Runs summary goes here -->
+    <div class="row">
+    <div class="col-md-12" id="sum">
+        <h2 align="left"> Summary: </h2>
+        <p id="phys_summary"> </p>
+        <p id="pass_summary"> </p>
+        <p id="fail_summary"> </p>
+        <p id="purg_summary"> </p>
+    </div>
+        </div>
 <!-- Plot goes here -->
     <div class="row">
     <div class="col-md-12" id="main">
-      <br>
       {% if not rs_plot_data %}
         <h2 align="left"> No data available </h2>
       {% endif %}
+
     </div>
         </div>
+
     </div>
 </div>
 
@@ -127,6 +138,20 @@
         var cscale = tzscale().domain(dates).zone('America/Toronto');
 
         var time_fmt = 'MMM Do YYYY';
+
+<!-- Messy bit of code to get the run summary section but it works... -MD -->
+	var summary = [rs_plot_data[rs_plot_data.length - 1]['phys_total'],rs_plot_data[rs_plot_data.length - 1]['pass_total'],rs_plot_data[rs_plot_data.length - 1]['fail_total'],rs_plot_data[rs_plot_data.length - 1]['purg_total']]
+
+for (var i=0; i < summary.length; i++)
+	{
+		var j = parseFloat(summary[i]).toFixed(3);
+		summary[i] = j;
+	}
+
+	document.getElementById("phys_summary").innerHTML = 'Physics Runs (Days): ' + summary[0].toString();
+	document.getElementById("pass_summary").innerHTML = 'Passed Runs (Days): ' + summary[1].toString();
+	document.getElementById("fail_summary").innerHTML = 'Failed Runs (Days): ' + summary[2].toString();
+	document.getElementById("purg_summary").innerHTML = 'Purgatoried Runs (Days): ' + summary[3].toString();
 
         var dparams = {
             area: false,

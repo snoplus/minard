@@ -796,9 +796,13 @@ def pass_fail_plot_info(criteria, date_range):
         return False, drop_down_crits
     # Loop through RS tables and sum up the cumulative number of days of each result
     phys = 0
+    physrun = 0
     passed = 0
+    passrun = 0
     failed = 0
+    failrun = 0
     purg = 0
+    purgrun = 0
     for run_number in rs_tables.keys():
         # check run duration was found and if it was convert into days, skip if not
         if rs_tables[run_number][criteria]['run_duration'] == 'No Data':
@@ -820,18 +824,26 @@ def pass_fail_plot_info(criteria, date_range):
         result = rs_tables[run_number][criteria]['result']
         # add number of days to cumulative sum
         phys += run_length
+        physrun += 1
         if result == True:
             passed += run_length
+            passrun += 1
         if result == False:
             failed += run_length
+            failrun += 1
         if result == None:
             purg += run_length
+            purgrun += 1
         rs_result = {}
         rs_result['timestamp'] = run_start_time
         rs_result['phys_total'] = phys
+        rs_result['phys_runs'] = physrun
         rs_result['pass_total'] = passed
+        rs_result['pass_runs'] = passrun
         rs_result['fail_total'] = failed
+        rs_result['fail_runs'] = failrun
         rs_result['purg_total'] = purg
+        rs_result['purg_runs'] = purgrun
         data.append(rs_result)
     return data, drop_down_crits
 

@@ -138,20 +138,26 @@
         var cscale = tzscale().domain(dates).zone('America/Toronto');
 
         var time_fmt = 'MMM Do YYYY';
-
+        
 <!-- Messy bit of code to get the run summary section but it works... -MD -->
-	var summary = [rs_plot_data[rs_plot_data.length - 1]['phys_total'],rs_plot_data[rs_plot_data.length - 1]['pass_total'],rs_plot_data[rs_plot_data.length - 1]['fail_total'],rs_plot_data[rs_plot_data.length - 1]['purg_total']]
+	var summaryTime = [rs_plot_data[rs_plot_data.length - 1]['phys_total'],rs_plot_data[rs_plot_data.length - 1]['pass_total'],rs_plot_data[rs_plot_data.length - 1]['fail_total'],rs_plot_data[rs_plot_data.length - 1]['purg_total']]
+    
+    var summaryRuns = [rs_plot_data[rs_plot_data.length - 1]['phys_runs'],rs_plot_data[rs_plot_data.length - 1]['pass_runs'],rs_plot_data[rs_plot_data.length - 1]['fail_runs'],rs_plot_data[rs_plot_data.length - 1]['purg_runs']]
+    
 
-for (var i=0; i < summary.length; i++)
+for (var i=0; i < summaryTime.length; i++)
 	{
-		var j = parseFloat(summary[i]).toFixed(3);
-		summary[i] = j;
+		var j = parseFloat(summaryTime[i]).toFixed(3);
+		summaryTime[i] = j;
 	}
 
-	document.getElementById("phys_summary").innerHTML = 'Physics Runs (Days): ' + summary[0].toString();
-	document.getElementById("pass_summary").innerHTML = 'Passed Runs (Days): ' + summary[1].toString();
-	document.getElementById("fail_summary").innerHTML = 'Failed Runs (Days): ' + summary[2].toString();
-	document.getElementById("purg_summary").innerHTML = 'Purgatoried Runs (Days): ' + summary[3].toString();
+	document.getElementById("phys_summary").innerHTML = 'Physics: ' + summaryTime[0].toString() + ' Days, ' +summaryRuns[0].toString() + ' Runs';
+    if (summaryRuns[1] == 0) {document.getElementById("pass_summary").innerHTML = 'Passed: None';}
+    else{document.getElementById("pass_summary").innerHTML = 'Passed: ' + summaryTime[1].toString() + ' Days, ' +summaryRuns[1].toString() + ' Runs';}
+    if (summaryRuns[2] == 0) {document.getElementById("fail_summary").innerHTML = 'Failed: None';}
+    else{document.getElementById("fail_summary").innerHTML = 'Failed: ' + summaryTime[2].toString() + ' Days, ' +summaryRuns[2].toString() + ' Runs';}
+    if (summaryRuns[3] == 0) {document.getElementById("purg_summary").innerHTML = 'Purgatory: None';}
+    else{document.getElementById("purg_summary").innerHTML = 'Purgatory: ' + summaryTime[3].toString()  + ' Days, ' +summaryRuns[3].toString() + ' Runs';}
 
         var dparams = {
             area: false,

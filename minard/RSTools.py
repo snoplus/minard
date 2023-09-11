@@ -456,9 +456,15 @@ def list_runs_info(limit, offset, result, criteria, selected_run, run_range, dat
     min_runTime = None
     max_runTime = None
     if 0 not in date_range[0]:
-        min_runTime = datetime.date(date_range[0][0], date_range[0][1], date_range[0][2])
+        try:
+            min_runTime = datetime.date(date_range[0][0], date_range[0][1], date_range[0][2])
+        except:
+            return False, drop_down_crits
     if 0 not in date_range[1]:
-        max_runTime = datetime.date(date_range[1][0], date_range[1][1], date_range[1][2])
+        try:
+            max_runTime = datetime.date(date_range[1][0], date_range[1][1], date_range[1][2])
+        except:
+            return False, drop_down_crits
 
     # Get filtered runs (download twice as many runs as needed, then filter by result)
     filtered_rs_tables, run_numbers, no_more_tables = get_filtered_RS_tables(run_min, run_max, min_runTime, max_runTime, offset, limit, result, criteria)
@@ -781,15 +787,21 @@ def pass_fail_plot_info(criteria, date_range):
     ''' calculates the cumulative number of days of physics, passed, failed and purgatory runs 
         based on input criteria and date range '''
     data = []
+    # Get list of criteria to put in drop-down menu (in order)
+    drop_down_crits = app.config['DROP_DOWN_MENU_CRITS']
     # Get date limits
     min_runTime = None
     max_runTime = None
     if 0 not in date_range[0]:
-        min_runTime = datetime.date(date_range[0][0], date_range[0][1], date_range[0][2])
+        try:
+            min_runTime = datetime.date(date_range[0][0], date_range[0][1], date_range[0][2])
+        except:
+            return False, drop_down_crits
     if 0 not in date_range[1]:
-        max_runTime = datetime.date(date_range[1][0], date_range[1][1], date_range[1][2])
-    # Get list of criteria to put in drop-down menu (in order)
-    drop_down_crits = app.config['DROP_DOWN_MENU_CRITS']
+        try:
+            max_runTime = datetime.date(date_range[1][0], date_range[1][1], date_range[1][2])
+        except:
+            return False, drop_down_crits
     # download physics runs in given date range
     rs_tables = get_RS_reports_date_range(criteria=criteria)
     if rs_tables is False:

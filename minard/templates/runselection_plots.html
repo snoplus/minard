@@ -1,0 +1,231 @@
+{% extends "layout.html" %}
+{% block title %}Run Selection Plots{% endblock %}
+{% block head %}
+    <!-- metrics-graphics stylesheet goes above super() because we want bootstrap's style
+    (which is linked in super()) to override it. -->
+    <link rel="stylesheet" type="text/css"  href="{{ url_for('static',filename='css/metricsgraphics.css') }}">
+    <link rel="stylesheet" type="text/css"  href="{{ url_for('static',filename='css/mg_line_brushing.css') }}">
+  {{ super() }}
+  <style>
+    .btn2 {
+        background-color: #228B22;
+        padding: 6px 6px;
+        color: white;
+        text-align: center;
+        font-size: 14px;
+        margin: 4px 2px;
+        cursor: pointer;
+    }
+  </style>
+{% endblock %}
+{% block body %}
+    {{ super() }}
+
+    <div class="page-header">
+        <h1 align="center">Run Selection Plots</h1>
+    </div>
+
+    <!-- Set up display options -->
+    <div class="container">
+        <div class="col-md-12">
+            <table class="table table-hover">
+            <tr>
+                <th> Date Range (yyyy-mm-dd): </th>
+                <th> Criteria: </th>
+                <th> </th>
+            </tr>
+            <tr>
+                <!-- Run date inputs -->
+                <th>
+                    <input style="margin-bottom: 30px; width: 40px;" type="text" id="y_low" value={{year_low}}></input>
+                    <input style="margin-bottom: 30px; width: 25px;" type="text" id="m_low" value={{month_low}}></input>
+                    <input style="margin-bottom: 30px; width: 25px;" type="text" id="d_low" value={{day_low}}></input>
+                    -
+                    <input style="margin-bottom: 30px; width: 40px;" type="text" id="y_high" value={{year_high}}></input>
+                    <input style="margin-bottom: 30px; width: 25px;" type="text" id="m_high" value={{month_high}}></input>
+                    <input style="margin-bottom: 30px; width: 25px;" type="text" id="d_high" value={{day_high}} onKeyDown=></input>
+                </th>
+                <!-- Criteria drop-down -->
+                <th>
+                    <select id="crit">
+                    <option selected value="{{criteria}}">{{criteria}}</option>
+                    {% for n in drop_down_crits %}
+                        {% if n != criteria %}
+                            <option value="{{n}}">{{n}}</option>
+                        {% endif %}
+                    {% endfor %}
+                    </select>
+                </th>
+                <!-- Button to update plots with the run dates & criteria -->
+                <th class="col-xs-3 col-xs-offset-0">
+                    <button type=button onclick="history();">Update Plot</button>
+</th>
+</tr>
+</table>
+<!-- Runs summary goes here -->
+    <div class="row">
+    <div class="col-md-12" id="sum">
+        <h2 align="left"> Summary: </h2>
+        <p id="phys_summary"> </p>
+        <p id="pass_summary"> </p>
+        <p id="fail_summary"> </p>
+        <p id="purg_summary"> </p>
+    </div>
+        </div>
+<!-- Plot goes here -->
+    <div class="row">
+    <div class="col-md-12" id="main">
+      {% if not rs_plot_data %}
+        <h2 align="left"> No data available </h2>
+      {% endif %}
+
+    </div>
+        </div>
+
+    </div>
+</div>
+
+{% endblock %}
+
+{% block script %}
+    <script src="{{ url_for('static', filename='js/d3.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/moment.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/moment-timezone-with-data.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/tzscale.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/metricsgraphics.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/mg_line_brushing.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/stream_utilities.js') }}"></script>
+    <script>
+        if (url_params.month_low) {
+            document.getElementById("m_low").value = url_params.month_low;
+        }
+        if (url_params.month_high) {
+            document.getElementById("m_high").value = url_params.month_high;
+        }
+        if (url_params.year_low) {
+            document.getElementById("y_low").value = url_params.year_low;
+        }
+        if (url_params.year_high) {
+            document.getElementById("y_high").value = url_params.year_high;
+        }
+        if (url_params.day_low) {
+            document.getElementById("d_low").value = url_params.day_low;
+        }
+        if (url_params.day_high) {
+            document.getElementById("d_high").value = url_params.day_high;
+        }
+        if (url_params.criteria) {
+            document.getElementById("crit").value = url_params.criteria;
+        }
+
+        var rs_plot_data = {{ rs_plot_data | safe }};
+
+        var dates = new Array();
+        var phys = new Array();
+        var pass = new Array();
+        var fail = new Array();
+        var purg = new Array();
+
+        for (var i=0; i < rs_plot_data.length; i++)
+        {
+            date_ = moment(rs_plot_data[i]['timestamp']).toDate();
+            dates.push(date_);
+            phys.push({'date': date_, 'value': rs_plot_data[i]['phys_total']});
+            pass.push({'date': date_, 'value': rs_plot_data[i]['pass_total']});
+            fail.push({'date': date_, 'value': rs_plot_data[i]['fail_total']});
+            purg.push({'date': date_, 'value': rs_plot_data[i]['purg_total']});
+        }
+        var cscale = tzscale().domain(dates).zone('America/Toronto');
+
+        var time_fmt = 'MMM Do YYYY';
+        
+<!-- Messy bit of code to get the run summary section but it works... -MD -->
+	var summaryTime = [rs_plot_data[rs_plot_data.length - 1]['phys_total'],rs_plot_data[rs_plot_data.length - 1]['pass_total'],rs_plot_data[rs_plot_data.length - 1]['fail_total'],rs_plot_data[rs_plot_data.length - 1]['purg_total']]
+    
+    var summaryRuns = [rs_plot_data[rs_plot_data.length - 1]['phys_runs'],rs_plot_data[rs_plot_data.length - 1]['pass_runs'],rs_plot_data[rs_plot_data.length - 1]['fail_runs'],rs_plot_data[rs_plot_data.length - 1]['purg_runs']]
+    
+
+for (var i=0; i < summaryTime.length; i++)
+	{
+		var j = parseFloat(summaryTime[i]).toFixed(3);
+		summaryTime[i] = j;
+	}
+
+	document.getElementById("phys_summary").innerHTML = 'Physics: ' + summaryTime[0].toString() + ' Days, ' +summaryRuns[0].toString() + ' Runs';
+    if (summaryRuns[1] == 0) {document.getElementById("pass_summary").innerHTML = 'Passed: None';}
+    else{document.getElementById("pass_summary").innerHTML = 'Passed: ' + summaryTime[1].toString() + ' Days, ' +summaryRuns[1].toString() + ' Runs';}
+    if (summaryRuns[2] == 0) {document.getElementById("fail_summary").innerHTML = 'Failed: None';}
+    else{document.getElementById("fail_summary").innerHTML = 'Failed: ' + summaryTime[2].toString() + ' Days, ' +summaryRuns[2].toString() + ' Runs';}
+    if (summaryRuns[3] == 0) {document.getElementById("purg_summary").innerHTML = 'Purgatory: None';}
+    else{document.getElementById("purg_summary").innerHTML = 'Purgatory: ' + summaryTime[3].toString()  + ' Days, ' +summaryRuns[3].toString() + ' Runs';}
+
+        var dparams = {
+            area: false,
+            data: [phys, pass, fail, purg],
+            width: $('#main').width(),
+            left: 100,
+            right: 100,
+            height: 500,
+            target: "#main",
+            time_scale: cscale,
+            x_accessor:'date',
+            y_accessor:'value',
+            point_size: 4.0,
+            y_label: "Time (Days)",
+            x_label: "Date",
+            decimals: 5,
+            legend: ['Physics', 'Passed', 'Failed', 'Purgatory'],
+    
+	<!-- Adding the unit (days) to the mouse over legend and fixing the value to 3 decimal places -->
+            interpolate: 'linear',
+                        y_mouseover: function(d, i) {
+		 var y = parseFloat(d['value']).toFixed(3);
+                return y + ' (days)';
+
+            },
+        };
+
+        MG.data_graphic(dparams);
+
+        function history() {
+            var params = {};
+            try {
+                params['month_low'] = document.getElementById("m_low").value;
+            } catch (e) {
+                params['month_low'] = 7;
+            }
+            try {
+                params['month_high'] = document.getElementById("m_high").value;
+            } catch (e) {
+                params['month_high'] = 8;
+            }
+            try {
+                params['year_low'] = document.getElementById("y_low").value;
+            } catch (e) {
+                params['year_low'] = 2023;
+            }
+            try {
+                params['year_high'] = document.getElementById("y_high").value;
+            } catch (e) {
+                params['year_high'] = 2023;
+            }
+            try {
+                params['day_low'] = document.getElementById("d_low").value;
+            } catch (e) {
+                params['day_low'] = 1;
+            }
+            try {
+                params['day_high'] = document.getElementById("d_high").value;
+            } catch (e) {
+                params['day_high'] = 1;
+            }
+            try {
+                params['criteria'] = document.getElementById("crit").value;
+            } catch (e) {
+                params['criteria'] = "scintillator_silver";
+            }
+            window.location.replace($SCRIPT_ROOT + "/runselection_plots?" + $.param(params));
+        }
+
+    </script>
+{% endblock %}

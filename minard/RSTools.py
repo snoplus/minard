@@ -437,6 +437,9 @@ def list_runs_info(limit, offset, result, criteria, selected_run, run_range, dat
     those that satisfy the conditions (i.e. we always want to display a number
     of runs = limit, no matter the conditions.'''
 
+    # Get list of criteria to put in drop-down menu (in order)
+    drop_down_crits = app.config['DROP_DOWN_MENU_CRITS']
+
     # Get run number limits
     run_min = None
     run_max = None
@@ -453,14 +456,20 @@ def list_runs_info(limit, offset, result, criteria, selected_run, run_range, dat
     min_runTime = None
     max_runTime = None
     if 0 not in date_range[0]:
-        min_runTime = datetime.date(date_range[0][0], date_range[0][1], date_range[0][2])
+        try:
+            min_runTime = datetime.date(date_range[0][0], date_range[0][1], date_range[0][2])
+        except:
+            return False, drop_down_crits
     if 0 not in date_range[1]:
-        max_runTime = datetime.date(date_range[1][0], date_range[1][1], date_range[1][2])
+        try:
+            max_runTime = datetime.date(date_range[1][0], date_range[1][1], date_range[1][2])
+        except:
+            return False, drop_down_crits
 
     # Get filtered runs (download twice as many runs as needed, then filter by result)
     filtered_rs_tables, run_numbers, no_more_tables = get_filtered_RS_tables(run_min, run_max, min_runTime, max_runTime, offset, limit, result, criteria)
     if filtered_rs_tables is False:
-        return False
+        return False, drop_down_crits
     run_numbers.sort(reverse=True)
 
     # If there aren't enough, keep downloading more runs until we get enough. Either until enough
@@ -484,9 +493,6 @@ def list_runs_info(limit, offset, result, criteria, selected_run, run_range, dat
     for i in range(offset, (offset+limit)):
         if i < len(run_numbers):
             final_rs_tables[run_numbers[i]] = filtered_rs_tables[run_numbers[i]]
-
-    # Get list of criteria to put in drop-down menu (in order)
-    drop_down_crits = app.config['DROP_DOWN_MENU_CRITS']
 
     return final_rs_tables, drop_down_crits
 
@@ -772,3 +778,138 @@ def format_data(runNum):
     run_prev_next = get_neighbouring_runs(runNum)
 
     return general_info, display_info, run_prev_next
+
+
+
+############ PLOT_RUNSELECTION PAGE FUNCTIONS ############
+
+def pass_fail_plot_info(criteria, date_range):
+    ''' calculates the cumulative number of days of physics, passed, failed and purgatory runs 
+        based on input criteria and date range '''
+    data = []
+    # Get list of criteria to put in drop-down menu (in order)
+    drop_down_crits = app.config['DROP_DOWN_MENU_CRITS']
+    # Get date limits
+    min_runTime = None
+    max_runTime = None
+    if 0 not in date_range[0]:
+        try:
+            min_runTime = datetime.date(date_range[0][0], date_range[0][1], date_range[0][2])
+        except:
+            return False, drop_down_crits
+    if 0 not in date_range[1]:
+        try:
+            max_runTime = datetime.date(date_range[1][0], date_range[1][1], date_range[1][2])
+        except:
+            return False, drop_down_crits
+    # download physics runs in given date range
+    rs_tables = get_RS_reports_date_range(criteria=criteria)
+    if rs_tables is False:
+        return False, drop_down_crits
+    # Loop through RS tables and sum up the cumulative number of days of each result
+    phys = 0
+    physrun = 0
+    passed = 0
+    passrun = 0
+    failed = 0
+    failrun = 0
+    purg = 0
+    purgrun = 0
+    for run_number in rs_tables.keys():
+        # check run duration was found and if it was convert into days, skip if not
+        if rs_tables[run_number][criteria]['run_duration'] == 'No Data':
+            continue
+        # Get run time and put into specific format
+        run_start_time = str(rs_tables[run_number][criteria]['run_start']).replace(' ', 'T')
+        # get the run date to apply date range to
+        run_start_lst = rs_tables[run_number][criteria]['run_start'].split(' ')[0].split('-')
+        run_start_date = datetime.date(int(run_start_lst[0]), int(run_start_lst[1]), int(run_start_lst[2]))
+        # if no date conditions were given, skip the filter
+        if not min_runTime is None:
+            if run_start_date < min_runTime:
+                continue
+        if not max_runTime is None:
+            if run_start_date > max_runTime:
+                continue
+        run_length = rs_tables[run_number][criteria]['run_duration']/(60**2*24)
+        # get result (pass=True, fail=False, purgatory=None)
+        result = rs_tables[run_number][criteria]['result']
+        # add number of days to cumulative sum
+        phys += run_length
+        physrun += 1
+        if result == True:
+            passed += run_length
+            passrun += 1
+        if result == False:
+            failed += run_length
+            failrun += 1
+        if result == None:
+            purg += run_length
+            purgrun += 1
+        rs_result = {}
+        rs_result['timestamp'] = run_start_time
+        rs_result['phys_total'] = phys
+        rs_result['phys_runs'] = physrun
+        rs_result['pass_total'] = passed
+        rs_result['pass_runs'] = passrun
+        rs_result['fail_total'] = failed
+        rs_result['fail_runs'] = failrun
+        rs_result['purg_total'] = purg
+        rs_result['purg_runs'] = purgrun
+        data.append(rs_result)
+    return data, drop_down_crits
+
+def get_RS_reports_date_range(criteria=None, min_runTime=None, max_runTime=None):
+    '''Get run-selection tables in a run range. If duplicate tables, only keeps one
+    (takes one with latest version, and if they have the same version, the one with
+    the latest timestamp).'''
+    # Get tables within given data range and for given criteria in ascending order
+    query = "SELECT meta_data, run_min, timestamp FROM run_selection WHERE type = 'RS_REPORT'"
+    conditions = []
+    if criteria is not None:
+        conditions.append("criteria = '%s'" % str(criteria))
+    if len(conditions) > 0:
+        for i in range(0, len(conditions)):
+            query += " AND " + conditions[i]
+    query += " ORDER BY run_min ASC"
+    c = False
+    try:
+        conn = engine_nl.connect()
+        c = True
+        resultQuery = conn.execute(query)
+        rs_tables_list = []
+        for row in resultQuery.fetchall():
+            tempt_dict = {}
+            tempt_dict['meta_data'] = row[0]
+            tempt_dict['result'] = row[0]['decision']['result']
+            if 'notes' in row[0]['run_time']:
+                tempt_dict['run_duration'] = row[0]['run_time']['notes']['dt']['orca_duration']
+                tempt_dict['run_start'] = row[0]['run_time']['notes']['dt']['timestamp']
+            else:
+                tempt_dict['run_duration'] = 'No Data'
+            tempt_dict['run_number'] = row[1]
+            tempt_dict['timestamp'] = row[2]
+            rs_tables_list.append(tempt_dict)
+        if len(rs_tables_list) == 0:
+            return OrderedDict()
+        # Repackage and check for duplicates
+        rs_tables = OrderedDict()
+        for table in rs_tables_list:
+            run_number = table['run_number']
+            criteria = table['meta_data']['index']
+            if run_number not in rs_tables:
+                rs_tables[run_number] = {}
+                rs_tables[run_number][criteria] = table
+            else:
+                if criteria not in rs_tables[run_number]:
+                    rs_tables[run_number][criteria] = table
+                else:
+                    # There is a duplicate
+                    if decide_replace_table(rs_tables[run_number][criteria], table):
+                        rs_tables[run_number][criteria] = table
+        return rs_tables
+    except:
+        return False
+    finally:
+        if c:
+            conn.close()

@@ -51,7 +51,7 @@ from .mtca_crate_mapping import MTCACrateMappingForm, OWLCrateMappingForm, uploa
 import re
 from .resistor import get_resistors, ResistorValuesForm, get_resistor_values_form, update_resistor_values
 from .pedestalsdb import get_pedestals, bad_pedestals, qhs_by_channel
-from datetime import datetime
+from datetime import datetime, timedelta
 from functools import wraps, update_wrapper
 from dead_time import get_dead_time, get_dead_time_runs, get_dead_time_run_by_key
 from radon_monitor import get_radon_monitor
@@ -2120,3 +2120,22 @@ def radon_monitor():
     pdata = get_radon_monitor(year_low, month_low, day_low, year_high, month_high, day_high)
 
     return render_template('radon_monitor.html', pdata=pdata, yscale=yscale, ylow=ylow, yhigh=yhigh)
+
+
+@app.route('/runselection_plots')
+def runselection_plots():
+    datehigh = datetime.now()
+    datelow = datehigh - timedelta(days=7)
+    # Get variable info from webpage (with defaults defined)
+    criteria = request.args.get("criteria", "scintillator_silver", type=str)
+    year_low = request.args.get("year_low", datelow.year, type=int)
+    month_low = request.args.get("month_low", datelow.month, type=int)
+    day_low = request.args.get("day_low", datelow.day, type=int)
+    year_high = request.args.get("year_high", datehigh.year, type=int)
+    month_high = request.args.get("month_high", datehigh.month, type=int)
+    day_high = request.args.get("day_high", datehigh.day, type=int)
+    # Use this to get run info from databases, to display in list
+    date_range = [[year_low, month_low, day_low], [year_high, month_high, day_high]]
+    rs_plot_data, drop_down_crits = RSTools.pass_fail_plot_info(criteria, date_range)
+    # Return info to webpage
+    return render_template('runselection_plots.html', rs_plot_data=rs_plot_data, drop_down_crits=drop_down_crits, criteria=criteria, year_low=year_low, month_low=month_low, day_low=day_low, year_high=year_high, month_high=month_high, day_high=day_high)

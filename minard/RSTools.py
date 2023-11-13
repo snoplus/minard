@@ -664,7 +664,9 @@ def format_rs_results(rs_tables, crit_tables):
                         else:
                             display_info[criteria]['rs_modules'][rs_module]['checks'][check]['Value'] = 1
                     elif isinstance(notes[check], list):
-                        display_info[criteria]['rs_modules'][rs_module]['checks'][check]['Value'] = notes
+                        for i in notes[check]:
+                            notes_to_print =  i + '\n'
+                        display_info[criteria]['rs_modules'][rs_module]['checks'][check]['Value'] = notes_to_print
                     elif isinstance(notes[check], dict):
                         display_info[criteria]['rs_modules'][rs_module]['checks'][check]['Value'] = OrderedDict()
                         for subcheck in notes[check]:

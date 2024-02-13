@@ -806,7 +806,6 @@ def pass_fail_plot_info(criteria, date_range):
     if 0 not in date_range[0]:
         try:
             min_runTime = datetime.date(date_range[0][0], date_range[0][1], date_range[0][2])
-            print(min_runTime)
         except:
             return False, drop_down_crits
     if 0 not in date_range[1]:
@@ -819,7 +818,6 @@ def pass_fail_plot_info(criteria, date_range):
     final_run_num = None
     attempt = 1
     while min_dl_time > min_runTime:
-        print('attempt: ' + str(attempt))
         rs_tables = get_RS_reports_date_range(criteria=criteria, run_max=final_run_num)
         if rs_tables is False:
             return False, drop_down_crits
@@ -865,7 +863,6 @@ def pass_fail_plot_info(criteria, date_range):
             rs_result['fail_runs'] = failrun
             rs_result['purg_total'] = purg
             rs_result['purg_runs'] = purgrun
-            print(phys)
             data.append(rs_result)
         # get final run number and date of final run to check if more runs need to be downloaded
         len_rs_tables = len(rs_tables)
@@ -873,9 +870,6 @@ def pass_fail_plot_info(criteria, date_range):
         last_run_start = rs_tables[final_run_num][criteria]['run_start'].split(' ')[0].split('-')
         min_dl_time = datetime.date(int(last_run_start[0]), int(last_run_start[1]), int(last_run_start[2]))
         attempt += 1
-    print('done')
-
-    
     return data, drop_down_crits
 
 def get_RS_reports_date_range(criteria=None, run_max=None):
@@ -895,7 +889,6 @@ def get_RS_reports_date_range(criteria=None, run_max=None):
     query += " ORDER BY run_min DESC"
     # to speed things up, only download 100 runs at a time
     query += " LIMIT 100"
-    print(query)
     c = False
     try:
         conn = engine_nl.connect()

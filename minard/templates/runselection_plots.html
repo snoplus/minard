@@ -130,10 +130,10 @@
         {
             date_ = moment(rs_plot_data[i]['timestamp']).toDate();
             dates.push(date_);
-            phys.push({'date': date_, 'value': rs_plot_data[i]['phys_total']});
-            pass.push({'date': date_, 'value': rs_plot_data[i]['pass_total']});
-            fail.push({'date': date_, 'value': rs_plot_data[i]['fail_total']});
-            purg.push({'date': date_, 'value': rs_plot_data[i]['purg_total']});
+            phys.push({'date': date_, 'value': rs_plot_data[rs_plot_data.length - 1]['phys_total'] - rs_plot_data[i]['phys_total']});
+            pass.push({'date': date_, 'value': rs_plot_data[rs_plot_data.length - 1]['pass_total'] - rs_plot_data[i]['pass_total']});
+            fail.push({'date': date_, 'value': rs_plot_data[rs_plot_data.length - 1]['fail_total'] - rs_plot_data[i]['fail_total']});
+            purg.push({'date': date_, 'value': rs_plot_data[rs_plot_data.length - 1]['purg_total'] - rs_plot_data[i]['purg_total']});
         }
         var cscale = tzscale().domain(dates).zone('America/Toronto');
 

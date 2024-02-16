@@ -788,7 +788,16 @@ def format_data(runNum):
 def pass_fail_plot_info(criteria, date_range):
     ''' calculates the cumulative number of days of physics, passed, failed and purgatory runs 
         based on input criteria and date range '''
+    # list of values we want to plot
     data = []
+    phys = 0
+    physrun = 0
+    passed = 0
+    passrun = 0
+    failed = 0
+    failrun = 0
+    purg = 0
+    purgrun = 0
     # Get list of criteria to put in drop-down menu (in order)
     drop_down_crits = app.config['DROP_DOWN_MENU_CRITS']
     # Get date limits
@@ -804,64 +813,66 @@ def pass_fail_plot_info(criteria, date_range):
             max_runTime = datetime.date(date_range[1][0], date_range[1][1], date_range[1][2])
         except:
             return False, drop_down_crits
-    # download physics runs in given date range
-    rs_tables = get_RS_reports_date_range(criteria=criteria)
-    if rs_tables is False:
-        return False, drop_down_crits
-    # Loop through RS tables and sum up the cumulative number of days of each result
-    phys = 0
-    physrun = 0
-    passed = 0
-    passrun = 0
-    failed = 0
-    failrun = 0
-    purg = 0
-    purgrun = 0
-    for run_number in rs_tables.keys():
-        # check run duration was found and if it was convert into days, skip if not
-        if rs_tables[run_number][criteria]['run_duration'] == 'No Data':
-            continue
-        # Get run time and put into specific format
-        run_start_time = str(rs_tables[run_number][criteria]['run_start']).replace(' ', 'T')
-        # get the run date to apply date range to
-        run_start_lst = rs_tables[run_number][criteria]['run_start'].split(' ')[0].split('-')
-        run_start_date = datetime.date(int(run_start_lst[0]), int(run_start_lst[1]), int(run_start_lst[2]))
-        # if no date conditions were given, skip the filter
-        if not min_runTime is None:
-            if run_start_date < min_runTime:
+    # download physics runs in given date range - do this 1000 runs at a time until all the runs in the date range have been downloaded
+    min_dl_time = max_runTime  # the minimum time that has been dowloaded to compare with the minimum time we want to download
+    final_run_num = None
+    attempt = 1
+    while min_dl_time > min_runTime:
+        rs_tables = get_RS_reports_date_range(criteria=criteria, run_max=final_run_num)
+        if rs_tables is False:
+            return False, drop_down_crits
+        # Loop through RS tables and sum up the cumulative number of days of each result
+        for run_number in rs_tables.keys():
+            # check run duration was found and if it was convert into days, skip if not
+            if rs_tables[run_number][criteria]['run_duration'] == 'No Data':
                 continue
-        if not max_runTime is None:
-            if run_start_date > max_runTime:
-                continue
-        run_length = rs_tables[run_number][criteria]['run_duration']/(60**2*24)
-        # get result (pass=True, fail=False, purgatory=None)
-        result = rs_tables[run_number][criteria]['result']
-        # add number of days to cumulative sum
-        phys += run_length
-        physrun += 1
-        if result == True:
-            passed += run_length
-            passrun += 1
-        if result == False:
-            failed += run_length
-            failrun += 1
-        if result == None:
-            purg += run_length
-            purgrun += 1
-        rs_result = {}
-        rs_result['timestamp'] = run_start_time
-        rs_result['phys_total'] = phys
-        rs_result['phys_runs'] = physrun
-        rs_result['pass_total'] = passed
-        rs_result['pass_runs'] = passrun
-        rs_result['fail_total'] = failed
-        rs_result['fail_runs'] = failrun
-        rs_result['purg_total'] = purg
-        rs_result['purg_runs'] = purgrun
-        data.append(rs_result)
+            # Get run time and put into specific format
+            run_start_time = str(rs_tables[run_number][criteria]['run_start']).replace(' ', 'T')
+            # get the run date to apply date range to
+            run_start_lst = rs_tables[run_number][criteria]['run_start'].split(' ')[0].split('-')
+            run_start_date = datetime.date(int(run_start_lst[0]), int(run_start_lst[1]), int(run_start_lst[2]))
+            # if no date conditions were given, skip the filter
+            if not min_runTime is None:
+                if run_start_date < min_runTime:
+                    continue
+            if not max_runTime is None:
+                if run_start_date > max_runTime:
+                    continue
+            run_length = rs_tables[run_number][criteria]['run_duration']/(60**2*24)
+            # get result (pass=True, fail=False, purgatory=None)
+            result = rs_tables[run_number][criteria]['result']
+            # add number of days to cumulative sum
+            phys += run_length
+            physrun += 1
+            if result == True:
+                passed += run_length
+                passrun += 1
+            if result == False:
+                failed += run_length
+                failrun += 1
+            if result == None:
+                purg += run_length
+                purgrun += 1
+            rs_result = {}
+            rs_result['timestamp'] = run_start_time
+            rs_result['phys_total'] = phys
+            rs_result['phys_runs'] = physrun
+            rs_result['pass_total'] = passed
+            rs_result['pass_runs'] = passrun
+            rs_result['fail_total'] = failed
+            rs_result['fail_runs'] = failrun
+            rs_result['purg_total'] = purg
+            rs_result['purg_runs'] = purgrun
+            data.append(rs_result)
+        # get final run number and date of final run to check if more runs need to be downloaded
+        len_rs_tables = len(rs_tables)
+        final_run_num = rs_tables.keys()[len_rs_tables-1]
+        last_run_start = rs_tables[final_run_num][criteria]['run_start'].split(' ')[0].split('-')
+        min_dl_time = datetime.date(int(last_run_start[0]), int(last_run_start[1]), int(last_run_start[2]))
+        attempt += 1
     return data, drop_down_crits
 
-def get_RS_reports_date_range(criteria=None, min_runTime=None, max_runTime=None):
+def get_RS_reports_date_range(criteria=None, run_max=None):
     '''Get run-selection tables in a run range. If duplicate tables, only keeps one
     (takes one with latest version, and if they have the same version, the one with
     the latest timestamp).'''
@@ -870,10 +881,14 @@ def get_RS_reports_date_range(criteria=None, min_runTime=None, max_runTime=None)
     conditions = []
     if criteria is not None:
         conditions.append("criteria = '%s'" % str(criteria))
+    if run_max is not None:
+        conditions.append("run_max < %d" % int(run_max))
     if len(conditions) > 0:
         for i in range(0, len(conditions)):
             query += " AND " + conditions[i]
-    query += " ORDER BY run_min ASC"
+    query += " ORDER BY run_min DESC"
+    # to speed things up, only download 100 runs at a time
+    query += " LIMIT 100"
     c = False
     try:
         conn = engine_nl.connect()

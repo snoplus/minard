@@ -2125,7 +2125,7 @@ def radon_monitor():
 @app.route('/runselection_plots')
 def runselection_plots():
     datehigh = datetime.now()
-    datelow = datehigh - timedelta(days=7)
+    datelow = datehigh - timedelta(days=6)
     # Get variable info from webpage (with defaults defined)
     criteria = request.args.get("criteria", "scintillator_silver", type=str)
     year_low = request.args.get("year_low", datelow.year, type=int)

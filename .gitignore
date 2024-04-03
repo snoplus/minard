@@ -9,3 +9,4 @@ dist
 minard.egg-info
 minard/static/docs
 settings.conf
+minardenv.sh

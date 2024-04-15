@@ -7,7 +7,7 @@ def get_deck_activity(limit=25, offset=0):
     conn = engine.connect()
 
     result = conn.execute("SELECT checkintime, checkouttime, checkinrun, "
-                          "checkoutrun, firstname, lastname, reason FROM logbook "
+                          "checkoutrun, firstname, lastname, reason, deck_lights, dcr_lights FROM logbook "
                           "ORDER BY checkintime DESC LIMIT %s OFFSET %s", \
                           (limit,offset))
 

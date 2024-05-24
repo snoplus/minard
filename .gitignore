@@ -8,3 +8,4 @@ build
 dist
 minard.egg-info
 minard/static/docs
+settings.conf

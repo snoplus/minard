@@ -32,6 +32,8 @@
       <th> Check-out Run </th>
       <th> Name </th>
       <th> Reason </th>
+      <th> Deck Lights </th>
+      <th> DCR Lights </th>
     </tr>
     {% for a in act %}
         <th> {{ a['checkintime'].strftime("%m/%d/%Y %H:%M:%S") }} </th>
@@ -44,6 +46,8 @@
         <th> {{ a['checkoutrun'] }} </th>
         <th> {{ a['firstname'] }} {{ a['lastname'] }} </th>
         <th> {{ a['reason'] }} </th>
+        <th> {{ "Yes" if a['deck_lights'] else "No" }} </th>
+        <th> {{ "Yes" if a['dcr_lights'] else "No" }} </th>
       </tr>
     {% endfor %}
     </table>

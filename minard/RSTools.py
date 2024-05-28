@@ -785,7 +785,7 @@ def format_data(runNum):
 
 ############ PLOT_RUNSELECTION PAGE FUNCTIONS ############
 
-def pass_fail_plot_info(criteria, date_range):
+def pass_fail_plot_info(criteria, date_range, singleDay=False):
     ''' calculates the cumulative number of days of physics, passed, failed and purgatory runs 
         based on input criteria and date range '''
     # list of values we want to plot
@@ -805,12 +805,13 @@ def pass_fail_plot_info(criteria, date_range):
     max_runTime = None
     if 0 not in date_range[0]:
         try:
-            min_runTime = datetime.date(date_range[0][0], date_range[0][1], date_range[0][2])
+            min_runTime = datetime.datetime(date_range[0][0], date_range[0][1], date_range[0][2], 0, 0)
         except:
             return False, drop_down_crits
     if 0 not in date_range[1]:
         try:
-            max_runTime = datetime.date(date_range[1][0], date_range[1][1], date_range[1][2])
+            max_runTime = datetime.datetime(date_range[1][0], date_range[1][1], date_range[1][2], 23, 59)
+	    max_runTime = min(max_runTime, datetime.datetime.now())
         except:
             return False, drop_down_crits
     # download physics runs in given date range - do this 1000 runs at a time until all the runs in the date range have been downloaded
@@ -830,7 +831,7 @@ def pass_fail_plot_info(criteria, date_range):
             run_start_time = str(rs_tables[run_number][criteria]['run_start']).replace(' ', 'T')
             # get the run date to apply date range to
             run_start_lst = rs_tables[run_number][criteria]['run_start'].split(' ')[0].split('-')
-            run_start_date = datetime.date(int(run_start_lst[0]), int(run_start_lst[1]), int(run_start_lst[2]))
+            run_start_date = datetime.datetime(int(run_start_lst[0]), int(run_start_lst[1]), int(run_start_lst[2]), 0, 0)
             # if no date conditions were given, skip the filter
             if not min_runTime is None:
                 if run_start_date < min_runTime:
@@ -868,7 +869,7 @@ def pass_fail_plot_info(criteria, date_range):
         len_rs_tables = len(rs_tables)
         final_run_num = rs_tables.keys()[len_rs_tables-1]
         last_run_start = rs_tables[final_run_num][criteria]['run_start'].split(' ')[0].split('-')
-        min_dl_time = datetime.date(int(last_run_start[0]), int(last_run_start[1]), int(last_run_start[2]))
+        min_dl_time = datetime.datetime(int(last_run_start[0]), int(last_run_start[1]), int(last_run_start[2]), 0, 0)
         attempt += 1
     return data, drop_down_crits
 

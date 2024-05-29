@@ -37,13 +37,9 @@
             <tr>
                 <!-- Run date inputs -->
                 <th>
-                    <input style="margin-bottom: 30px; width: 40px;" type="text" id="y_low" value={{year_low}}></input>
-                    <input style="margin-bottom: 30px; width: 25px;" type="text" id="m_low" value={{month_low}}></input>
-                    <input style="margin-bottom: 30px; width: 25px;" type="text" id="d_low" value={{day_low}}></input>
+		            <input style="margin-bottom: 30px;", type="date", id="date_low", value={{date_low}}></input>
                     -
-                    <input style="margin-bottom: 30px; width: 40px;" type="text" id="y_high" value={{year_high}}></input>
-                    <input style="margin-bottom: 30px; width: 25px;" type="text" id="m_high" value={{month_high}}></input>
-                    <input style="margin-bottom: 30px; width: 25px;" type="text" id="d_high" value={{day_high}} onKeyDown=></input>
+                    <input style="margin-bottom: 30px;", type="date", id="date_high", value={{date_high}}></input>
                 </th>
                 <!-- Criteria drop-down -->
                 <th>
@@ -96,23 +92,11 @@
     <script src="{{ url_for('static', filename='js/mg_line_brushing.js') }}"></script>
     <script src="{{ url_for('static', filename='js/stream_utilities.js') }}"></script>
     <script>
-        if (url_params.month_low) {
-            document.getElementById("m_low").value = url_params.month_low;
+        if (url_params.date_low) {
+            document.getElementById("date_low").value = url_params.date_low;
         }
-        if (url_params.month_high) {
-            document.getElementById("m_high").value = url_params.month_high;
-        }
-        if (url_params.year_low) {
-            document.getElementById("y_low").value = url_params.year_low;
-        }
-        if (url_params.year_high) {
-            document.getElementById("y_high").value = url_params.year_high;
-        }
-        if (url_params.day_low) {
-            document.getElementById("d_low").value = url_params.day_low;
-        }
-        if (url_params.day_high) {
-            document.getElementById("d_high").value = url_params.day_high;
+        if (url_params.date_high) {
+            document.getElementById("date_high").value = url_params.date_high;
         }
         if (url_params.criteria) {
             document.getElementById("crit").value = url_params.criteria;
@@ -190,34 +174,14 @@ for (var i=0; i < summaryTime.length; i++)
         function history() {
             var params = {};
             try {
-                params['month_low'] = document.getElementById("m_low").value;
+                params['date_low'] = document.getElementById("date_low").value;
             } catch (e) {
-                params['month_low'] = 7;
+                params['date_low'] = "2024-02-19";
             }
             try {
-                params['month_high'] = document.getElementById("m_high").value;
+                params['date_high'] = document.getElementById("date_high").value;
             } catch (e) {
-                params['month_high'] = 8;
-            }
-            try {
-                params['year_low'] = document.getElementById("y_low").value;
-            } catch (e) {
-                params['year_low'] = 2023;
-            }
-            try {
-                params['year_high'] = document.getElementById("y_high").value;
-            } catch (e) {
-                params['year_high'] = 2023;
-            }
-            try {
-                params['day_low'] = document.getElementById("d_low").value;
-            } catch (e) {
-                params['day_low'] = 1;
-            }
-            try {
-                params['day_high'] = document.getElementById("d_high").value;
-            } catch (e) {
-                params['day_high'] = 1;
+                params['date_high'] = "2024-05-29";
             }
             try {
                 params['criteria'] = document.getElementById("crit").value;

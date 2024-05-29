@@ -803,17 +803,15 @@ def pass_fail_plot_info(criteria, date_range, singleDay=False):
     # Get date limits
     min_runTime = None
     max_runTime = None
-    if 0 not in date_range[0]:
-        try:
-            min_runTime = datetime.datetime(date_range[0][0], date_range[0][1], date_range[0][2], 0, 0)
-        except:
-            return False, drop_down_crits
-    if 0 not in date_range[1]:
-        try:
-            max_runTime = datetime.datetime(date_range[1][0], date_range[1][1], date_range[1][2], 23, 59)
-	    max_runTime = min(max_runTime, datetime.datetime.now())
-        except:
-            return False, drop_down_crits
+    if isinstance(date_range[0], datetime.datetime):
+        min_runTime = date_range[0]
+    else:
+        return False, drop_down_crits
+    if isinstance(date_range[1], datetime.datetime):
+        max_runTime = date_range[1]
+        max_runTime = min(max_runTime, datetime.datetime.now())
+    else:
+        return False, drop_down_crits
     # download physics runs in given date range - do this 1000 runs at a time until all the runs in the date range have been downloaded
     min_dl_time = max_runTime  # the minimum time that has been dowloaded to compare with the minimum time we want to download
     final_run_num = None

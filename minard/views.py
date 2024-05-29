@@ -2124,18 +2124,22 @@ def radon_monitor():
 
 @app.route('/runselection_plots')
 def runselection_plots():
-    datehigh = datetime.now()
-    datelow = datehigh - timedelta(days=7)
+    default_datehigh = datetime.now()
+    default_datelow = default_datehigh - timedelta(days=7)
     # Get variable info from webpage (with defaults defined)
     criteria = request.args.get("criteria", "scintillator_silver", type=str)
-    year_low = request.args.get("year_low", datelow.year, type=int)
-    month_low = request.args.get("month_low", datelow.month, type=int)
-    day_low = request.args.get("day_low", datelow.day, type=int)
-    year_high = request.args.get("year_high", datehigh.year, type=int)
-    month_high = request.args.get("month_high", datehigh.month, type=int)
-    day_high = request.args.get("day_high", datehigh.day, type=int)
+    datelow = request.args.get("date_low", None, type=str)
+    datehigh = request.args.get("date_high", None, type=str)
+    if datelow is not None:
+        datelow = datetime.strptime(datelow, "%Y-%m-%d")
+    else:
+        datelow = default_datelow
+    if datehigh is not None:
+        datehigh = datetime.strptime(datehigh, "%Y-%m-%d")
+    else:
+        datehigh = default_datehigh
     # Use this to get run info from databases, to display in list
-    date_range = [[year_low, month_low, day_low], [year_high, month_high, day_high]]
+    date_range = [datelow, datehigh]
     rs_plot_data, drop_down_crits = RSTools.pass_fail_plot_info(criteria, date_range)
     # Return info to webpage
-    return render_template('runselection_plots.html', rs_plot_data=rs_plot_data, drop_down_crits=drop_down_crits, criteria=criteria, year_low=year_low, month_low=month_low, day_low=day_low, year_high=year_high, month_high=month_high, day_high=day_high)
+    return render_template('runselection_plots.html', rs_plot_data=rs_plot_data, drop_down_crits=drop_down_crits, criteria=criteria, date_low=datelow, date_high=datehigh)

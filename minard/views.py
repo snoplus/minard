@@ -2131,17 +2131,25 @@ def runselection_plots():
     datelow = request.args.get("date_low", None, type=str)
     datehigh = request.args.get("date_high", None, type=str)
     if datelow is not None:
-        datelow = datetime.strptime(datelow, "%Y-%m-%d")
+        try:
+            datelow = datetime.strptime(datelow, "%Y-%m-%d")
+        except ValueError: #invalid date
+            datelow = datetime(2024, 02, 19)
     else:
         datelow = default_datelow
     if datehigh is not None:
-        datehigh = datetime.strptime(datehigh, "%Y-%m-%d")
+        try:
+            datehigh = datetime.strptime(datehigh, "%Y-%m-%d")
+        except ValueError: #invalid date
+            datehigh = datetime(2024, 05, 29)
     else:
         datehigh = default_datehigh
     # Use this to get run info from databases, to display in list
     if datelow > datehigh:
         datelow, datehigh = datehigh, datelow
     date_range = [datelow, datehigh]
-    rs_plot_data, drop_down_crits = RSTools.pass_fail_plot_info(criteria, date_range)
+    rs_plot_data, drop_down_crits, adj_datelow, adj_datehigh = RSTools.pass_fail_plot_info(criteria, date_range)
+    datelow_str = adj_datelow.strftime("%Y-%m-%d")
+    datehigh_str = adj_datehigh.strftime("%Y-%m-%d")
     # Return info to webpage
-    return render_template('runselection_plots.html', rs_plot_data=rs_plot_data, drop_down_crits=drop_down_crits, criteria=criteria, date_low=datelow, date_high=datehigh)
+    return render_template('runselection_plots.html', rs_plot_data=rs_plot_data, drop_down_crits=drop_down_crits, criteria=criteria, date_low=datelow_str, date_high=datehigh_str)

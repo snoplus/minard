@@ -30,16 +30,16 @@
         <div class="col-md-12">
             <table class="table table-hover">
             <tr>
-                <th> Date Range (yyyy-mm-dd): </th>
+                <th> Date Range: </th>
                 <th> Criteria: </th>
                 <th> </th>
             </tr>
             <tr>
                 <!-- Run date inputs -->
                 <th>
-		            <input style="margin-bottom: 30px;", type="date", id="date_low", value={{date_low}}></input>
+		            <input style="margin-bottom: 30px;" type="date" id="date_low" value={{date_low}} required></input>
                     -
-                    <input style="margin-bottom: 30px;", type="date", id="date_high", value={{date_high}}></input>
+                    <input style="margin-bottom: 30px;" type="date" id="date_high" value={{date_high}} required></input>
                 </th>
                 <!-- Criteria drop-down -->
                 <th>
@@ -92,10 +92,10 @@
     <script src="{{ url_for('static', filename='js/mg_line_brushing.js') }}"></script>
     <script src="{{ url_for('static', filename='js/stream_utilities.js') }}"></script>
     <script>
-        if (url_params.date_low) {
+        if (url_params.date_low && document.getElementById("date_low").value == "") {
             document.getElementById("date_low").value = url_params.date_low;
         }
-        if (url_params.date_high) {
+        if (url_params.date_high && document.getElementById("date_high").value == "") {
             document.getElementById("date_high").value = url_params.date_high;
         }
         if (url_params.criteria) {

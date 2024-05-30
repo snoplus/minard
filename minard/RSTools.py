@@ -785,7 +785,7 @@ def format_data(runNum):
 
 ############ PLOT_RUNSELECTION PAGE FUNCTIONS ############
 
-def pass_fail_plot_info(criteria, date_range, singleDay=False):
+def pass_fail_plot_info(criteria, date_range):
     ''' calculates the cumulative number of days of physics, passed, failed and purgatory runs 
         based on input criteria and date range '''
     # list of values we want to plot

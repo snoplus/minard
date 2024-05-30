@@ -2139,6 +2139,8 @@ def runselection_plots():
     else:
         datehigh = default_datehigh
     # Use this to get run info from databases, to display in list
+    if datelow > datehigh:
+        datelow, datehigh = datehigh, datelow
     date_range = [datelow, datehigh]
     rs_plot_data, drop_down_crits = RSTools.pass_fail_plot_info(criteria, date_range)
     # Return info to webpage

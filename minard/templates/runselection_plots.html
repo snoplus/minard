@@ -177,8 +177,11 @@ for (var i=0; i < summaryTime.length; i++)
             path.style.strokeWidth = '4px';
         });
         document.querySelectorAll('#main svg .mg-line-legend text').forEach(function(text) {
-            text.style.fontSize = '1.2em'; //does NOT like this dot notation, find the actual one? maybe function(path) too idk idk
+            text.style.fontSize = '1.2em';
             text.style.fontWeight = '600';
+        });
+        document.querySelectorAll('.mg-x-axis text, .mg-y-axis text, .mg-histogram .axis text').forEach(function(text) {
+            text.style.fontSize = '1.1em';
         });
 
         function history() {

@@ -171,6 +171,16 @@ for (var i=0; i < summaryTime.length; i++)
 
         MG.data_graphic(dparams);
 
+        // the only way to change line width, i tried. ugh
+        // changing dparams or overriding CSS did NOT work, for me at least
+        document.querySelectorAll('#main svg path.mg-main-line').forEach(function(path) {
+            path.style.strokeWidth = '4px';
+        });
+        document.querySelectorAll('#main svg .mg-line-legend text').forEach(function(text) {
+            text.style.fontSize = '1.2em'; //does NOT like this dot notation, find the actual one? maybe function(path) too idk idk
+            text.style.fontWeight = '600';
+        });
+
         function history() {
             var params = {};
             try {

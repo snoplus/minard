@@ -809,6 +809,7 @@ def pass_fail_plot_info(criteria, date_range):
         return False, drop_down_crits
     if isinstance(date_range[1], datetime.datetime):
         max_runTime = date_range[1]
+        max_runTime = max_runTime.replace(hour=23, minute=59, second=59)
         max_runTime = min(max_runTime, datetime.datetime.now())
     else:
         return False, drop_down_crits

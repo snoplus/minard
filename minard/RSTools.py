@@ -803,16 +803,16 @@ def pass_fail_plot_info(criteria, date_range):
     # Get date limits
     min_runTime = None
     max_runTime = None
-    if 0 not in date_range[0]:
-        try:
-            min_runTime = datetime.date(date_range[0][0], date_range[0][1], date_range[0][2])
-        except:
-            return False, drop_down_crits
-    if 0 not in date_range[1]:
-        try:
-            max_runTime = datetime.date(date_range[1][0], date_range[1][1], date_range[1][2])
-        except:
-            return False, drop_down_crits
+    if isinstance(date_range[0], datetime.datetime):
+        min_runTime = date_range[0]
+    else:
+        return False, drop_down_crits, None, None
+    if isinstance(date_range[1], datetime.datetime):
+        max_runTime = date_range[1]
+        max_runTime = max_runTime.replace(hour=23, minute=59, second=59)
+        max_runTime = min(max_runTime, datetime.datetime.now())
+    else:
+        return False, drop_down_crits, min_runTime, None
     # download physics runs in given date range - do this 1000 runs at a time until all the runs in the date range have been downloaded
     min_dl_time = max_runTime  # the minimum time that has been dowloaded to compare with the minimum time we want to download
     final_run_num = None
@@ -820,7 +820,7 @@ def pass_fail_plot_info(criteria, date_range):
     while min_dl_time > min_runTime:
         rs_tables = get_RS_reports_date_range(criteria=criteria, run_max=final_run_num)
         if rs_tables is False:
-            return False, drop_down_crits
+            return False, drop_down_crits, min_runTime, max_runTime
         # Loop through RS tables and sum up the cumulative number of days of each result
         for run_number in rs_tables.keys():
             # check run duration was found and if it was convert into days, skip if not
@@ -830,7 +830,7 @@ def pass_fail_plot_info(criteria, date_range):
             run_start_time = str(rs_tables[run_number][criteria]['run_start']).replace(' ', 'T')
             # get the run date to apply date range to
             run_start_lst = rs_tables[run_number][criteria]['run_start'].split(' ')[0].split('-')
-            run_start_date = datetime.date(int(run_start_lst[0]), int(run_start_lst[1]), int(run_start_lst[2]))
+            run_start_date = datetime.datetime(int(run_start_lst[0]), int(run_start_lst[1]), int(run_start_lst[2]), 0, 0)
             # if no date conditions were given, skip the filter
             if not min_runTime is None:
                 if run_start_date < min_runTime:
@@ -868,9 +868,9 @@ def pass_fail_plot_info(criteria, date_range):
         len_rs_tables = len(rs_tables)
         final_run_num = rs_tables.keys()[len_rs_tables-1]
         last_run_start = rs_tables[final_run_num][criteria]['run_start'].split(' ')[0].split('-')
-        min_dl_time = datetime.date(int(last_run_start[0]), int(last_run_start[1]), int(last_run_start[2]))
+        min_dl_time = datetime.datetime(int(last_run_start[0]), int(last_run_start[1]), int(last_run_start[2]), 0, 0)
         attempt += 1
-    return data, drop_down_crits
+    return data, drop_down_crits, min_runTime, max_runTime
 
 def get_RS_reports_date_range(criteria=None, run_max=None):
     '''Get run-selection tables in a run range. If duplicate tables, only keeps one

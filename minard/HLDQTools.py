@@ -2,54 +2,6 @@ import couchdb
 from minard import app
 from .db import engine
 
-def import_HLDQ_runnumbers(limit=10, offset=0):
-    """
-    Returns the latest PHYSICS runs.
-    """
-    conn = engine.connect()
-    # select all runs which are physics runs
-    result = conn.execute("SELECT run FROM run_state WHERE (run_type & 4) = 4 ORDER BY run DESC LIMIT %s OFFSET %s", (limit,offset))
-    return [row[0] for row in result.fetchall()]
-
-def import_HLDQ_ratdb(runs):
-    server = couchdb.Server("https://snoplus:"+app.config["COUCHDB_PASSWORD"]+"@"+app.config["COUCHDB_HOSTNAME"])
-
-    db = server["data-quality"]
-
-    results = {}
-    for row in db.view('_design/data-quality/_view/runs'):
-        run = row.key
-        if run in runs:
-            runDocId = row['id']
-            try:
-                results[run] = dict(db.get(runDocId))
-            except KeyError:
-                app.logger.warning("Code returned KeyError searching for dqtellie proc information in the couchDB. Run Number: %d" % runNumber)
-
-    return [results[run] if run in results else -1 for run in runs]
-
-def generateHLDQProcStatus(ratdbDict):
-    """
-    Method to generate pass/fail flags for all processors
-    Code will return a dict of bools indexed by processor name
-    Values will be logical & of all checks.
-    """
-    procNames = ["dqrunproc","dqtimeproc","dqtriggerproc","dqpmtproc"]
-    outDict = {}
-    for proc in procNames:
-        checkDict = ratdbDict["checks"][proc]
-        outDict[proc] = 1
-        for entry in checkDict.keys():
-            # Skip over processors we no longer check
-            if entry == "run_length" or entry == "delta_t_comparison":
-                continue
-            if type(checkDict[entry]) is not dict:
-                # If a run fails set flag to 0 and break
-                if checkDict[entry] == 0:
-                    outDict[proc] = 0
-                    break
-    return outDict
-
 #TELLIE Tools
 def import_TELLIE_runnumbers(limit=10, offset=0):
     """

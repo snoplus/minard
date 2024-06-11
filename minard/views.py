@@ -1694,15 +1694,6 @@ def nearline_monitoring_summary():
 
     return render_template('nearline_monitoring_summary.html', runs=displayed_runs, selected_run=selected_run, limit=limit, clock_jumps=clock_jumps, ping_crates=ping_crates, channel_flags=channel_flags, occupancy=occupancy, muons=muons, crate_gain=crate_gain, runTypes=runTypes, run_range_low=run_range_low, run_range_high=run_range_high, allrunTypes=allrunTypes, selectedType=selectedType, gold=gold)
 
-@app.route('/physicsdq')
-def physicsdq():
-    limit = request.args.get("limit", 10, type=int)
-    offset = request.args.get("offset", 0, type=int)
-    runs = HLDQTools.import_HLDQ_runnumbers(limit=limit,offset=offset)
-    run_info = HLDQTools.import_HLDQ_ratdb(runs)
-    proc_results = [HLDQTools.generateHLDQProcStatus(x) if x != -1 else -1 for x in run_info]
-    return render_template('physicsdq.html', physics_run_numbers=runs, proc_results=proc_results, run_info=run_info, limit=limit, offset=offset)
-
 @app.route('/pingcrates')
 def pingcrates():
     limit = request.args.get("limit", 25, type=int)
@@ -1886,11 +1877,6 @@ def deck_activity():
 
     act = activity.get_deck_activity(limit, offset)
     return render_template('deck_activity.html', act=act, limit=limit, offset=offset)
-
-@app.route('/physicsdq/<int:run_number>')
-def physicsdq_run_number(run_number):
-    ratdb_dict = HLDQTools.import_HLDQ_ratdb([run_number])[0]
-    return render_template('physicsdq_run_number.html', run_number=run_number, ratdb_dict=ratdb_dict)
 
 @app.route('/calibdq_smellie')
 def calibdq_smellie():

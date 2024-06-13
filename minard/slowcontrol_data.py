@@ -1,5 +1,4 @@
 import couchdb
-from . import app
 
 BATCH_SIZE = 1
 
@@ -8,11 +7,12 @@ def connect(user=None, pw=None, server="localhost", port=5984):
         import couchcreds
         user = couchcreds.user
         pw = couchcreds.pw
-    return couchdb.Server(f"http://{user}:{pw}@{server}:{port}")
+    serverStr = "http://" + str(user) + ":" + str(pw) + "@" + str(server) + ":" + str(port)
+    return couchdb.Server(serverStr)
 
 def get_data_from_view(db, view, startkey=0, endkey=999999999999, limit=500):
     viewData = db.view(view, limit=limit, startkey=startkey, endkey=endkey)
-    return [(r["key"], r["value"]) for r in viewData] #time value pairs
+    return [[r["key"], r["value"]] for r in viewData] #time value pairs
 
 def get_rack_supply_voltage_view_name(rack, voltage):
     '''Gets the view name for a specified rack and voltage channel.
@@ -34,7 +34,8 @@ def get_rack_supply_voltage_view_name(rack, voltage):
         card = CARDS[raw_channel // 20]
         channel = raw_channel % 20
     
-    return f"slowcontrol-data-5sec/{ios}_{card}_{channel}"
+    viewStr = "slowcontrol-data-5sec/" + str(ios) + "_" + str(card) + "_" + str(channel)
+    return viewStr
 
 def get_crate_baseline_voltage_view_name(crate, trigger):
     '''Gets the view name for a specified crate and trigger baseline voltage.
@@ -52,12 +53,19 @@ def get_crate_baseline_voltage_view_name(crate, trigger):
     channel = (crate % 6) * 3 + TRIGGERS.index(trigger)
     if channel >= 12: channel += 1
 
-    return f"slowcontrol-data-5sec/{ios}_{card}_{channel}"
+    viewStr = "slowcontrol-data-5sec/" + str(ios) + "_" + str(card) + "_" + str(channel)
+    return viewStr
+
+def get_plot_data(startDate, endDate):
+    '''Test function for now'''
+    db = connect(user="admin", pw="pass", server="192.168.80.89")['slowcontrol-data-5sec']
+    data = get_data_from_view(db, get_rack_supply_voltage_view_name(rack=1, voltage=24), limit=100000, startkey=1380882382)
+    return data,  startDate, endDate
 
 if __name__ == "__main__":
-    couch = connect(user=app.config[COUCHDB_USER], pw=app.config[COUCHDB_PASS])
+    couch = connect(user="admin", pw="pass", server="192.168.80.89")
     db = couch['slowcontrol-data-5sec']
     viewname = get_rack_supply_voltage_view_name(rack=1, voltage=24)
-    data = get_data_from_view(db, viewname, limit=99999999999999)
-
-    print(len(data))
+    data = get_data_from_view(db, viewname, limit=10)
+    
+    print(data)

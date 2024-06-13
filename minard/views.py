@@ -55,6 +55,7 @@ from datetime import datetime, timedelta
 from functools import wraps, update_wrapper
 from dead_time import get_dead_time, get_dead_time_runs, get_dead_time_run_by_key
 from radon_monitor import get_radon_monitor
+import slowcontrol_data
 
 TRIGGER_NAMES = \
 ['100L',
@@ -2161,7 +2162,12 @@ def slowcontrol_plots():
     # Get variable info from webpage (with defaults defined)
     criteria = request.args.get("criteria", "scintillator_silver", type=str)
     datelow = request.args.get("datetime_low", None, type=str)
-    datehigh = request.args.get("datetime_high", None, type=str)
+    datehigh = request.args.get("datetime_high", None, type=str) 
+    channelType = request.args.get("channel_type", None, type=str)
+    supplyRack = request.args.get("supply_rack", None, type=str)
+    supplyVoltage = request.args.get("supply_voltage", None, type=str)
+    baselineCrate = request.args.get("baseline_crate", None, type=str)
+    baseline_trigger = request.args.get("baseline_trigger", None, type=str)
     if datelow is not None:
         try:
             datelow = datetime.strptime(datelow, "%Y-%m-%dT%H:%M")
@@ -2176,10 +2182,9 @@ def slowcontrol_plots():
             datehigh = datetime(2024, 05, 29, 23, 59)
     else:
         datehigh = default_datehigh
-    # Use this to get run info from databases, to display in list
     if datelow > datehigh:
         datelow, datehigh = datehigh, datelow
-    date_range = [datelow, datehigh]
+    slow_data, adj_datelow, adj_datehigh = slowcontrol_data.get_plot_data(datelow, datehigh)
     #rs_plot_data, drop_down_crits, adj_datelow, adj_datehigh = RSTools.pass_fail_plot_info(criteria, date_range)
     # datelow_str = adj_datelow.strftime("%Y-%m-%dT%H:%M")
     # datehigh_str = adj_datehigh.strftime("%Y-%m-%dT%H:%M")
@@ -2188,4 +2193,4 @@ def slowcontrol_plots():
     rs_plot_data = []
     drop_down_crits = []
     # Return info to webpage
-    return render_template('slowcontrol_plots.html', rs_plot_data=rs_plot_data, drop_down_crits=drop_down_crits, criteria=criteria, datetime_low=datelow_str, datetime_high=datehigh_str)
+    return render_template('slowcontrol_plots.html', slow_data=slow_data, datetime_low=datelow_str, datetime_high=datehigh_str)

@@ -2164,16 +2164,16 @@ def slowcontrol_plots():
     datehigh = request.args.get("date_high", None, type=str)
     if datelow is not None:
         try:
-            datelow = datetime.strptime(datelow, "%Y-%m-%d")
+            datelow = datetime.strptime(datelow, "%Y-%m-%dT%H:%M")
         except ValueError: #invalid date
-            datelow = datetime(2024, 02, 19)
+            datelow = datetime(2024, 02, 19, 0, 0)
     else:
         datelow = default_datelow
     if datehigh is not None:
         try:
-            datehigh = datetime.strptime(datehigh, "%Y-%m-%d")
+            datehigh = datetime.strptime(datehigh, "%Y-%m-%dT%H:%M")
         except ValueError: #invalid date
-            datehigh = datetime(2024, 05, 29)
+            datehigh = datetime(2024, 05, 29, 23, 59)
     else:
         datehigh = default_datehigh
     # Use this to get run info from databases, to display in list
@@ -2181,7 +2181,7 @@ def slowcontrol_plots():
         datelow, datehigh = datehigh, datelow
     date_range = [datelow, datehigh]
     rs_plot_data, drop_down_crits, adj_datelow, adj_datehigh = RSTools.pass_fail_plot_info(criteria, date_range)
-    datelow_str = adj_datelow.strftime("%Y-%m-%d")
-    datehigh_str = adj_datehigh.strftime("%Y-%m-%d")
+    datelow_str = adj_datelow.strftime("%Y-%m-%dT%H:%M")
+    datehigh_str = adj_datehigh.strftime("%Y-%m-%dT%H:%M")
     # Return info to webpage
-    return render_template('slowcontrol_plots.html', rs_plot_data=rs_plot_data, drop_down_crits=drop_down_crits, criteria=criteria, date_low=datelow_str, date_high=datehigh_str)
+    return render_template('slowcontrol_plots.html', rs_plot_data=rs_plot_data, drop_down_crits=drop_down_crits, criteria=criteria, datetime_low=datelow_str, datetime_high=datehigh_str)

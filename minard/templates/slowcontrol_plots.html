@@ -31,30 +31,51 @@
             <table class="table table-hover">
             <tr>
                 <th> Date Range: </th>
-                <th> Criteria: </th>
+                <th> Datastream: </th>
                 <th> </th>
             </tr>
             <tr>
-                <!-- Run date inputs -->
+                <!-- Data datetime inputs -->
                 <th>
-		            <input style="margin-bottom: 30px;" type="date" id="date_low" value={{date_low}} required></input>
-                    -
-                    <input style="margin-bottom: 30px;" type="date" id="date_high" value={{date_high}} required></input>
+                    <div>
+                        <input style="margin-bottom: 30px;" type="datetime-local" id="datetime_low" value={{datetime_low}} required></input> 
+                    </div>
+                    <div>
+                        <input style="margin-bottom: 30px;" type="datetime-local" id="datetime_high" value={{datetime_high}} required></input>
+                    </div>
                 </th>
-                <!-- Criteria drop-down -->
+                <!-- Channel selector -->
                 <th>
-                    <select id="crit">
-                    <option selected value="{{criteria}}">{{criteria}}</option>
-                    {% for n in drop_down_crits %}
-                        {% if n != criteria %}
-                            <option value="{{n}}">{{n}}</option>
-                        {% endif %}
-                    {% endfor %}
-                    </select>
+                    <div>
+                        <label for="supply">Supply Voltage</label>
+                        <input type="radio" id="supply" value="supply" name="crit" checked>
+                        <label for="supply-rack">Rack #</label>
+                        <input type="number" id="supply-rack" name="supply-rack" min="1" max="11" value="7" style="width: 4em">
+                        <label for="supply-voltage">Voltage</label>
+                        <select name="supply-voltage" id="supply-voltage">
+                            <option value="24">24V</option>
+                            <option value="-24">-24V</option>
+                            <option value="8">8V</option>
+                            <option value="5">5V</option>
+                            <option value="-5">-5V</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label for="baseline">Baseline Voltage</label>
+                        <input type="radio" id="baseline" value="baseline" name="crit" checked>
+                        <label for="baseline-crate">Crate #</label>
+                        <input type="number" id="baseline-crate" name="baseline-crate" min="0" max="18" value="7" style="width: 4em">
+                        <label for="crate-trigger">Trigger</label>
+                        <select name="crate-trigger" id="crate-trigger">
+                            <option value="100">N100_BL</option>
+                            <option value="20">-N20_BL</option>
+                        </select>
+                    </div>
                 </th>
-                <!-- Button to update plots with the run dates & criteria -->
+                <!-- Button to plot the data -->
                 <th class="col-xs-3 col-xs-offset-0">
-                    <button type=button onclick="history();">Update Plot</button>
+                    <button type=button onclick="history();">Generate Plot</button>
 </th>
 </tr>
 </table>
@@ -92,11 +113,11 @@
     <script src="{{ url_for('static', filename='js/mg_line_brushing.js') }}"></script>
     <script src="{{ url_for('static', filename='js/stream_utilities.js') }}"></script>
     <script>
-        if (url_params.date_low && document.getElementById("date_low").value == "") {
-            document.getElementById("date_low").value = url_params.date_low;
+        if (url_params.datetime_low && document.getElementById("datetime_low").value == "") {
+            document.getElementById("datetime_low").value = url_params.datetime_low;
         }
-        if (url_params.date_high && document.getElementById("date_high").value == "") {
-            document.getElementById("date_high").value = url_params.date_high;
+        if (url_params.datetime_high && document.getElementById("datetime_high").value == "") {
+            document.getElementById("datetime_high").value = url_params.datetime_high;
         }
         if (url_params.criteria) {
             document.getElementById("crit").value = url_params.criteria;
@@ -187,14 +208,14 @@ for (var i=0; i < summaryTime.length; i++)
         function history() {
             var params = {};
             try {
-                params['date_low'] = document.getElementById("date_low").value;
+                params['datetime_low'] = document.getElementById("datetime_low").value;
             } catch (e) {
-                params['date_low'] = "2024-02-19";
+                params['datetime_low'] = "2024-02-19T00:00";
             }
             try {
-                params['date_high'] = document.getElementById("date_high").value;
+                params['datetime_high'] = document.getElementById("datetime_high").value;
             } catch (e) {
-                params['date_high'] = "2024-05-29";
+                params['datetime_high'] = "2024-05-29T23:59";
             }
             try {
                 params['criteria'] = document.getElementById("crit").value;

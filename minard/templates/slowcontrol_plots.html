@@ -50,7 +50,20 @@
                         <label for="supply">Supply Voltage</label>
                         <input type="radio" id="supply" value="supply" name="channel-type" checked>
                         <label for="supply-rack">Rack #</label>
-                        <input type="number" id="supply-rack" name="supply-rack" min="1" max="11" value="7" style="width: 4em">
+                        <select name="supply-rack" id="supply-rack">
+                            <option value="1">Rack 1</option>
+                            <option value="2">Rack 2</option>
+                            <option value="3">Rack 3</option>
+                            <option value="4">Rack 4</option>
+                            <option value="5">Rack 5</option>
+                            <option value="6">Rack 6</option>
+                            <option value="7">Rack 7</option>
+                            <option value="8">Rack 8</option>
+                            <option value="9">Rack 9</option>
+                            <option value="10">Rack 10</option>
+                            <option value="11">Rack 11</option>
+                            <option value="timing">Timing Rack</option>
+                        </select>
                         <label for="supply-voltage">Voltage</label>
                         <select name="supply-voltage" id="supply-voltage">
                             <option value="24">24V</option>
@@ -66,10 +79,10 @@
                         <input type="radio" id="baseline" value="baseline" name="channel-type" checked>
                         <label for="baseline-crate">Crate #</label>
                         <input type="number" id="baseline-crate" name="baseline-crate" min="0" max="18" value="7" style="width: 4em">
-                        <label for="crate-trigger">Trigger</label>
-                        <select name="crate-trigger" id="crate-trigger">
+                        <label for="baseline-trigger">Trigger</label>
+                        <select name="baseline-trigger" id="baseline-trigger">
                             <option value="100">N100_BL</option>
-                            <option value="20">-N20_BL</option>
+                            <option value="20">N20_BL</option>
                         </select>
                     </div>
                 </th>
@@ -118,6 +131,21 @@
         }
         if (url_params.datetime_high && document.getElementById("datetime_high").value == "") {
             document.getElementById("datetime_high").value = url_params.datetime_high;
+        }
+        if (url_params.channel_type) {
+            document.getElementById(url_params.channel_type).checked = true 
+        }
+        if (url_params.supply_rack) {
+            document.getElementById("supply-rack").value = url_params.supply_rack;
+        }
+        if (url_params.supply_voltage) {
+            document.getElementById("supply-voltage").value = url_params.supply_voltage;
+        }
+        if (url_params.baseline_crate) {
+            document.getElementById("baseline-crate").value = url_params.baseline_crate;
+        }
+        if (url_params.baseline_trigger) {
+            document.getElementById("baseline-trigger").value = url_params.baseline_trigger;
         }
         // if (url_params.criteria) {
         //     document.getElementById("crit").value = url_params.criteria;
@@ -216,6 +244,31 @@ for (var i=0; i < summaryTime.length; i++)
                 params['datetime_high'] = document.getElementById("datetime_high").value;
             } catch (e) {
                 params['datetime_high'] = "2024-05-29T23:59";
+            }
+            try {
+                params['channel_type'] = document.querySelector("input[name=channel-type]:checked").value;
+            } catch (e) {
+                //pass?
+            }
+            try {
+                params['supply_rack'] = document.getElementById("supply-rack").value;
+            } catch (e) {
+                params['supply_rack'] = "1";
+            }
+            try {
+                params['supply_voltage'] = document.getElementById("supply-voltage").value;
+            } catch (e) {
+                params['supply_voltage'] = "24";
+            }
+            try {
+                params['baseline_crate'] = document.getElementById("baseline-crate").value;
+            } catch (e) {
+                params['baseline_crate'] = "0";
+            }
+            try {
+                params['baseline_trigger'] = document.getElementById("baseline-trigger").value;
+            } catch (e) {
+                params['baseline_trigger'] = "100";
             }
             // try {
             //     params['criteria'] = document.getElementById("crit").value;

@@ -96,16 +96,16 @@
     <div class="row">
     <div class="col-md-12" id="sum">
         <h2 align="left"> Summary: </h2>
-        <p id="phys_summary"> </p>
-        <p id="pass_summary"> </p>
-        <p id="fail_summary"> </p>
-        <p id="purg_summary"> </p>
+        <p id="data-summary"> </p>
+        <div id="waiting">
+            Received data, loading....
+        </div>
     </div>
         </div>
 <!-- Plot goes here -->
     <div class="row">
     <div class="col-md-12" id="main">
-      {% if not rs_plot_data %}
+      {% if not slow_data %}
         <h2 align="left"> No data available </h2>
       {% endif %}
 
@@ -153,22 +153,24 @@
 
         var slow_data = {{ slow_data | safe }};
 
-        var timestamps = new Array();
         // TODO: may need to loop this with multi-line plots
         var mySingleDatastream = new Array();
+        mySingleDatastream = slow_data;
         
         // TODO: store the human-readable "names" of each dataset?
         var myDataNames = new Array();
         myDataNames.push("Test Data")
 
-        for (var i=0; i < slow_data.length; i++)
-        {
-            // ts = moment(slow_data[i][0]).format('MMMM Do YYYY, h:mm:ss a')
-            // timestamps.push(ts); //sus
-            timestamps.push(slow_data[i][0]);
-            mySingleDatastream.push({'time': slow_data[i][0], 'value': slow_data[i][1]});
-        }
-        var cscale = tzscale().domain(timestamps).zone('America/Toronto');
+        // for (var i=0; i < slow_data.length; i++)
+        // {
+        //     ts = moment(slow_data[i][0]).format('MMMM Do YYYY, h:mm:ss a')
+        //     timestamps.push(slow_data[i][0]);
+        //     mySingleDatastream.push({'time': slow_data[i][0], 'value': slow_data[i][1]});
+        // }
+
+        minTime = mySingleDatastream[0]['key'];
+        maxTime = mySingleDatastream[mySingleDatastream.length-1]['key'];
+        var cscale = tzscale().domain([minTime, maxTime]).zone('America/Toronto');
 
         var time_fmt = 'MMMM Do YYYY, h:mm:ss a';
         
@@ -202,7 +204,7 @@
             height: 500,
             target: "#main",
             time_scale: cscale,
-            x_accessor:'time',
+            x_accessor:'key',
             y_accessor:'value',
             point_size: 4.0,
             y_label: "Voltage",
@@ -220,6 +222,7 @@
         };
 
         MG.data_graphic(dparams);
+        document.getElementById("waiting").innerHTML="";
 
         // the only way to change line width, i tried. ugh
         // changing dparams or overriding CSS did NOT work, for me at least

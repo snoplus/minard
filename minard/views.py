@@ -2184,7 +2184,7 @@ def slowcontrol_plots():
         datehigh = default_datehigh
     if datelow > datehigh:
         datelow, datehigh = datehigh, datelow
-    slow_data, adj_datelow, adj_datehigh = slowcontrol_data.get_plot_data(datelow, datehigh)
+    slow_data, dataName, adj_datelow, adj_datehigh = slowcontrol_data.get_plot_data_http(datelow, datehigh)
     #rs_plot_data, drop_down_crits, adj_datelow, adj_datehigh = RSTools.pass_fail_plot_info(criteria, date_range)
     # datelow_str = adj_datelow.strftime("%Y-%m-%dT%H:%M")
     # datehigh_str = adj_datehigh.strftime("%Y-%m-%dT%H:%M")

@@ -9,3 +9,7 @@ dist
 minard.egg-info
 minard/static/docs
 settings.conf
+nohup.out
+kill_minard.sh
+start_minard.sh
+.vscode/settings.json

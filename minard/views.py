@@ -2160,8 +2160,8 @@ def slowcontrol_plots():
     default_datelow = default_datehigh - timedelta(days=7)
     # Get variable info from webpage (with defaults defined)
     criteria = request.args.get("criteria", "scintillator_silver", type=str)
-    datelow = request.args.get("date_low", None, type=str)
-    datehigh = request.args.get("date_high", None, type=str)
+    datelow = request.args.get("datetime_low", None, type=str)
+    datehigh = request.args.get("datetime_high", None, type=str)
     if datelow is not None:
         try:
             datelow = datetime.strptime(datelow, "%Y-%m-%dT%H:%M")
@@ -2180,8 +2180,12 @@ def slowcontrol_plots():
     if datelow > datehigh:
         datelow, datehigh = datehigh, datelow
     date_range = [datelow, datehigh]
-    rs_plot_data, drop_down_crits, adj_datelow, adj_datehigh = RSTools.pass_fail_plot_info(criteria, date_range)
-    datelow_str = adj_datelow.strftime("%Y-%m-%dT%H:%M")
-    datehigh_str = adj_datehigh.strftime("%Y-%m-%dT%H:%M")
+    #rs_plot_data, drop_down_crits, adj_datelow, adj_datehigh = RSTools.pass_fail_plot_info(criteria, date_range)
+    # datelow_str = adj_datelow.strftime("%Y-%m-%dT%H:%M")
+    # datehigh_str = adj_datehigh.strftime("%Y-%m-%dT%H:%M")
+    datelow_str = datelow.strftime("%Y-%m-%dT%H:%M")
+    datehigh_str = datehigh.strftime("%Y-%m-%dT%H:%M")
+    rs_plot_data = []
+    drop_down_crits = []
     # Return info to webpage
     return render_template('slowcontrol_plots.html', rs_plot_data=rs_plot_data, drop_down_crits=drop_down_crits, criteria=criteria, datetime_low=datelow_str, datetime_high=datehigh_str)

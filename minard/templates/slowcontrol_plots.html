@@ -161,12 +161,12 @@
         var myDataNames = new Array();
         myDataNames.push("Test Data")
 
-        // for (var i=0; i < slow_data.length; i++)
-        // {
-        //     ts = moment(slow_data[i][0]).format('MMMM Do YYYY, h:mm:ss a')
-        //     timestamps.push(slow_data[i][0]);
-        //     mySingleDatastream.push({'time': slow_data[i][0], 'value': slow_data[i][1]});
-        // }
+        for (var i=0; i < slow_data.length; i++)
+        {
+            slow_data[i]['key'] = moment.unix(slow_data[i]['key']).toDate()
+            // timestamps.push(slow_data[i][0]);
+            // mySingleDatastream.push({'time': slow_data[i][0], 'value': slow_data[i][1]});
+        }
 
         minTime = mySingleDatastream[0]['key'];
         maxTime = mySingleDatastream[mySingleDatastream.length-1]['key'];
@@ -209,16 +209,20 @@
             point_size: 4.0,
             y_label: "Voltage",
             x_label: "Time",
-            decimals: 5,
+            decimals: 4,
             legend: myDataNames,
     
-	<!-- Adding the unit (days) to the mouse over legend and fixing the value to 3 decimal places -->
+	// <!-- Adding the unit to the mouse over legend and fixing the value to 3 decimal places -->
             interpolate: 'linear',
-                        y_mouseover: function(d, i) {
-		 var y = parseFloat(d['value']).toFixed(3);
-                return y + ' V';
 
+            y_mouseover: function(data, index) {
+                var voltage = parseFloat(data['value']).toFixed(4);
+                return voltage + ' V';
             },
+
+            x_mouseover: function(data, index) {
+                return moment(data.key).format(time_fmt);
+            }
         };
 
         MG.data_graphic(dparams);

@@ -2167,7 +2167,7 @@ def slowcontrol_plots():
     supplyRack = request.args.get("supply_rack", None, type=str)
     supplyVoltage = request.args.get("supply_voltage", None, type=str)
     baselineCrate = request.args.get("baseline_crate", None, type=str)
-    baseline_trigger = request.args.get("baseline_trigger", None, type=str)
+    baselineTrigger = request.args.get("baseline_trigger", None, type=str)
     if datelow is not None:
         try:
             datelow = datetime.strptime(datelow, "%Y-%m-%dT%H:%M")
@@ -2184,13 +2184,16 @@ def slowcontrol_plots():
         datehigh = default_datehigh
     if datelow > datehigh:
         datelow, datehigh = datehigh, datelow
-    slow_data, dataName, adj_datelow, adj_datehigh = slowcontrol_data.get_plot_data_http(datelow, datehigh)
-    #rs_plot_data, drop_down_crits, adj_datelow, adj_datehigh = RSTools.pass_fail_plot_info(criteria, date_range)
-    # datelow_str = adj_datelow.strftime("%Y-%m-%dT%H:%M")
-    # datehigh_str = adj_datehigh.strftime("%Y-%m-%dT%H:%M")
+
+    if channelType == "supply":
+        slow_data, data_name = slowcontrol_data.get_supply_data_http(datelow, datehigh, supplyRack, supplyVoltage)
+    elif channelType == "baseline":
+        slow_data, data_name = slowcontrol_data.get_baseline_data_http(datelow, datehigh, baselineCrate, baselineTrigger)
+    else:
+        slow_data = None
+        data_name = None #initialize if we return
+
     datelow_str = datelow.strftime("%Y-%m-%dT%H:%M")
     datehigh_str = datehigh.strftime("%Y-%m-%dT%H:%M")
-    rs_plot_data = []
-    drop_down_crits = []
     # Return info to webpage
-    return render_template('slowcontrol_plots.html', slow_data=slow_data, datetime_low=datelow_str, datetime_high=datehigh_str)
+    return render_template('slowcontrol_plots.html', slow_data=slow_data, data_name=data_name, datetime_low=datelow_str, datetime_high=datehigh_str)

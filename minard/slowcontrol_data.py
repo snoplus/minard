@@ -25,9 +25,13 @@ def get_data_from_view(db, viewName, startkey=0, endkey=999999999999, limit=500,
         return [[r['key'] for r in viewData], [r["value"] for r in viewData]] #array of keys, array of values
 
 def get_data_from_view_http(viewName, server="http://192.168.80.89:5984", startkey=0, endkey=999999999999, limit=MAX_LIMIT, sanitize=False):
-    opts = "limit=" + str(limit) + "&startkey=" + str(startkey) + "&endkey=" + str(endkey)    
-    tic = datetime.datetime.now()
-    r = requests.get(server+'/slowcontrol-data-5sec/_design/slowcontrol-data-5sec/_view/'+viewName+'?'+opts, auth=("admin", "pass"))
+    ops = {
+        "startkey": startkey,
+        "endkey": endkey,
+        "limit": limit,
+        "stale": "refresh_after"
+    }
+    r = requests.get(server+"/slowcontrol-data-5sec/_design/slowcontrol-data-5sec/_view/", auth=("admin", "pass"), params=opts)
     if r.status_code == 200:
         print(str(len(r.json()['rows'])) + " rows returned in " + str(datetime.datetime.now()-tic))
         if sanitize: return json.dumps(r.json()['rows']) # really dumb... but sanitizes unicode (u'(whatever...)')
@@ -42,7 +46,7 @@ def get_rack_supply_voltage_view_name(rack, voltage, httpStr=False):
     RACKS = list(range(1, 11+1)) + ["timing"]
     VOLTAGES = [24, -24, 8, 5, -5]
     CARDS = ['A', 'B', 'C', 'D']
-    ios = 1
+    ios = 2
 
     if rack not in RACKS: return None
     if voltage not in VOLTAGES: return None
@@ -65,7 +69,7 @@ def get_crate_baseline_voltage_view_name(crate, trigger):
     CRATES = range(0, 18+1)
     TRIGGERS = [100, 20]
     CARDS = ['A', 'B', 'C', 'D']
-    ios = 3
+    ios = 4
 
     if crate not in CRATES: return None
     if trigger not in TRIGGERS: return None

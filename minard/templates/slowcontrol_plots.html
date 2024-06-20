@@ -51,6 +51,7 @@
                         <input type="radio" id="supply" value="supply" name="channel-type" checked>
                         <label for="supply-rack">Rack #</label>
                         <select name="supply-rack" id="supply-rack">
+                            <option disabled selected hidden>...</option>
                             <option value="1">Rack 1</option>
                             <option value="2">Rack 2</option>
                             <option value="3">Rack 3</option>
@@ -66,9 +67,10 @@
                         </select>
                         <label for="supply-voltage">Voltage</label>
                         <select name="supply-voltage" id="supply-voltage">
+                            <option disabled selected hidden>...</option>
                             <option value="24">24V</option>
                             <option value="-24">-24V</option>
-                            <option value="8">8V</option>
+                            <option value="8" id="supply-flippy">8V</option>
                             <option value="5">5V</option>
                             <option value="-5">-5V</option>
                         </select>
@@ -78,9 +80,10 @@
                         <label for="baseline">Baseline Voltage</label>
                         <input type="radio" id="baseline" value="baseline" name="channel-type" checked>
                         <label for="baseline-crate">Crate #</label>
-                        <input type="number" id="baseline-crate" name="baseline-crate" min="0" max="18" value="7" style="width: 4em">
+                        <input type="number" id="baseline-crate" name="baseline-crate" min="0" max="18" value="" style="width: 4em">
                         <label for="baseline-trigger">Trigger</label>
                         <select name="baseline-trigger" id="baseline-trigger">
+                            <option disabled selected hidden>...</option>
                             <option value="100">N100_BL</option>
                             <option value="20">N20_BL</option>
                         </select>
@@ -95,7 +98,7 @@
     <div class="row">
     <div class="col-md-12" id="sum">
         <div id="waiting">
-            Received data, loading....
+            Received data, loading...
         </div>
     </div>
         </div>
@@ -122,6 +125,7 @@
     <script src="{{ url_for('static', filename='js/metricsgraphics.js') }}"></script>
     <script src="{{ url_for('static', filename='js/mg_line_brushing.js') }}"></script>
     <script src="{{ url_for('static', filename='js/stream_utilities.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/slowcontrol_plots.js') }}"></script>
     <script>
         if (url_params.datetime_low && document.getElementById("datetime_low").value == "") {
             document.getElementById("datetime_low").value = url_params.datetime_low;
@@ -132,18 +136,18 @@
         if (url_params.channel_type) {
             document.getElementById(url_params.channel_type).checked = true 
         }
-        if (url_params.supply_rack) {
-            document.getElementById("supply-rack").value = url_params.supply_rack;
-        }
-        if (url_params.supply_voltage) {
-            document.getElementById("supply-voltage").value = url_params.supply_voltage;
-        }
-        if (url_params.baseline_crate) {
-            document.getElementById("baseline-crate").value = url_params.baseline_crate;
-        }
-        if (url_params.baseline_trigger) {
-            document.getElementById("baseline-trigger").value = url_params.baseline_trigger;
-        }
+        // if (url_params.supply_rack) {
+        //     document.getElementById("supply-rack").value = url_params.supply_rack;
+        // }
+        // if (url_params.supply_voltage) {
+        //     document.getElementById("supply-voltage").value = url_params.supply_voltage;
+        // }
+        // if (url_params.baseline_crate) {
+        //     document.getElementById("baseline-crate").value = url_params.baseline_crate;
+        // }
+        // if (url_params.baseline_trigger) {
+        //     document.getElementById("baseline-trigger").value = url_params.baseline_trigger;
+        // }
 
         function initializeStoredArray(name) {
             rawValue = sessionStorage.getItem(name)

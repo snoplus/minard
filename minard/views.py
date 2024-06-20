@@ -2185,9 +2185,9 @@ def slowcontrol_plots():
     if datelow > datehigh:
         datelow, datehigh = datehigh, datelow
 
-    if channelType == "supply":
+    if channelType == "supply" and supplyRack != "..." and supplyVoltage != "...":
         newSlowData, newDataName = slowcontrol_data.get_supply_data_http(datelow, datehigh, supplyRack, supplyVoltage)
-    elif channelType == "baseline":
+    elif channelType == "baseline" and baselineTrigger != "...": #there has to be a better way
         newSlowData, newDataName = slowcontrol_data.get_baseline_data_http(datelow, datehigh, baselineCrate, baselineTrigger)
     else:
         newSlowData = None

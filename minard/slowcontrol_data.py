@@ -5,7 +5,7 @@ import json
 from . import app
 
 MAX_LIMIT = 268435456 #couchdb rules
-MAX_ROWS_RETURNED = 5000
+MAX_ROWS_RETURNED = 2000
 
 class CouchException(Exception):
     def __init__(self, message):
@@ -53,15 +53,18 @@ def get_rack_supply_voltage_view_name(rack, voltage, httpStr=False):
         :param int voltage: Valid voltage channels: 24, -24, 8, 5, -5.'''
     RACKS = list(range(1, 11+1)) + ["timing"]
     VOLTAGES = [24, -24, 8, 5, -5]
+    VOLTAGES_TIMING = [24, -24, 5, -5, 6]
     CARDS = ['A', 'B', 'C', 'D']
     ios = 2
 
-    if rack not in RACKS: raise CouchException("Rack " + str(rack) + " is invalid.")
-    if voltage not in VOLTAGES: raise CouchException("Voltage " + str(voltage) + " is invalid.")
+    if rack not in RACKS:
+        raise CouchException("Rack " + str(rack) + " is invalid.")
+    if voltage not in VOLTAGES + VOLTAGES_TIMING: 
+        raise CouchException("Voltage " + str(voltage) + " is invalid.")
 
     if rack == "timing":
         card = 'D'
-        channel = VOLTAGES.index(voltage) 
+        channel = VOLTAGES_TIMING.index(voltage)
     else:
         raw_channel = 5 * RACKS.index(rack) + VOLTAGES.index(voltage)
         card = CARDS[raw_channel // 20]
@@ -99,14 +102,14 @@ def get_supply_data_http(datelow, datehigh, rack, voltage):
         friendlyViewName = "Rack " + str(rack) + " - " + voltage + "V supply"
     except ValueError:
         if rack == "timing":
-            return None
-        else:
             friendlyViewName = "Timing Rack - " + voltage + "V supply"
+        else:
+            raise Exception("Rack was invalid.")
 
     try: 
         voltage = int(voltage)
     except ValueError:
-        return None
+        return None, None
     
     viewName = get_rack_supply_voltage_view_name(rack=rack, voltage=voltage)
     data = get_data_from_view_http(viewName, startkey=startkey, endkey=endkey)
@@ -127,8 +130,8 @@ def get_baseline_data_http(datelow, datehigh, crate, trigger):
         trigger = int(trigger)
         friendlyViewName = "Crate " + str(crate) + " - N" + str(trigger) + "_BL"
     except ValueError:
-        print("YIKES")
-        return None
+        print("Crate (" + str(crate) + ") or trigger (" + str(trigger) + ") was invalid.")
+        return None, None
     
     viewName = get_crate_baseline_voltage_view_name(crate=crate, trigger=trigger)
     data = get_data_from_view_http(viewName, startkey=startkey, endkey=endkey)

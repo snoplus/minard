@@ -2190,8 +2190,8 @@ def slowcontrol_plots():
     elif channelType == "baseline":
         newSlowData, newDataName = slowcontrol_data.get_baseline_data_http(datelow, datehigh, baselineCrate, baselineTrigger)
     else:
-        newSlowData = "\"none\""
-        newDataName = "none" #initialize if we return
+        newSlowData = None
+        newDataName = None #initialize since we return
 
     datelow_str = datelow.strftime("%Y-%m-%dT%H:%M")
     datehigh_str = datehigh.strftime("%Y-%m-%dT%H:%M")

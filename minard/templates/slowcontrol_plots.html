@@ -102,7 +102,7 @@
 <!-- Plot goes here -->
     <div class="row">
     <div class="col-md-12" id="main">
-      {% if (not slow_data) or (slow_data == []) or (slow_data == "\"none\"") %}
+      {% if not slow_data %}
         <h2 align="left"> No data </h2>
       {% endif %}
 
@@ -159,16 +159,16 @@
             return sessionStorage.setItem(name, JSON.stringify(data))
         }
 
-        var newSlowData = {{ slow_data | safe }};
-        var newDataName = "{{ data_name | safe }}"; // this sucks, fix it
+        var newSlowData = {{ slow_data | safe if slow_data else 'null' }};
+        var newDataName = "{{ data_name | safe if data_name else 'null' }}"; // this sucks, fix it
 
         var slowData = initializeStoredArray("storedSlowData")
         var dataNames = initializeStoredArray("storedDataNames")
 
-        if (newSlowData !== "none") { //unfortunate, but null handling is hard
+        if (newSlowData !== null) { //unfortunate, but null handling is hard
             slowData.push(newSlowData)
         }
-        if (newDataName !== "none") {
+        if (newDataName !== null) {
             dataNames.push(newDataName)
         }
 

@@ -92,11 +92,8 @@
 </th>
 </tr>
 </table>
-<!-- Runs summary goes here -->
     <div class="row">
     <div class="col-md-12" id="sum">
-        <h2 align="left"> Summary: </h2>
-        <p id="data-summary"> </p>
         <div id="waiting">
             Received data, loading....
         </div>
@@ -105,7 +102,7 @@
 <!-- Plot goes here -->
     <div class="row">
     <div class="col-md-12" id="main">
-      {% if not slow_data %}
+      {% if (not slow_data) or (slow_data == []) or (slow_data == "\"none\"") %}
         <h2 align="left"> No data </h2>
       {% endif %}
 
@@ -168,23 +165,24 @@
         var slowData = initializeStoredArray("storedSlowData")
         var dataNames = initializeStoredArray("storedDataNames")
 
-        if (newSlowData !== undefined) { //unfortunate, but null handling is hard
+        if (newSlowData !== "none") { //unfortunate, but null handling is hard
             slowData.push(newSlowData)
         }
-        if (newDataName !== undefined) {
+        if (newDataName !== "none") {
             dataNames.push(newDataName)
         }
 
-        const headData = slowData[0] // first array of data, avoids slowData[0][i]['key'] etc
+        if (slowData.length > 0) {
+            const headData = slowData[0] // first array of data, avoids slowData[0][i]['key'] etc
 
-        for (var i=0; i < headData.length; i++) {
-            headData[i]['key'] = moment.unix(headData[i]['key']).toDate()
-        }
+            for (var i=0; i < headData.length; i++) {
+                headData[i]['key'] = moment.unix(headData[i]['key']).toDate()
+            }
 
-        minTime = headData[0]['key'];
-        maxTime = headData[headData.length-1]['key'];
-        var cscale = tzscale().domain([minTime, maxTime]).zone('America/Toronto');
-
+            minTime = headData[0]['key'];
+            maxTime = headData[headData.length-1]['key'];
+            var cscale = tzscale().domain([minTime, maxTime]).zone('America/Toronto');
+        } 
         var time_fmt = 'MMMM Do YYYY, h:mm:ss a';
         
     // <!-- Messy bit of code to get the run summary section but it works... -MD -->
@@ -236,7 +234,7 @@
             }
         };
 
-        if (headData !== undefined) {
+        if (slowData.length > 0) {
             MG.data_graphic(dparams); //replaces "No data" text
         }
         

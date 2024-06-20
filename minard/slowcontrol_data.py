@@ -2,7 +2,7 @@ import couchdb
 import datetime
 import requests
 import json
-Updafrom . import app
+from . import app
 
 MAX_LIMIT = 268435456 #couchdb rules
 MAX_ROWS_RETURNED = 5000

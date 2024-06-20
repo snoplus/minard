@@ -2,14 +2,20 @@ import couchdb
 import datetime
 import requests
 import json
+Updafrom . import app
 
-BATCH_SIZE = 1
 MAX_LIMIT = 268435456 #couchdb rules
+MAX_ROWS_RETURNED = 5000
+
+class CouchException(Exception):
+    def __init__(self, message):
+        self.message = message
 
 def getTimestamp(targetTime):
     return targetTime.strftime("%s") #python2 doesn't support unix ts, but somehow this method does... on unix only
 
 def connect(user=None, pw=None, server="localhost", port=5984):
+    '''Deprecated in favour of HHTP/request methods.'''
     if user is None and pw is None:
         import couchcreds
         user = couchcreds.user
@@ -24,32 +30,34 @@ def get_data_from_view(db, viewName, startkey=0, endkey=999999999999, limit=500,
     else:
         return [[r['key'] for r in viewData], [r["value"] for r in viewData]] #array of keys, array of values
 
-def get_data_from_view_http(viewName, server="http://192.168.80.89:5984", startkey=0, endkey=999999999999, limit=MAX_LIMIT, sanitize=False):
-    ops = {
+def get_data_from_view_http(viewName, server="http://couch.snopl.us", startkey=0, endkey=999999999999, limit=MAX_LIMIT, sanitize=False, stable='true', update='lazy'):
+    params = {
         "startkey": startkey,
         "endkey": endkey,
         "limit": limit,
-        "stale": "refresh_after"
+        "stable": stable, #whether to only pull from a stable "shard" (docs do not change, so keep 'true')
+        "update": update #whether to update the view ('true' for before, 'lazy' for after', 'false' for not at all)
     }
-    r = requests.get(server+"/slowcontrol-data-5sec/_design/slowcontrol-data-5sec/_view/", auth=("admin", "pass"), params=opts)
+    tic = datetime.datetime.now()
+    r = requests.get(server+"/slowcontrol-data-5sec/_design/echolocator/_view/"+viewName, auth=(app.config['COUCH_USER'], app.config['COUCH_PASS']), params=params)
     if r.status_code == 200:
         print(str(len(r.json()['rows'])) + " rows returned in " + str(datetime.datetime.now()-tic))
-        if sanitize: return json.dumps(r.json()['rows']) # really dumb... but sanitizes unicode (u'(whatever...)')
+        if sanitize: return json.dumps(r.json()['rows']) # really dumb... but sanitizes unicode (u'(whatever...)') i think?
         else: return r.json()['rows']
     else:
-        raise Exception
+        print("Getting data failed with code " + str(r.status_code) + "! " + str(r.json()))
 
 def get_rack_supply_voltage_view_name(rack, voltage, httpStr=False):
     '''Gets the view name for a specified rack and voltage channel.
-        Valid racks: Integers from 1 to 11 or "timing".
-        Valid voltage channels: 24, -24, 8, 5, -5.'''
+        :param int|str rack: Integer from 1 to 11 or "timing".
+        :param int voltage: Valid voltage channels: 24, -24, 8, 5, -5.'''
     RACKS = list(range(1, 11+1)) + ["timing"]
     VOLTAGES = [24, -24, 8, 5, -5]
     CARDS = ['A', 'B', 'C', 'D']
     ios = 2
 
-    if rack not in RACKS: return None
-    if voltage not in VOLTAGES: return None
+    if rack not in RACKS: raise CouchException("Rack " + str(rack) + " is invalid.")
+    if voltage not in VOLTAGES: raise CouchException("Voltage " + str(voltage) + " is invalid.")
 
     if rack == "timing":
         card = 'D'
@@ -64,15 +72,15 @@ def get_rack_supply_voltage_view_name(rack, voltage, httpStr=False):
 
 def get_crate_baseline_voltage_view_name(crate, trigger):
     '''Gets the view name for a specified crate and trigger baseline voltage.
-        Valid crates: Integers from 0 to 18.
-        Valid triggers: Integers 100, 20. (N100_BL, N20_BL)'''
+        :param int crate: Integer from 0 to 18.
+        :param int trigger: Integers 100, 20. (N100_BL, N20_BL)'''
     CRATES = range(0, 18+1)
     TRIGGERS = [100, 20]
     CARDS = ['A', 'B', 'C', 'D']
     ios = 4
 
-    if crate not in CRATES: return None
-    if trigger not in TRIGGERS: return None
+    if crate not in CRATES: raise CouchException("Crate " + str(crate) + " is invalid.")
+    if trigger not in TRIGGERS: raise CouchException("Trigger " + str(trigger) + " is invalid.")
 
     card = CARDS[crate // 6]
     channel = (crate % 6) * 3 + TRIGGERS.index(trigger)
@@ -82,7 +90,7 @@ def get_crate_baseline_voltage_view_name(crate, trigger):
     return viewStr
 
 def get_supply_data_http(datelow, datehigh, rack, voltage):
-    db = connect(user="admin", pw="pass", server="192.168.80.89")['slowcontrol-data-5sec']
+    #TODO: more docstrings
     startkey = getTimestamp(datelow)
     endkey = getTimestamp(datehigh)
     
@@ -104,35 +112,33 @@ def get_supply_data_http(datelow, datehigh, rack, voltage):
     data = get_data_from_view_http(viewName, startkey=startkey, endkey=endkey)
 
     x = len(data)
-    if x > 5000:
-        crushFactor = int(x/5000) #cap rows at 5000
+    if x > MAX_ROWS_RETURNED:
+        crushFactor = int(x/MAX_ROWS_RETURNED) #cap rows
         data = data[crushFactor::crushFactor]
     
-    return json.dumps(data), friendlyViewName
+    return json.dumps(data), [friendlyViewName]
 
 def get_baseline_data_http(datelow, datehigh, crate, trigger):
-    db = connect(user="admin", pw="pass", server="192.168.80.89")['slowcontrol-data-5sec']
     startkey = getTimestamp(datelow)
     endkey = getTimestamp(datehigh)
     
-    # try: #verify crate is int
-    crate = int(crate)
-    friendlyViewName = "Crate " + str(crate) + " - N" + trigger + "BL"
-    # except ValueError:
-    #     if crate == "timing":
-    #         return None
-    #     else:
-    #         friendlyViewName = "Timing Rack - " + voltage + "V supply"
+    try: #verify crate, trigger is int - this SUCKS prob just returns string always anyways
+        crate = int(crate)
+        trigger = int(trigger)
+        friendlyViewName = "Crate " + str(crate) + " - N" + str(trigger) + "_BL"
+    except ValueError:
+        print("YIKES")
+        return None
     
     viewName = get_crate_baseline_voltage_view_name(crate=crate, trigger=trigger)
     data = get_data_from_view_http(viewName, startkey=startkey, endkey=endkey)
     
-    if len(data) > 10000:
-        crushFactor = max(1, int(0.02*(len(data))**(1/2))) #0.02 * sqrt(len)
-        del data[crushFactor-1::crushFactor]
+    x = len(data) 
+    if x > MAX_ROWS_RETURNED:
+        crushFactor = int(x/MAX_ROWS_RETURNED) #cap rows
+        data = data[crushFactor::crushFactor]
     
-    return data, friendlyViewName
-
+    return json.dumps(data), [friendlyViewName]
 
 def get_plot_data(startDate, endDate, dataName=str(datetime.datetime.now().microsecond), collate=False, limit=1000):
     '''Test function for now'''
@@ -144,7 +150,6 @@ def get_plot_data(startDate, endDate, dataName=str(datetime.datetime.now().micro
 
 def get_plot_data_http(startDate, endDate, dataName=str(datetime.datetime.now().microsecond), limit=1000):
     '''Test function for now'''
-    db = connect(user="admin", pw="pass", server="192.168.80.89")['slowcontrol-data-5sec']
     tic = datetime.datetime.now()
     viewName = get_rack_supply_voltage_view_name(rack=1, voltage=24)
     data = get_data_from_view_http(viewName, limit=limit, startkey=1380882382)
@@ -152,7 +157,5 @@ def get_plot_data_http(startDate, endDate, dataName=str(datetime.datetime.now().
     return data, dataName, startDate, endDate
 
 if __name__ == "__main__":
-    couch = connect(user="admin", pw="pass", server="192.168.80.89")
-    db = couch['slowcontrol-data-5sec']
-    viewname = get_rack_supply_voltage_view_name(rack=1, voltage=24)
-    pass
+    data = get_data_from_view_http("2_A_2", limit=100)
+    print(data)

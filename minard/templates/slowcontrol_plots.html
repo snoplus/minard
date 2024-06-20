@@ -106,7 +106,7 @@
     <div class="row">
     <div class="col-md-12" id="main">
       {% if not slow_data %}
-        <h2 align="left"> No data available </h2>
+        <h2 align="left"> No data </h2>
       {% endif %}
 
     </div>
@@ -147,38 +147,51 @@
         if (url_params.baseline_trigger) {
             document.getElementById("baseline-trigger").value = url_params.baseline_trigger;
         }
-        // if (url_params.criteria) {
-        //     document.getElementById("crit").value = url_params.criteria;
-        // }
 
-        var slow_data = {{ slow_data | safe }};
-
-        // TODO: may need to loop this with multi-line plots
-        var mySingleDatastream = new Array();
-        mySingleDatastream = slow_data;
-        
-        // TODO: store the human-readable "names" of each dataset?
-        var myDataNames = new Array();
-        myDataNames.push("Test Data")
-
-        for (var i=0; i < slow_data.length; i++)
-        {
-            slow_data[i]['key'] = moment.unix(slow_data[i]['key']).toDate()
-            // timestamps.push(slow_data[i][0]);
-            // mySingleDatastream.push({'time': slow_data[i][0], 'value': slow_data[i][1]});
+        function initializeStoredArray(name) {
+            rawValue = sessionStorage.getItem(name)
+            if ((typeof rawValue !== "undefined") && (rawValue !== null))  { //probably only need "null" 
+                return JSON.parse(rawValue)
+            }
+            else {
+                return []
+            }
         }
 
-        minTime = mySingleDatastream[0]['key'];
-        maxTime = mySingleDatastream[mySingleDatastream.length-1]['key'];
+        function storeArray(name, data) {
+            return sessionStorage.setItem(name, JSON.stringify(data))
+        }
+
+        var newSlowData = {{ slow_data | safe }};
+        var newDataName = "{{ data_name | safe }}"; // this sucks, fix it
+
+        var slowData = initializeStoredArray("storedSlowData")
+        var dataNames = initializeStoredArray("storedDataNames")
+
+        if (newSlowData !== undefined) { //unfortunate, but null handling is hard
+            slowData.push(newSlowData)
+        }
+        if (newDataName !== undefined) {
+            dataNames.push(newDataName)
+        }
+
+        const headData = slowData[0] // first array of data, avoids slowData[0][i]['key'] etc
+
+        for (var i=0; i < headData.length; i++) {
+            headData[i]['key'] = moment.unix(headData[i]['key']).toDate()
+        }
+
+        minTime = headData[0]['key'];
+        maxTime = headData[headData.length-1]['key'];
         var cscale = tzscale().domain([minTime, maxTime]).zone('America/Toronto');
 
         var time_fmt = 'MMMM Do YYYY, h:mm:ss a';
         
-// <!-- Messy bit of code to get the run summary section but it works... -MD -->
-//copied from runselection_plots, probably unneccesary here
-// 	var summaryTime = [rs_plot_data[rs_plot_data.length - 1]['phys_total'],rs_plot_data[rs_plot_data.length - 1]['pass_total'],rs_plot_data[rs_plot_data.length - 1]['fail_total'],rs_plot_data[rs_plot_data.length - 1]['purg_total']]
-    
-//     var summaryRuns = [rs_plot_data[rs_plot_data.length - 1]['phys_runs'],rs_plot_data[rs_plot_data.length - 1]['pass_runs'],rs_plot_data[rs_plot_data.length - 1]['fail_runs'],rs_plot_data[rs_plot_data.length - 1]['purg_runs']]
+    // <!-- Messy bit of code to get the run summary section but it works... -MD -->
+    //copied from runselection_plots, a summary is probably unneccesary here
+    // 	var summaryTime = [rs_plot_data[rs_plot_data.length - 1]['phys_total'],rs_plot_data[rs_plot_data.length - 1]['pass_total'],rs_plot_data[rs_plot_data.length - 1]['fail_total'],rs_plot_data[rs_plot_data.length - 1]['purg_total']]
+        
+    //     var summaryRuns = [rs_plot_data[rs_plot_data.length - 1]['phys_runs'],rs_plot_data[rs_plot_data.length - 1]['pass_runs'],rs_plot_data[rs_plot_data.length - 1]['fail_runs'],rs_plot_data[rs_plot_data.length - 1]['purg_runs']]
     
 
     // for (var i=0; i < summaryTime.length; i++)
@@ -197,7 +210,7 @@
 
         var dparams = {
             area: false,
-            data: [mySingleDatastream], //TODO: generate this with each line after constructing datasets
+            data: slowData,
             width: $('#main').width(),
             left: 100,
             right: 100,
@@ -207,12 +220,10 @@
             x_accessor:'key',
             y_accessor:'value',
             point_size: 4.0,
-            y_label: "Voltage",
             x_label: "Time",
+            y_label: "Voltage",
             decimals: 4,
-            legend: myDataNames,
-    
-	// <!-- Adding the unit to the mouse over legend and fixing the value to 3 decimal places -->
+            legend: dataNames,
             interpolate: 'linear',
 
             y_mouseover: function(data, index) {
@@ -225,7 +236,10 @@
             }
         };
 
-        MG.data_graphic(dparams);
+        if (headData !== undefined) {
+            MG.data_graphic(dparams); //replaces "No data" text
+        }
+        
         document.getElementById("waiting").innerHTML="";
 
         // the only way to change line width, i tried. ugh

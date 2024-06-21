@@ -53,7 +53,7 @@ def get_rack_supply_voltage_view_name(rack, voltage, httpStr=False):
         :param int voltage: Valid voltage channels: 24, -24, 8, 5, -5.'''
     RACKS = list(range(1, 11+1)) + ["timing"]
     VOLTAGES = [24, -24, 8, 5, -5]
-    VOLTAGES_TIMING = [24, -24, 5, -5, 6]
+    VOLTAGES_TIMING = [24, -24, 5, -5, 6, 'mtcd']
     CARDS = ['A', 'B', 'C', 'D']
     ios = 2
 
@@ -65,6 +65,8 @@ def get_rack_supply_voltage_view_name(rack, voltage, httpStr=False):
     if rack == "timing":
         card = 'D'
         channel = VOLTAGES_TIMING.index(voltage)
+        if voltage == 'mtcd':
+            channel = 7
     else:
         raw_channel = 5 * RACKS.index(rack) + VOLTAGES.index(voltage)
         card = CARDS[raw_channel // 20]
@@ -102,14 +104,18 @@ def get_supply_data_http(datelow, datehigh, rack, voltage):
         friendlyViewName = "Rack " + str(rack) + " - " + voltage + "V supply"
     except ValueError:
         if rack == "timing":
-            friendlyViewName = "Timing Rack - " + voltage + "V supply"
+            if voltage == "mtcd":
+                friendlyViewName = "MTCD -2V Supply"
+            else: 
+                friendlyViewName = "Timing Rack - " + voltage + "V supply"
         else:
             raise Exception("Rack was invalid.")
 
     try: 
         voltage = int(voltage)
     except ValueError:
-        return None, None
+        if voltage != "mtcd":
+            return None, None
     
     viewName = get_rack_supply_voltage_view_name(rack=rack, voltage=voltage)
     data = get_data_from_view_http(viewName, startkey=startkey, endkey=endkey)
@@ -119,7 +125,7 @@ def get_supply_data_http(datelow, datehigh, rack, voltage):
         crushFactor = int(x/MAX_ROWS_RETURNED) #cap rows
         data = data[crushFactor::crushFactor]
     
-    return json.dumps(data), [friendlyViewName]
+    return json.dumps(data), friendlyViewName
 
 def get_baseline_data_http(datelow, datehigh, crate, trigger):
     startkey = getTimestamp(datelow)
@@ -141,7 +147,7 @@ def get_baseline_data_http(datelow, datehigh, crate, trigger):
         crushFactor = int(x/MAX_ROWS_RETURNED) #cap rows
         data = data[crushFactor::crushFactor]
     
-    return json.dumps(data), [friendlyViewName]
+    return json.dumps(data), friendlyViewName
 
 def get_plot_data(startDate, endDate, dataName=str(datetime.datetime.now().microsecond), collate=False, limit=1000):
     '''Test function for now'''

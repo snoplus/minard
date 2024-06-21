@@ -21,7 +21,7 @@ rackDropdown.onchange = function(){
         if (voltageDropdown.value == "mtcd") {
             voltageDropdown.selectedIndex = 0;
         }
-        MTCDVoltage.setAttribute("hidden")
+        MTCDVoltage.setAttribute("hidden", "")
     }
 }
 

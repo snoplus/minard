@@ -101,13 +101,13 @@ def get_supply_data_http(datelow, datehigh, rack, voltage):
     
     try: #verify rack is int OR the string "timing"
         rack = int(rack)
-        friendlyViewName = "Rack " + str(rack) + " - " + voltage + "V supply"
+        friendlyViewName = "Rack " + str(rack) + ": " + voltage + "V supply"
     except ValueError:
         if rack == "timing":
             if voltage == "mtcd":
                 friendlyViewName = "MTCD -2V Supply"
             else: 
-                friendlyViewName = "Timing Rack - " + voltage + "V supply"
+                friendlyViewName = "Timing Rack: " + voltage + "V supply"
         else:
             raise Exception("Rack was invalid.")
 
@@ -134,7 +134,7 @@ def get_baseline_data_http(datelow, datehigh, crate, trigger):
     try: #verify crate, trigger is int - this SUCKS prob just returns string always anyways
         crate = int(crate)
         trigger = int(trigger)
-        friendlyViewName = "Crate " + str(crate) + " - N" + str(trigger) + "_BL"
+        friendlyViewName = "Crate " + str(crate) + ": N" + str(trigger) + "_BL"
     except ValueError:
         print("Crate (" + str(crate) + ") or trigger (" + str(trigger) + ") was invalid.")
         return None, None

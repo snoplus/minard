@@ -79,7 +79,7 @@
 
                     <div>
                         <label for="baseline">Baseline Voltage</label>
-                        <input type="radio" id="baseline" value="baseline" name="channel-type" checked>
+                        <input type="radio" id="baseline" value="baseline" name="channel-type">
                         <label for="baseline-crate">Crate #</label>
                         <input type="number" id="baseline-crate" name="baseline-crate" min="0" max="18" value="" style="width: 4em">
                         <label for="baseline-trigger">Trigger</label>
@@ -92,26 +92,51 @@
                 </th>
                 <!-- Button to plot the data -->
                 <th class="col-xs-3 col-xs-offset-0">
-                    <button type=button onclick="history();">Generate Plot</button>
-</th>
-</tr>
-</table>
+                    <div> <button type=button id="new-plot" onclick="historyNew();">Generate New Plot</button> </div>
+                    <div> <button type=button id="append-plot" onclick="historyAppend();">Add To Plot</button> </div>
+                    <div id="mismatch-warning" style="color:red" hidden>Data types must match.</div>
+                    <div> <button type=button id="append-plot" onclick="historyClear();">Clear Plot</button> </div>
+                </th>
+                </tr>
+                </table>
     <div class="row">
-    <div class="col-md-12" id="sum">
-        <div id="waiting">
-            Received data, loading...
+        <div class="col-md-12" id="sum">
+            <div id="waiting" { % if not slow_data % } hidden { % endif % }>
+                Received data, loading...
+            </div>
+            <div id="incompatible" style="color:red" hidden>
+                Data was incompatible. This should never happen.
+            </div>
         </div>
     </div>
-        </div>
 <!-- Plot goes here -->
     <div class="row">
-    <div class="col-md-12" id="main">
-      {% if not slow_data %}
-        <h2 align="left"> No data </h2>
-      {% endif %}
-
-    </div>
+        <div class="col-md-12" id="main">
+            {% if not slow_data %}
+                <h2 align="left"> No data </h2>
+            {% endif %}
         </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-12">
+            <h2 align="left"> Available Data </h2>
+            <table class="table table-hover" id="datastreams-listing">
+                <thead>
+                    <tr>
+                    <th>Index</th>
+                    <th>Datastream</th>
+                    <th>Start time</th>
+                    <th>End time</th>
+                    <th>Points</th>
+                    <th>Operations</th>
+                    </tr>
+                </thead>
+                <tbody id="datastreams-body">
+                </tbody>
+            </table>
+        </div>
+    </div>
 
     </div>
 </div>
@@ -161,7 +186,7 @@
         }
 
         function storeArray(name, data) {
-            return sessionStorage.setItem(name, JSON.stringify(data))
+            return sessionStorage.setItem(name, JSON.stringify(data));
         }
 
         var newSlowData = {{ slow_data | safe if slow_data else 'null' }};
@@ -169,6 +194,7 @@
 
         var slowData = initializeStoredArray("storedSlowData")
         var dataNames = initializeStoredArray("storedDataNames")
+        var dataType = sessionStorage.getItem("dataType");
 
         if (newSlowData !== null) { //unfortunate, but null handling is hard
             slowData.push(newSlowData)
@@ -177,17 +203,30 @@
             dataNames.push(newDataName)
         }
 
+        var mergedData = []
+
         if (slowData.length > 0) {
-            const headData = slowData[0] // first array of data, avoids slowData[0][i]['key'] etc
+            slowData.forEach((datastream) => {
+                if (datastream.length !== slowData[0].length) {
+                    document.getElementById("incompatible").removeAttribute("hidden")
+                    throw new Error("Data streams were incompatible.");
+                }
+                datastream.forEach((datapoint) => {
+                    datapoint['reftime'] = moment.unix(datapoint['key']).toDate();
+                });
+            });
 
-            for (var i=0; i < headData.length; i++) {
-                headData[i]['key'] = moment.unix(headData[i]['key']).toDate()
-            }
+            // for (var i = 0; i < slowData[0].length; i++) {
+            //     // assumes same times for all data
+            //     var currentTimeData = slowData.map((datastream) => datastream[i]['value']) // build array of each datastream's value at current time
+            //     mergedData.push({'value': currentTimeData, 'reftime': slowData[0][i]['reftime']}); //pair array with reftime of first datastream
+            // }
 
-            minTime = headData[0]['key'];
-            maxTime = headData[headData.length-1]['key'];
-            var cscale = tzscale().domain([minTime, maxTime]).zone('America/Toronto');
+            mintime = slowData[0][0]['key'];
+            maxtime = slowData[0][slowData[0].length-1]['key'];
+            var cscale = tzscale().domain([mintime, maxtime]).zone('America/Toronto');
         } 
+
         var time_fmt = 'MMMM Do YYYY, h:mm:ss a';
         
     // <!-- Messy bit of code to get the run summary section but it works... -MD -->
@@ -220,7 +259,7 @@
             height: 500,
             target: "#main",
             time_scale: cscale,
-            x_accessor:'key',
+            x_accessor:'reftime',
             y_accessor:'value',
             point_size: 4.0,
             x_label: "Time",
@@ -235,12 +274,47 @@
             },
 
             x_mouseover: function(data, index) {
-                return moment(data.key).format(time_fmt);
+                return moment(data.reftime).format(time_fmt);
             }
         };
 
         if (slowData.length > 0) {
             MG.data_graphic(dparams); //replaces "No data" text
+        }
+
+        function deleteStream(index) {
+            slowData.splice(index, 1);
+            storeArray("storedSlowData", slowData);
+            dataNames.splice(index, 1);
+            storeArray("storedDataNames", dataNames);
+            sessionStorage.setItem("dataType", document.querySelector("input[name=channel-type]:checked").value);
+
+            window.location.replace($SCRIPT_ROOT + "/slowcontrol_plots");
+        }
+
+        function addDatastreamTableRow(name, first, last, length, index) {
+            console.log(`Adding row: ${index} ${name} ${first} ${last} ${length}`)
+            
+            tableData=
+                `<tr>
+                    <td style="color">${index}</td>
+                    <td>${name}</td>
+                    <td>${first}</td>
+                    <td>${last}</td>
+                    <td>${length}</td>
+                    <td><button onclick="deleteStream(${index})">Remove</button></td>
+                </tr>`;
+            var newRow = metadataTable.insertRow();
+            newRow.innerHTML = tableData;
+            return true;
+        } //would really rather put these in the .js, but alas...
+
+        for (var i = 0; i < slowData.length; i++) {
+            var streamLength = slowData[i].length;
+            var myName = dataNames[i];
+            var myFirstTime = moment.unix(slowData[i][0].key).format(time_fmt);
+            var myLastTime = moment.unix(slowData[i][streamLength-1].key).format(time_fmt);
+            addDatastreamTableRow(myName, myFirstTime, myLastTime, streamLength, i);
         }
         
         document.getElementById("waiting").innerHTML="";
@@ -301,6 +375,31 @@
             //     params['criteria'] = "scintillator_silver";
             // }
             window.location.replace($SCRIPT_ROOT + "/slowcontrol_plots?" + $.param(params));
+        }
+
+        function historyAppend() {
+            storeArray("storedSlowData", slowData);
+            storeArray("storedDataNames", dataNames);
+            sessionStorage.setItem("dataType", document.querySelector("input[name=channel-type]:checked").value);
+
+            history();
+        }
+
+        
+        function historyNew() {
+            sessionStorage.removeItem("storedSlowData");
+            sessionStorage.removeItem("storedDataNames");
+            sessionStorage.removeItem("dataType");
+
+            history();
+        }
+
+        function historyClear() {
+            sessionStorage.removeItem("storedSlowData");
+            sessionStorage.removeItem("storedDataNames");
+            sessionStorage.removeItem("dataType");
+
+            window.location.replace($SCRIPT_ROOT + "/slowcontrol_plots");
         }
 
     </script>

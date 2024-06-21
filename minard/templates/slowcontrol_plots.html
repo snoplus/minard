@@ -491,20 +491,30 @@
             window.location.replace($SCRIPT_ROOT + "/slowcontrol_plots?" + $.param(params));
         }
 
+        function getEstTimeString() {
+            var millisecondDifference = moment(datetimeHighInput.value) - moment(datetimeLowInput.value);
+            const DataMsPerMsQueryTime = 100000; //ie. 1 ms of query time returns 20 results, or 100secs of data
+            var estWaitTimeMs = millisecondDifference / DataMsPerMsQueryTime;
+            return moment.duration(estWaitTimeMs).locale('en').humanize(); 
+        }
+
         function historyAppend() {
             storeArray("storedSlowData", slowData);
             storeArray("storedDataNames", dataNames);
             sessionStorage.setItem("dataType", document.querySelector("input[name=channel-type]:checked").value);
-
+            appendPlotButton.innerHTML = `Est. wait: ${getEstTimeString()}`;
+            appendPlotButton.setAttribute("disabled", "");
+            newPlotButton.setAttribute("disabled", "");
             history();
         }
-
         
         function historyNew() {
             sessionStorage.removeItem("storedSlowData");
             sessionStorage.removeItem("storedDataNames");
             sessionStorage.setItem("dataType", document.querySelector("input[name=channel-type]:checked").value);
-
+            newPlotButton.innerHTML = `Est. wait: ${getEstTimeString()}`;
+            appendPlotButton.setAttribute("disabled", "");
+            newPlotButton.setAttribute("disabled", "");
             history();
         }
 

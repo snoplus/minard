@@ -141,6 +141,111 @@
     </div>
 </div>
 
+<style>
+    .mg-line1-legend-color {
+        color: #88D642;
+        fill: #88D642;
+    }
+
+    .mg-line1-color {
+        stroke: #88D642;
+    }
+
+    .mg-hover-line1-color {
+        fill: #88D642;
+    }
+    
+    .mg-area1-color {
+        fill: #88D642;
+    }
+
+    .mg-line2-legend-color {
+        color: #FF79C0;
+        fill: #FF79C0;
+    }
+
+    .mg-line2-color {
+        stroke: #FF79C0;
+    }
+
+    .mg-hover-line2-color {
+        fill: #FF79C0;
+    }
+
+    .mg-area2-color {
+        fill: #FF79C0;
+    }
+
+    .mg-line3-legend-color {
+        color: #60c1bf;
+        fill: #60c1bf;
+    }
+    
+    .mg-line3-color {
+        stroke: #60c1bf;
+    }
+
+    .mg-hover-line3-color {
+        fill: #60c1bf;
+    }
+
+    .mg-area3-color {
+        fill: #60c1bf;
+    }
+
+    .mg-line4-legend-color {
+        color: #f8b128;
+        fill: #f8b128;
+    }
+
+    .mg-line4-color {
+        stroke: #f8b128;
+    }
+
+    .mg-hover-line4-color {
+        fill: #f8b128;
+    }
+
+    .mg-area4-color {
+        fill: #f8b128;
+    }
+
+    .mg-line5-legend-color {
+        color: #5c5c5c;
+        fill: #5c5c5c;
+    }    
+
+    .mg-line5-color {
+        stroke: #5c5c5c;
+    }
+
+    .mg-hover-line5-color {
+        fill: #5c5c5c;
+    }
+
+    .mg-area5-color {
+        fill: #5c5c5c;
+    }
+
+    .mg-line6-legend-color {
+        color: #0101d4;
+        fill: #0101d4;
+    }    
+
+    .mg-line6-color {
+        stroke: #0101d4;
+    }
+
+    .mg-hover-line6-color {
+        fill: #0101d4;
+    }
+
+    .mg-area6-color {
+        fill: #0101d4;
+    }
+
+</style>
+
 {% endblock %}
 
 {% block script %}
@@ -297,7 +402,7 @@
             
             tableData=
                 `<tr>
-                    <td style="color">${index}</td>
+                    <td class="mg-line${index}-legend-color">${index}</td>
                     <td>${name}</td>
                     <td>${first}</td>
                     <td>${last}</td>

@@ -146,6 +146,8 @@ def get_baseline_data_http(datelow, datehigh, crate, trigger):
     if x > MAX_ROWS_RETURNED:
         crushFactor = int(x/MAX_ROWS_RETURNED) #cap rows
         data = data[crushFactor::crushFactor]
+
+    print("View name returned from baseline: " + friendlyViewName)
     
     return json.dumps(data), friendlyViewName
 

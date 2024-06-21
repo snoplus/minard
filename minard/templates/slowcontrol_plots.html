@@ -38,11 +38,12 @@
                 <!-- Data datetime inputs -->
                 <th>
                     <div>
-                        <input style="margin-bottom: 30px;" type="datetime-local" id="datetime_low" value="{{datetime_low}}" required></input> 
+                        <input style="margin-bottom: 10px;" type="datetime-local" id="datetime_low" value="{{datetime_low}}" required></input> 
                     </div>
                     <div>
-                        <input style="margin-bottom: 30px;" type="datetime-local" id="datetime_high" value="{{datetime_high}}" required></input>
+                        <input style="margin-bottom: 10px;" type="datetime-local" id="datetime_high" value="{{datetime_high}}" required></input>
                     </div>
+                    <div id="date-warning" hidden style="color:red">Clear the plot to unlock.</div>
                 </th>
                 <!-- Channel selector -->
                 <th>
@@ -294,8 +295,8 @@
             return sessionStorage.setItem(name, JSON.stringify(data));
         }
 
-        var newSlowData = {{ slow_data | safe if slow_data else 'null' }};
-        var newDataName = "{{ data_name | safe if data_name else 'null' }}"; // this sucks, fix it
+        var newSlowData = {{ slow_data | safe if slow_data else "null" }};
+        var newDataName = "{{ data_name | safe if data_name else "null" }}"; // this sucks i am so sorry
 
         var slowData = initializeStoredArray("storedSlowData")
         var dataNames = initializeStoredArray("storedDataNames")
@@ -304,7 +305,7 @@
         if (newSlowData !== null) { //unfortunate, but null handling is hard
             slowData.push(newSlowData)
         }
-        if (newDataName !== null) {
+        if (newDataName !== "null") { //more unfortunate
             dataNames.push(newDataName)
         }
 
@@ -402,7 +403,7 @@
             
             tableData=
                 `<tr>
-                    <td class="mg-line${index}-legend-color">${index}</td>
+                    <td class="mg-line${index+1}-legend-color">${index+1}</td>
                     <td>${name}</td>
                     <td>${first}</td>
                     <td>${last}</td>
@@ -423,6 +424,14 @@
         }
         
         document.getElementById("waiting").innerHTML="";
+
+        if (slowData.length !== 0) {
+            datetimeLowInput.setAttribute("disabled", "");
+            datetimeHighInput.setAttribute("disabled", "");
+            dateWarningText.removeAttribute("hidden");
+        } else {
+            dateWarningText.setAttribute("hidden", "");
+        }
 
         // the only way to change line width, i tried. ugh
         // changing dparams or overriding CSS did NOT work, for me at least
@@ -494,7 +503,7 @@
         function historyNew() {
             sessionStorage.removeItem("storedSlowData");
             sessionStorage.removeItem("storedDataNames");
-            sessionStorage.removeItem("dataType");
+            sessionStorage.setItem("dataType", document.querySelector("input[name=channel-type]:checked").value);
 
             history();
         }

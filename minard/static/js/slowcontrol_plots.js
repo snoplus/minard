@@ -11,6 +11,9 @@ const metadataTable = document.getElementById("datastreams-listing")
 const newPlotButton = document.getElementById("new-plot")
 const appendPlotButton = document.getElementById("append-plot")
 const mismatchWarningText = document.getElementById("mismatch-warning")
+const datetimeLowInput = document.getElementById("datetime_low");
+const datetimeHighInput = document.getElementById("datetime_high");
+const dateWarningText = document.getElementById("date-warning");
 
 rackDropdown.onchange = function() {
     supplyRadio.checked = true;

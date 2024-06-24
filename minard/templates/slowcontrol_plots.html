@@ -449,7 +449,6 @@
         function history() {
             var params = {};
             
-            sessionStorage.setItem("endTimestamp", document.getElementById("datetime_high").value);
             sessionStorage.setItem("dataType", document.querySelector("input[name=channel-type]:checked").value);
             appendPlotButton.setAttribute("disabled", "");
             newPlotButton.setAttribute("disabled", "");
@@ -459,7 +458,7 @@
             // on error, set them to a default fallback value
             // in either case, set the parameter to this stored value
             try {
-                if (sessionStorage.getItem("startTimestamp") === undefined) {
+                if (sessionStorage.getItem("startTimestamp") === null) {
                     sessionStorage.setItem("startTimestamp", document.getElementById("datetime_low").value);
                 }
             } catch (e) {
@@ -468,7 +467,7 @@
                 params['datetime_low'] = sessionStorage.getItem("startTimestamp")
             }
             try {
-                if (sessionStorage.getItem("endTimestamp") === undefined) {
+                if (sessionStorage.getItem("endTimestamp") === null) {
                     sessionStorage.setItem("endTimestamp", document.getElementById("datetime_high").value);
                 }
                 params['datetime_high'] = sessionStorage.getItem("endTimestamp")

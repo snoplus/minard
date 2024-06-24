@@ -448,20 +448,41 @@
 
         function history() {
             var params = {};
+            
+            sessionStorage.setItem("endTimestamp", document.getElementById("datetime_high").value);
+            sessionStorage.setItem("dataType", document.querySelector("input[name=channel-type]:checked").value);
+            appendPlotButton.setAttribute("disabled", "");
+            newPlotButton.setAttribute("disabled", "");
+
+            // if timestamp bounds exist for past data, continue
+            // otherwise, set them, based on the value of the picker
+            // on error, set them to a default fallback value
+            // in either case, set the parameter to this stored value
             try {
-                params['datetime_low'] = document.getElementById("datetime_low").value;
+                if (sessionStorage.getItem("startTimestamp") === undefined) {
+                    sessionStorage.setItem("startTimestamp", document.getElementById("datetime_low").value);
+                }
             } catch (e) {
-                params['datetime_low'] = "2024-02-19T00:00";
+                sessionStorage.setItem("startTimestamp", "2024-02-19T00:00");
+            } finally {
+                params['datetime_low'] = sessionStorage.getItem("startTimestamp")
             }
             try {
-                params['datetime_high'] = document.getElementById("datetime_high").value;
+                if (sessionStorage.getItem("endTimestamp") === undefined) {
+                    sessionStorage.setItem("endTimestamp", document.getElementById("datetime_high").value);
+                }
+                params['datetime_high'] = sessionStorage.getItem("endTimestamp")
             } catch (e) {
-                params['datetime_high'] = "2024-05-29T23:59";
+                sessionStorage.setItem("endTimestamp", "2024-05-29T23:59");
+            } finally {
+                params['datetime_high'] = sessionStorage.getItem("endTimestamp")
             }
+
+            // set all other parameters (simply query the input, or fall back on a default)
             try {
                 params['channel_type'] = document.querySelector("input[name=channel-type]:checked").value;
             } catch (e) {
-                //pass?
+                //pass? there's no good default here
             }
             try {
                 params['supply_rack'] = document.getElementById("supply-rack").value;
@@ -483,11 +504,7 @@
             } catch (e) {
                 params['baseline_trigger'] = "100";
             }
-            // try {
-            //     params['criteria'] = document.getElementById("crit").value;
-            // } catch (e) {
-            //     params['criteria'] = "scintillator_silver";
-            // }
+
             window.location.replace($SCRIPT_ROOT + "/slowcontrol_plots?" + $.param(params));
         }
 
@@ -501,28 +518,18 @@
         function historyAppend() {
             storeArray("storedSlowData", slowData);
             storeArray("storedDataNames", dataNames);
-            sessionStorage.setItem("dataType", document.querySelector("input[name=channel-type]:checked").value);
             appendPlotButton.innerHTML = `Est. wait: ${getEstTimeString()}`;
-            appendPlotButton.setAttribute("disabled", "");
-            newPlotButton.setAttribute("disabled", "");
             history();
         }
         
         function historyNew() {
-            sessionStorage.removeItem("storedSlowData");
-            sessionStorage.removeItem("storedDataNames");
-            sessionStorage.setItem("dataType", document.querySelector("input[name=channel-type]:checked").value);
+            sessionStorage.clear();
             newPlotButton.innerHTML = `Est. wait: ${getEstTimeString()}`;
-            appendPlotButton.setAttribute("disabled", "");
-            newPlotButton.setAttribute("disabled", "");
             history();
         }
 
         function historyClear() {
-            sessionStorage.removeItem("storedSlowData");
-            sessionStorage.removeItem("storedDataNames");
-            sessionStorage.removeItem("dataType");
-
+            sessionStorage.clear();
             window.location.replace($SCRIPT_ROOT + "/slowcontrol_plots");
         }
 

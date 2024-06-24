@@ -6,17 +6,6 @@
     <link rel="stylesheet" type="text/css"  href="{{ url_for('static',filename='css/metricsgraphics.css') }}">
     <link rel="stylesheet" type="text/css"  href="{{ url_for('static',filename='css/mg_line_brushing.css') }}">
   {{ super() }}
-  <style>
-    .btn2 {
-        background-color: #228B22;
-        padding: 6px 6px;
-        color: white;
-        text-align: center;
-        font-size: 14px;
-        margin: 4px 2px;
-        cursor: pointer;
-    }
-  </style>
 {% endblock %}
 {% block body %}
     {{ super() }}
@@ -91,7 +80,7 @@
                         </select>
                     </div>
                 </th>
-                <!-- Button to plot the data -->
+                <!-- Plot controls -->
                 <th class="col-xs-3 col-xs-offset-0">
                     <div> <button type=button id="new-plot" onclick="historyNew();">Generate New Plot</button> </div>
                     <div> <button type=button id="append-plot" onclick="historyAppend();">Add To Plot</button> </div>
@@ -143,108 +132,35 @@
 </div>
 
 <style>
-    .mg-line1-legend-color {
-        color: #88D642;
-        fill: #88D642;
-    }
+    .mg-line1-legend-color {color: #88D642; fill: #88D642;} 
+    .mg-line1-color {stroke: #88D642;}
+    .mg-hover-line1-color {fill: #88D642;}
+    .mg-area1-color {fill: #88D642;}
 
-    .mg-line1-color {
-        stroke: #88D642;
-    }
+    .mg-line2-legend-color {color: #FF79C0; fill: #FF79C0;}
+    .mg-line2-color {stroke: #FF79C0;}
+    .mg-hover-line2-color {fill: #FF79C0;}
+    .mg-area2-color {fill: #FF79C0;}
 
-    .mg-hover-line1-color {
-        fill: #88D642;
-    }
-    
-    .mg-area1-color {
-        fill: #88D642;
-    }
+    .mg-line3-legend-color {color: #60c1bf; fill: #60c1bf;}
+    .mg-line3-color {stroke: #60c1bf;}
+    .mg-hover-line3-color {fill: #60c1bf;}
+    .mg-area3-color {fill: #60c1bf;}
 
-    .mg-line2-legend-color {
-        color: #FF79C0;
-        fill: #FF79C0;
-    }
+    .mg-line4-legend-color {color: #f8b128; fill: #f8b128;}
+    .mg-line4-color {stroke: #f8b128;}
+    .mg-hover-line4-color {fill: #f8b128;}
+    .mg-area4-color {fill: #f8b128;}
 
-    .mg-line2-color {
-        stroke: #FF79C0;
-    }
+    .mg-line5-legend-color {color: #5c5c5c; fill: #5c5c5c;}    
+    .mg-line5-color {stroke: #5c5c5c;}
+    .mg-hover-line5-color {fill: #5c5c5c;}
+    .mg-area5-color {fill: #5c5c5c;}
 
-    .mg-hover-line2-color {
-        fill: #FF79C0;
-    }
-
-    .mg-area2-color {
-        fill: #FF79C0;
-    }
-
-    .mg-line3-legend-color {
-        color: #60c1bf;
-        fill: #60c1bf;
-    }
-    
-    .mg-line3-color {
-        stroke: #60c1bf;
-    }
-
-    .mg-hover-line3-color {
-        fill: #60c1bf;
-    }
-
-    .mg-area3-color {
-        fill: #60c1bf;
-    }
-
-    .mg-line4-legend-color {
-        color: #f8b128;
-        fill: #f8b128;
-    }
-
-    .mg-line4-color {
-        stroke: #f8b128;
-    }
-
-    .mg-hover-line4-color {
-        fill: #f8b128;
-    }
-
-    .mg-area4-color {
-        fill: #f8b128;
-    }
-
-    .mg-line5-legend-color {
-        color: #5c5c5c;
-        fill: #5c5c5c;
-    }    
-
-    .mg-line5-color {
-        stroke: #5c5c5c;
-    }
-
-    .mg-hover-line5-color {
-        fill: #5c5c5c;
-    }
-
-    .mg-area5-color {
-        fill: #5c5c5c;
-    }
-
-    .mg-line6-legend-color {
-        color: #0101d4;
-        fill: #0101d4;
-    }    
-
-    .mg-line6-color {
-        stroke: #0101d4;
-    }
-
-    .mg-hover-line6-color {
-        fill: #0101d4;
-    }
-
-    .mg-area6-color {
-        fill: #0101d4;
-    }
-
+    .mg-line6-legend-color {color: #0101d4; fill: #0101d4;}    
+    .mg-line6-color {stroke: #0101d4;}
+    .mg-hover-line6-color {fill: #0101d4;}
+    .mg-area6-color {fill: #0101d4;}
 </style>
 
 {% endblock %}
@@ -268,18 +184,6 @@
         if (url_params.channel_type) {
             document.getElementById(url_params.channel_type).checked = true 
         }
-        // if (url_params.supply_rack) {
-        //     document.getElementById("supply-rack").value = url_params.supply_rack;
-        // }
-        // if (url_params.supply_voltage) {
-        //     document.getElementById("supply-voltage").value = url_params.supply_voltage;
-        // }
-        // if (url_params.baseline_crate) {
-        //     document.getElementById("baseline-crate").value = url_params.baseline_crate;
-        // }
-        // if (url_params.baseline_trigger) {
-        //     document.getElementById("baseline-trigger").value = url_params.baseline_trigger;
-        // }
 
         function initializeStoredArray(name) {
             rawValue = sessionStorage.getItem(name)
@@ -318,15 +222,9 @@
                     throw new Error("Data streams were incompatible.");
                 }
                 datastream.forEach((datapoint) => {
-                    datapoint['reftime'] = moment.unix(datapoint['key']).toDate();
+                    datapoint['key'] = moment.unix(datapoint['key']).toDate();
                 });
             });
-
-            // for (var i = 0; i < slowData[0].length; i++) {
-            //     // assumes same times for all data
-            //     var currentTimeData = slowData.map((datastream) => datastream[i]['value']) // build array of each datastream's value at current time
-            //     mergedData.push({'value': currentTimeData, 'reftime': slowData[0][i]['reftime']}); //pair array with reftime of first datastream
-            // }
 
             mintime = slowData[0][0]['key'];
             maxtime = slowData[0][slowData[0].length-1]['key'];
@@ -334,27 +232,6 @@
         } 
 
         var time_fmt = 'MMMM Do YYYY, h:mm:ss a';
-        
-    // <!-- Messy bit of code to get the run summary section but it works... -MD -->
-    //copied from runselection_plots, a summary is probably unneccesary here
-    // 	var summaryTime = [rs_plot_data[rs_plot_data.length - 1]['phys_total'],rs_plot_data[rs_plot_data.length - 1]['pass_total'],rs_plot_data[rs_plot_data.length - 1]['fail_total'],rs_plot_data[rs_plot_data.length - 1]['purg_total']]
-        
-    //     var summaryRuns = [rs_plot_data[rs_plot_data.length - 1]['phys_runs'],rs_plot_data[rs_plot_data.length - 1]['pass_runs'],rs_plot_data[rs_plot_data.length - 1]['fail_runs'],rs_plot_data[rs_plot_data.length - 1]['purg_runs']]
-    
-
-    // for (var i=0; i < summaryTime.length; i++)
-    //     {
-    //         var j = parseFloat(summaryTime[i]).toFixed(3);
-    //         summaryTime[i] = j;
-    //     }
-
-	// document.getElementById("phys_summary").innerHTML = 'Physics: ' + summaryTime[0].toString() + ' Days, ' +summaryRuns[0].toString() + ' Runs';
-    // if (summaryRuns[1] == 0) {document.getElementById("pass_summary").innerHTML = 'Passed: None';}
-    // else{document.getElementById("pass_summary").innerHTML = 'Passed: ' + summaryTime[1].toString() + ' Days, ' +summaryRuns[1].toString() + ' Runs';}
-    // if (summaryRuns[2] == 0) {document.getElementById("fail_summary").innerHTML = 'Failed: None';}
-    // else{document.getElementById("fail_summary").innerHTML = 'Failed: ' + summaryTime[2].toString() + ' Days, ' +summaryRuns[2].toString() + ' Runs';}
-    // if (summaryRuns[3] == 0) {document.getElementById("purg_summary").innerHTML = 'Purgatory: None';}
-    // else{document.getElementById("purg_summary").innerHTML = 'Purgatory: ' + summaryTime[3].toString()  + ' Days, ' +summaryRuns[3].toString() + ' Runs';}
 
         var dparams = {
             area: false,
@@ -365,7 +242,7 @@
             height: 500,
             target: "#main",
             time_scale: cscale,
-            x_accessor:'reftime',
+            x_accessor:'key',
             y_accessor:'value',
             point_size: 4.0,
             x_label: "Time",
@@ -418,8 +295,8 @@
         for (var i = 0; i < slowData.length; i++) {
             var streamLength = slowData[i].length;
             var myName = dataNames[i];
-            var myFirstTime = moment.unix(slowData[i][0].key).format(time_fmt);
-            var myLastTime = moment.unix(slowData[i][streamLength-1].key).format(time_fmt);
+            var myFirstTime = moment(slowData[i][0].key).format(time_fmt);
+            var myLastTime = moment(slowData[i][streamLength-1].key).format(time_fmt);
             addDatastreamTableRow(myName, myFirstTime, myLastTime, streamLength, i);
         }
         

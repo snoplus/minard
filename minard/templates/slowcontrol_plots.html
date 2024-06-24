@@ -374,13 +374,13 @@
             legend: dataNames,
             interpolate: 'linear',
 
-            y_mouseover: function(data, index) {
+            y_mouseover: function(data) {
                 var voltage = parseFloat(data['value']).toFixed(4);
                 return voltage + ' V';
             },
 
-            x_mouseover: function(data, index) {
-                return moment(data.reftime).format(time_fmt);
+            x_mouseover: function(data) {
+                return moment(data.key).format(time_fmt);
             }
         };
 

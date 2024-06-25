@@ -1,5 +1,6 @@
 import couchdb
 import datetime
+import grequests
 import requests
 import json
 from . import app
@@ -30,7 +31,7 @@ def get_data_from_view(db, viewName, startkey=0, endkey=999999999999, limit=500,
     else:
         return [[r['key'] for r in viewData], [r["value"] for r in viewData]] #array of keys, array of values
 
-def get_data_from_view_http(viewName, server="http://couch.snopl.us", startkey=0, endkey=999999999999, limit=MAX_LIMIT, sanitize=False, stable='true', update='lazy'):
+def get_data_from_view_http(viewName, server="http://couch.snopl.us", startkey=0, endkey=999999999999, limit=MAX_LIMIT, stable='true', update='lazy'):
     params = {
         "startkey": startkey,
         "endkey": endkey,
@@ -42,11 +43,49 @@ def get_data_from_view_http(viewName, server="http://couch.snopl.us", startkey=0
     r = requests.get(server+"/slowcontrol-data-5sec/_design/echolocator/_view/"+viewName, auth=(app.config['COUCH_USER'], app.config['COUCH_PASS']), params=params)
     if r.status_code == 200:
         print(str(len(r.json()['rows'])) + " rows returned in " + str(datetime.datetime.now()-tic))
-        if sanitize: return json.dumps(r.json()['rows']) # really dumb... but sanitizes unicode (u'(whatever...)') i think?
-        else: return r.json()['rows']
+        return r.json()['rows']
     else:
         print("Getting data failed with code " + str(r.status_code) + "! " + str(r.json()))
 
+def get_data_from_view_http_threaded(viewName, startkey, endkey, threadCount=5, server="http://couch.snopl.us", stable='true', update='lazy'):
+    startkey = int(startkey)
+    endkey = int(endkey)
+
+    interval = (endkey-startkey)//threadCount
+    intervalList = range(startkey, endkey, interval)
+
+    baseThreadParams = {
+        "stable": stable,
+        "update": update,
+        "inclusive_end": "true"
+    }
+
+    threadParamsList = []
+
+    for step in intervalList:
+        newThreadParams = baseThreadParams.copy() #shallow copy, ie. copy by value
+        newThreadParams["startkey"] = str(step)
+        newThreadParams["endkey"] = str(step + interval)
+        threadParamsList.append(newThreadParams)
+    
+    tic = datetime.datetime.now()
+
+    callList = (grequests.get(server+"/slowcontrol-data-5sec/_design/echolocator/_view/"+viewName, 
+        auth=(app.config['COUCH_USER'], app.config['COUCH_PASS']), params=params) for params in threadParamsList)
+    responses = grequests.map(callList)
+
+    toc = datetime.datetime.now()
+
+    try:
+        responseData = map(lambda response: response.json()['rows'], responses)
+        data = reduce(lambda a, b: a+b, responseData)
+        print("{0} rows returned in {1}s + {2}s mapping ({3}x threaded)".format(
+            len(data), toc-tic, datetime.datetime.now()-toc, threadCount)
+        )
+        return data
+    except Exception as e:
+        print("Getting data failed! " + e.message)
+    
 def get_rack_supply_voltage_view_name(rack, voltage, httpStr=False):
     '''Gets the view name for a specified rack and voltage channel.
         :param int|str rack: Integer from 1 to 11 or "timing".
@@ -118,7 +157,7 @@ def get_supply_data_http(datelow, datehigh, rack, voltage):
             return None, None
     
     viewName = get_rack_supply_voltage_view_name(rack=rack, voltage=voltage)
-    data = get_data_from_view_http(viewName, startkey=startkey, endkey=endkey)
+    data = get_data_from_view_http_threaded(viewName, startkey=startkey, endkey=endkey)
 
     x = len(data)
     if x > MAX_ROWS_RETURNED:
@@ -140,7 +179,7 @@ def get_baseline_data_http(datelow, datehigh, crate, trigger):
         return None, None
     
     viewName = get_crate_baseline_voltage_view_name(crate=crate, trigger=trigger)
-    data = get_data_from_view_http(viewName, startkey=startkey, endkey=endkey)
+    data = get_data_from_view_http_threaded(viewName, startkey=startkey, endkey=endkey)
     
     x = len(data) 
     if x > MAX_ROWS_RETURNED:

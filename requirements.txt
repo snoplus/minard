@@ -5,6 +5,7 @@ redis==2.10.5
 argparse==1.2.1
 sphinx==1.8.6
 requests==2.6.0
+grequests==0.7.0
 python-dateutil==2.5.3
 sqlalchemy==1.0.12
 psycopg2-binary==2.8.6

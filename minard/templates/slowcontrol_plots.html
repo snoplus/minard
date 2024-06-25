@@ -217,13 +217,20 @@
 
         if (slowData.length > 0) {
             slowData.forEach((datastream) => {
-                if (datastream.length !== slowData[0].length) {
-                    document.getElementById("incompatible").removeAttribute("hidden")
-                    throw new Error("Data streams were incompatible.");
+                // if (datastream.length !== slowData[0].length) {
+                //     document.getElementById("incompatible").removeAttribute("hidden")
+                //     throw new Error("Data streams were incompatible.");
+                // }
+                if (typeof datastream[0].key == "string") {
+                    datastream.forEach((datapoint) => {
+                        datapoint['key'] = moment(datapoint['key']).toDate();
+                    });
                 }
-                datastream.forEach((datapoint) => {
-                    datapoint['key'] = moment.unix(datapoint['key']).toDate();
-                });
+                if (typeof datastream[0].key == "number") {
+                    datastream.forEach((datapoint) => {
+                        datapoint['key'] = moment.unix(datapoint['key']).toDate();
+                    });
+                }
             });
 
             mintime = slowData[0][0]['key'];
@@ -386,7 +393,7 @@
 
         function getEstTimeString() {
             var millisecondDifference = moment(datetimeHighInput.value) - moment(datetimeLowInput.value);
-            const DataMsPerMsQueryTime = 100000; //ie. 1 ms of query time returns 20 results, or 100secs of data
+            const DataMsPerMsQueryTime = 400000; //ie. 1 ms of query time returns ~80 results, or 400secs of data (when threaded)
             var estWaitTimeMs = millisecondDifference / DataMsPerMsQueryTime;
             return moment.duration(estWaitTimeMs).locale('en').humanize(); 
         }

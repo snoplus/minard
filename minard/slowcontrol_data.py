@@ -12,13 +12,15 @@ class CouchException(Exception):
 def getTimestamp(targetTime):
     return targetTime.strftime("%s") #python2 doesn't support unix ts, but somehow this method does... on unix only
 
-def get_data_from_view_http_threaded(viewName, startkey, endkey, threadCount=10, server="http://couch.snopl.us", stable='true', update='lazy'):
+def get_data_from_view_http_threaded(viewName, startkey, endkey, threadCount=20, server="http://couch.snopl.us", stable='true', update='lazy'):
     startkey = int(startkey)
     endkey = int(endkey)
 
-    interval = (endkey-startkey)//threadCount
-    intervalList = range(startkey, endkey, interval)
+    interval = (endkey-startkey)//threadCount #the range of keys in each request
+    intervalList = range(startkey, endkey, interval) #the breakpoints
 
+    #the template of parameters we will pass to the request
+    #we will insert the startkey and endkey in the next step
     baseThreadParams = {
         "stable": stable,
         "update": update,
@@ -28,6 +30,7 @@ def get_data_from_view_http_threaded(viewName, startkey, endkey, threadCount=10,
 
     threadParamsList = []
 
+    #first, create many parameter dicts, with evenly-spaced start and stop keys
     for step in intervalList:
         newThreadParams = baseThreadParams.copy() #shallow copy, ie. copy by value
         newThreadParams["startkey"] = str(step)
@@ -36,20 +39,26 @@ def get_data_from_view_http_threaded(viewName, startkey, endkey, threadCount=10,
     
     startTime = datetime.datetime.now()
 
+    #next, use grequests to submit all requests concurrently
     callList = (grequests.get(server+"/slowcontrol-data-5sec/_design/echolocator/_view/"+viewName, 
-        auth=(app.config['COUCH_USER'], app.config['COUCH_PASS']), params=params) for params in threadParamsList)
-    responses = grequests.map(callList)
+        auth=(app.config['COUCH_USER'], app.config['COUCH_PASS']), params=params) for params in threadParamsList) #define the requests
+    responses = grequests.map(callList) #submit all requests
     responseTime = datetime.datetime.now()
     print("{0} threads returned in {1}s".format(len(responses), responseTime-startTime))
 
+    #extract the list of "rows" from each response (the actual data)
     data = map(lambda response: response.json()['rows'], responses)
     unpackingTime = datetime.datetime.now()
     print("Unpacked threads in {0}s".format(unpackingTime-responseTime))
     
-    data = map(lambda threadRows: sorted(threadRows, key=lambda point: point['key']), data)
+    #this is a bit tricky - the map() applies the *sort lambda* to each list in data
+    #the sort lambda sorts each list of dicts by key INDIVIDUALLY of the others
+    #since grequests keeps the requests in order, the data is now completely sorted
+    data = map(lambda response: sorted(response, key=lambda point: point['key']), data)
     sortingTime = datetime.datetime.now()
     print("Sorted threads in {0}s".format(sortingTime-unpackingTime))
 
+    #finally, merge each list with a reduce()
     data = reduce(lambda a, b: a+b, data)
     mergingTime = datetime.datetime.now()
     print("Merged threads in {0}s".format(mergingTime-unpackingTime))

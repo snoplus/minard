@@ -2186,14 +2186,15 @@ def slowcontrol_plots():
         datelow, datehigh = datehigh, datelow
 
     if channelType == "supply" and supplyRack != "..." and supplyVoltage != "...":
-        newSlowData, newDataName = slowcontrol_data.get_supply_data_http(datelow, datehigh, supplyRack, supplyVoltage)
+        newSlowData, newDataName, baseRange = slowcontrol_data.get_supply_data_http(datelow, datehigh, supplyRack, supplyVoltage)
     elif channelType == "baseline" and baselineTrigger != "...": #there has to be a better way
-        newSlowData, newDataName = slowcontrol_data.get_baseline_data_http(datelow, datehigh, baselineCrate, baselineTrigger)
+        newSlowData, newDataName, baseRange = slowcontrol_data.get_baseline_data_http(datelow, datehigh, baselineCrate, baselineTrigger)
     else:
         newSlowData = None
         newDataName = None #initialize since we return
+        baseRange = None
 
     datelow_str = datelow.strftime("%Y-%m-%dT%H:%M")
     datehigh_str = datehigh.strftime("%Y-%m-%dT%H:%M")
     # Return info to webpage
-    return render_template('slowcontrol_plots.html', slow_data=newSlowData, data_name=newDataName, datetime_low=datelow_str, datetime_high=datehigh_str)
+    return render_template('slowcontrol_plots.html', slow_data=newSlowData, data_name=newDataName, base_range=baseRange, datetime_low=datelow_str, datetime_high=datehigh_str)

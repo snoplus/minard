@@ -108,6 +108,7 @@
         </div>
     </div>
 
+    {% if slow_data %}
     <div class="row">
         <div class="col-md-12">
             <h2 align="left"> Available Data </h2>
@@ -127,6 +128,7 @@
             </table>
         </div>
     </div>
+    {% endif %}
 
     </div>
 </div>
@@ -201,9 +203,11 @@
 
         var newSlowData = {{ slow_data | safe if slow_data else "null" }};
         var newDataName = "{{ data_name | safe if data_name else "null" }}"; // this sucks i am so sorry
+        var newBaseRange = {{ base_range | safe if base_range else "null" }};
 
         var slowData = initializeStoredArray("storedSlowData")
         var dataNames = initializeStoredArray("storedDataNames")
+        var baseRanges = initializeStoredArray("storedBaseRanges")
         var dataType = sessionStorage.getItem("dataType");
 
         if (newSlowData !== null) { //unfortunate, but null handling is hard
@@ -211,6 +215,9 @@
         }
         if (newDataName !== "null") { //more unfortunate
             dataNames.push(newDataName)
+        }
+        if (newBaseRange !== null && !baseRanges.includes(newBaseRange)) {
+            baseRanges.push(newBaseRange)
         }
 
         var mergedData = []
@@ -254,6 +261,11 @@
             point_size: 4.0,
             x_label: "Time",
             y_label: "Voltage",
+            max_y: (Math.max(...baseRanges) * 1.1) + 1,
+            min_y: (Math.min(...baseRanges) - (0.1 * Math.abs(Math.min(...baseRanges)))) - 1,
+            baselines: baseRanges.map(function(baseline, index) {
+                    return {"value": baseline, "label": `${baseline}V`};
+                }),
             decimals: 4,
             legend: dataNames,
             interpolate: 'linear',
@@ -320,7 +332,7 @@
         // the only way to change line width, i tried. ugh
         // changing dparams or overriding CSS did NOT work, for me at least
         document.querySelectorAll('#main svg path.mg-main-line').forEach(function(path) {
-            path.style.strokeWidth = '4px';
+            path.style.strokeWidth = '1.5px';
         });
         document.querySelectorAll('#main svg .mg-line-legend text').forEach(function(text) {
             text.style.fontSize = '1.2em';
@@ -401,6 +413,7 @@
         function historyAppend() {
             storeArray("storedSlowData", slowData);
             storeArray("storedDataNames", dataNames);
+            storeArray("storedBaseRanges", baseRanges);
             appendPlotButton.innerHTML = `Est. wait: ${getEstTimeString()}`;
             history();
         }

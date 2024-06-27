@@ -1,10 +1,8 @@
-import couchdb
 import datetime
 import grequests
 import json
 from . import app
 
-MAX_LIMIT = 268435456 #couchdb rules
 MAX_ROWS_RETURNED = 2000
 
 class CouchException(Exception):
@@ -13,22 +11,6 @@ class CouchException(Exception):
 
 def getTimestamp(targetTime):
     return targetTime.strftime("%s") #python2 doesn't support unix ts, but somehow this method does... on unix only
-
-def connect(user=None, pw=None, server="localhost", port=5984):
-    '''Deprecated in favour of HHTP/request methods.'''
-    if user is None and pw is None:
-        import couchcreds
-        user = couchcreds.user
-        pw = couchcreds.pw
-    serverStr = "http://" + str(user) + ":" + str(pw) + "@" + str(server) + ":" + str(port)
-    return couchdb.Server(serverStr)
-
-def get_data_from_view(db, viewName, startkey=0, endkey=999999999999, limit=500, request=True, collate=False):
-    viewData = db.view(viewName, limit=limit, startkey=startkey, endkey=endkey)
-    if collate: 
-        return [[r["key"], r["value"]] for r in viewData] #time value pairs (slower!!!)
-    else:
-        return [[r['key'] for r in viewData], [r["value"] for r in viewData]] #array of keys, array of values
 
 def get_data_from_view_http_threaded(viewName, startkey, endkey, threadCount=10, server="http://couch.snopl.us", stable='true', update='lazy'):
     startkey = int(startkey)
@@ -171,16 +153,11 @@ def get_baseline_data_http(datelow, datehigh, crate, trigger):
     
     viewName = get_crate_baseline_voltage_view_name(crate=crate, trigger=trigger)
     data = get_data_from_view_http_threaded(viewName, startkey=startkey, endkey=endkey)
-    baseRange = 0
+    baseRange = 0 #TODO
     
     x = len(data) 
     if x > MAX_ROWS_RETURNED:
         crushFactor = int(x/MAX_ROWS_RETURNED) #cap rows
         data = data[crushFactor::crushFactor]
-
-    print("View name returned from baseline: " + friendlyViewName)
     
     return json.dumps(data), friendlyViewName, baseRange
-
-if __name__ == "__main__":
-    pass

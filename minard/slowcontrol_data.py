@@ -1,7 +1,6 @@
 import couchdb
 import datetime
 import grequests
-import requests
 import json
 from . import app
 
@@ -31,23 +30,7 @@ def get_data_from_view(db, viewName, startkey=0, endkey=999999999999, limit=500,
     else:
         return [[r['key'] for r in viewData], [r["value"] for r in viewData]] #array of keys, array of values
 
-def get_data_from_view_http(viewName, server="http://couch.snopl.us", startkey=0, endkey=999999999999, limit=MAX_LIMIT, stable='true', update='lazy'):
-    params = {
-        "startkey": startkey,
-        "endkey": endkey,
-        "limit": limit,
-        "stable": stable, #whether to only pull from a stable "shard" (docs do not change, so keep 'true')
-        "update": update #whether to update the view ('true' for before, 'lazy' for after', 'false' for not at all)
-    }
-    tic = datetime.datetime.now()
-    r = requests.get(server+"/slowcontrol-data-5sec/_design/echolocator/_view/"+viewName, auth=(app.config['COUCH_USER'], app.config['COUCH_PASS']), params=params)
-    if r.status_code == 200:
-        print(str(len(r.json()['rows'])) + " rows returned in " + str(datetime.datetime.now()-tic))
-        return r.json()['rows']
-    else:
-        print("Getting data failed with code " + str(r.status_code) + "! " + str(r.json()))
-
-def get_data_from_view_http_threaded(viewName, startkey, endkey, threadCount=5, server="http://couch.snopl.us", stable='true', update='lazy'):
+def get_data_from_view_http_threaded(viewName, startkey, endkey, threadCount=10, server="http://couch.snopl.us", stable='true', update='lazy'):
     startkey = int(startkey)
     endkey = int(endkey)
 
@@ -57,7 +40,8 @@ def get_data_from_view_http_threaded(viewName, startkey, endkey, threadCount=5, 
     baseThreadParams = {
         "stable": stable,
         "update": update,
-        "inclusive_end": "true"
+        "inclusive_end": "true",
+        "sorted": "false", #faster to sort on our end with concurrent requests
     }
 
     threadParamsList = []
@@ -68,23 +52,28 @@ def get_data_from_view_http_threaded(viewName, startkey, endkey, threadCount=5, 
         newThreadParams["endkey"] = str(step + interval)
         threadParamsList.append(newThreadParams)
     
-    tic = datetime.datetime.now()
+    startTime = datetime.datetime.now()
 
     callList = (grequests.get(server+"/slowcontrol-data-5sec/_design/echolocator/_view/"+viewName, 
         auth=(app.config['COUCH_USER'], app.config['COUCH_PASS']), params=params) for params in threadParamsList)
     responses = grequests.map(callList)
+    responseTime = datetime.datetime.now()
+    print("{0} threads returned in {1}s".format(len(responses), responseTime-startTime))
 
-    toc = datetime.datetime.now()
+    data = map(lambda response: response.json()['rows'], responses)
+    unpackingTime = datetime.datetime.now()
+    print("Unpacked threads in {0}s".format(unpackingTime-responseTime))
+    
+    data = map(lambda threadRows: sorted(threadRows, key=lambda point: point['key']), data)
+    sortingTime = datetime.datetime.now()
+    print("Sorted threads in {0}s".format(sortingTime-unpackingTime))
 
-    try:
-        responseData = map(lambda response: response.json()['rows'], responses)
-        data = reduce(lambda a, b: a+b, responseData)
-        print("{0} rows returned in {1}s + {2}s mapping ({3}x threaded)".format(
-            len(data), toc-tic, datetime.datetime.now()-toc, threadCount)
-        )
-        return data
-    except Exception as e:
-        print("Getting data failed! " + e.message)
+    data = reduce(lambda a, b: a+b, data)
+    mergingTime = datetime.datetime.now()
+    print("Merged threads in {0}s".format(mergingTime-unpackingTime))
+
+    print("{0} rows returned in {1}s total ({2}x threaded)".format(len(data), mergingTime-startTime, threadCount))
+    return data
     
 def get_rack_supply_voltage_view_name(rack, voltage, httpStr=False):
     '''Gets the view name for a specified rack and voltage channel.
@@ -152,9 +141,11 @@ def get_supply_data_http(datelow, datehigh, rack, voltage):
 
     try: 
         voltage = int(voltage)
+        baseRange = voltage
     except ValueError:
         if voltage != "mtcd":
             return None, None
+        baseRange = -2
     
     viewName = get_rack_supply_voltage_view_name(rack=rack, voltage=voltage)
     data = get_data_from_view_http_threaded(viewName, startkey=startkey, endkey=endkey)
@@ -164,7 +155,7 @@ def get_supply_data_http(datelow, datehigh, rack, voltage):
         crushFactor = int(x/MAX_ROWS_RETURNED) #cap rows
         data = data[crushFactor::crushFactor]
     
-    return json.dumps(data), friendlyViewName
+    return json.dumps(data), friendlyViewName, baseRange
 
 def get_baseline_data_http(datelow, datehigh, crate, trigger):
     startkey = getTimestamp(datelow)
@@ -180,6 +171,7 @@ def get_baseline_data_http(datelow, datehigh, crate, trigger):
     
     viewName = get_crate_baseline_voltage_view_name(crate=crate, trigger=trigger)
     data = get_data_from_view_http_threaded(viewName, startkey=startkey, endkey=endkey)
+    baseRange = 0
     
     x = len(data) 
     if x > MAX_ROWS_RETURNED:
@@ -188,24 +180,7 @@ def get_baseline_data_http(datelow, datehigh, crate, trigger):
 
     print("View name returned from baseline: " + friendlyViewName)
     
-    return json.dumps(data), friendlyViewName
-
-def get_plot_data(startDate, endDate, dataName=str(datetime.datetime.now().microsecond), collate=False, limit=1000):
-    '''Test function for now'''
-    db = connect(user="admin", pw="pass", server="192.168.80.89")['slowcontrol-data-5sec']
-    tic = datetime.datetime.now()
-    data = get_data_from_view(db, 'slowcontrol-data-5sec/'+get_rack_supply_voltage_view_name(rack=1, voltage=24), limit=limit, startkey=1380882382, collate=collate)
-    print("Data returned in " + str(datetime.datetime.now()-tic) + " and collate was " + str(collate))
-    return data, dataName, startDate, endDate
-
-def get_plot_data_http(startDate, endDate, dataName=str(datetime.datetime.now().microsecond), limit=1000):
-    '''Test function for now'''
-    tic = datetime.datetime.now()
-    viewName = get_rack_supply_voltage_view_name(rack=1, voltage=24)
-    data = get_data_from_view_http(viewName, limit=limit, startkey=1380882382)
-    print("Data returned in " + str(datetime.datetime.now()-tic))
-    return data, dataName, startDate, endDate
+    return json.dumps(data), friendlyViewName, baseRange
 
 if __name__ == "__main__":
-    data = get_data_from_view_http("2_A_2", limit=100)
-    print(data)
+    pass

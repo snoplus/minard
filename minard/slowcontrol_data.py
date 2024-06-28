@@ -9,15 +9,23 @@ def getTimestamp(targetTime):
     return int(targetTime.strftime("%s")) #python2 doesn't support unix ts, but somehow this method does... on unix only
 
 class SlowDataObject():
-    def get_data_from_view_http_threaded(self, threadCount=20, server="http://couch.snopl.us", stable='true', update='lazy'):
+    def get_data_from_view_http_threaded(self, threadCount=20, server="http://couch.snopl.us", auth=(app.config['COUCH_USER'], app.config['COUCH_PASS'])):
+        '''Makes a multithreaded request to the CouchDB server for data from an echolocator view.
+            Returns a list of dicts with schema `{"_id": str, "key": int, "value": int}`.
+            `_id` is the internal CouchDB document ID.
+            `key` is the timestamp of the datapoint. `value` is the value at that time.
+            :param int threadCount: The number of concurrent requests. May give a performance boost if increased/decreased.
+            :param str server: The CouchDB server to request to. Override this if testing something.
+            :param tuple(str, str) auth: The username/password pair to authenticate into CouchDB. Override this if testing something.'''
+
         interval = (self.endkey-self.startkey)//threadCount #the range of keys in each request
         intervalList = range(self.startkey, self.endkey, interval) #the breakpoints
 
         #the template of parameters we will pass to the request
         #we will insert the startkey and endkey in the next step
         baseThreadParams = {
-            "stable": stable,
-            "update": update,
+            "stable": "true", # Whether to prefer returning data that has already been processed. Leave this as true unless you know what you're doing.
+            "update": "lazy", #Whether to update before/after a request (if at all). Leave this as lazy unless you know what you're doing.
             "inclusive_end": "false", #avoid overlaps
             "sorted": "false", #faster to sort on our end with concurrent requests
         }
@@ -37,8 +45,8 @@ class SlowDataObject():
         startTime = datetime.datetime.now()
 
         #next, use grequests to submit all requests concurrently
-        callList = (grequests.get(server+"/slowcontrol-data-5sec/_design/echolocator/_view/"+self.viewName, 
-            auth=(app.config['COUCH_USER'], app.config['COUCH_PASS']), params=params) for params in threadParamsList) #define the requests
+        callList = (grequests.get(server+"/slowcontrol-data-5sec/_design/echolocator/_view/"+self.viewName,
+            params=params) for params in threadParamsList) #define the requests
         responses = grequests.map(callList) #submit all requests
         responseTime = datetime.datetime.now()
         print("{0} threads returned in {1}s".format(len(responses), responseTime-startTime))
@@ -64,17 +72,24 @@ class SlowDataObject():
         self.data = data
 
     def build_view_name(self):
+        '''Constructs an echolocator view name given a datastream's ios, card, and channel.'''
         self.viewName = "{0}_{1}_{2}".format(self.ios, self.card, self.channel)
     
-    def compactData(self):
+    def compactData(self, maxPoints=MAX_ROWS_RETURNED):
+        '''Compresses the data by replacing the list with equally-spaced elements.
+            :param int maxPoints: The maximal points you need/can handle.'''
         self.points = len(self.data)
-        if self.points > MAX_ROWS_RETURNED:
-            crushFactor = int(self.points/MAX_ROWS_RETURNED) #cap rows
-            self.data = [self.data[0]] + self.data[crushFactor::crushFactor] + [self.data[-1]]
+        if self.points > maxPoints:
+            crushFactor = int(self.points/maxPoints)
+            self.data = [self.data[0]] + self.data[crushFactor:-1:crushFactor] + [self.data[-1]]
 
 class SupplyDataObject(SlowDataObject):
     def __init__(self, datelow, datehigh, rack, voltage):
-        #TODO: more docstrings
+        '''Initializes a SupplyDataObject. Automatically gets specified data if valid.
+            :param datetime datelow: The start date/time of the query.
+            :param datetime datehigh: The end date/time of the query.
+            :param int|str rack: Rack value from 1-11 or "timing".
+            :param int|str voltage: Voltage value valid for that rack.'''
         self.startkey = getTimestamp(datelow)
         self.endkey = getTimestamp(datehigh)
 
@@ -86,6 +101,11 @@ class SupplyDataObject(SlowDataObject):
         self.compactData()
 
     def handle_input_channel(self, rack, voltage):
+        '''Verifies and sanitizes the input rack and voltage data.
+            rack and voltage are not assigned to self until verified.
+            Also sets the baseline value and line caption (friendly name).
+            :param int|str rack: Rack value from 1-11 or "timing".
+            :param int|str voltage: Voltage value valid for that rack.'''
         try: #verify rack is int OR the string "timing"
             rack = int(rack)
             self.caption = "Rack {0}: {1}V".format(voltage, rack)
@@ -144,6 +164,11 @@ class SupplyDataObject(SlowDataObject):
 
 class BaselineDataObject(SlowDataObject):
     def __init__(self, datelow, datehigh, crate, trigger):
+        '''Initializes a BaselineDataObject. Automatically gets specified data if valid.
+            :param datetime datelow: The start date/time of the query.
+            :param datetime datehigh: The end date/time of the query.
+            :param int|str crate: Crate value from 0-18.
+            :param int|str trigger: Trigger value, either 20 or 100.'''
         self.startkey = getTimestamp(datelow)
         self.endkey = getTimestamp(datehigh)
 
@@ -155,6 +180,11 @@ class BaselineDataObject(SlowDataObject):
         self.compactData()
     
     def handle_input_channel(self, crate, trigger):
+        '''Verifies and sanitizes the input crate and trigger data.
+            crate and trigger are not assigned to self until verified.
+            Also sets the baseline value and line caption (friendly name).
+            :param int|str crate: Crate value from 0-18.
+            :param int|str trigger: Trigger value, either 20 or 100.'''
         try: #verify crate, trigger is int - this SUCKS prob just returns string always anyways
             self.crate = int(crate)
         except ValueError:
@@ -165,7 +195,7 @@ class BaselineDataObject(SlowDataObject):
         except ValueError:
             raise Exception("Trigger ({0}) was invalid.".format(trigger))
 
-        self.baseline = 0 #TODO            
+        self.baseline = 0 #TODO? is this correct?       
         self.caption = "Crate {0}: N{1}_BL".format(trigger, crate)
 
     def calc_view_name(self):

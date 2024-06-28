@@ -98,7 +98,7 @@
                     </table>
                 </th>
                 <!-- Plot actions -->
-                <th class="col-xl-3 col-xs-offset-0" style="padding-left">
+                <th class="col-xl-3 col-xs-offset-0">
                     <div style="padding-bottom:0.5em"> <button type=button id="new-plot" onclick="historyNew();">Generate New Plot</button> </div>
                     <div style="padding-bottom:0.5em"> <button type=button id="append-plot" onclick="historyAppend();">Add To Plot</button> </div>
                     <div> <button type=button id="append-plot" onclick="historyClear();">Clear Plot</button> </div>
@@ -234,7 +234,7 @@
             return sessionStorage.setItem(name, JSON.stringify(data));
         }
 
-        var newSlowData = {{ slow_data | safe if slow_data is not none else "null" }};
+        var newSlowData = {{ slow_data | safe if slow_data is not none else "null" }}; //yes it's lowercase, because jinja none (not python None)
         var newDataName = "{{ data_name | safe if data_name is not none else "null" }}"; // this sucks i am so sorry
         var newBaseRange = {{ base_range | safe if base_range is not none else "null" }};
 
@@ -244,7 +244,7 @@
         var dataType = sessionStorage.getItem("dataType");
         var plotControlsState = sessionStorage.getItem("storedPlotControls")
 
-        if (newSlowData !== null) { //unfortunate, but null handling is hard
+        if (newSlowData !== null && newSlowData.length > 0) { //unfortunate, but null handling is hard
             slowData.push(newSlowData)
         }
         if (newDataName !== "null") { //more unfortunate

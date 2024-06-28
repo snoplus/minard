@@ -69,3 +69,53 @@ baselineRadio.onclick = function() {
         mismatchWarningText.style.visibility = "";
     }
 }
+
+yMaxCheckbox.onclick = function() {
+    if (yMaxCheckbox.checked == true) {
+        yMaxValueEntry.removeAttribute("disabled");
+    }
+    else {
+        yMaxValueEntry.setAttribute("disabled", "")
+    }
+}
+
+yMinCheckbox.onclick = function() {
+    if (yMinCheckbox.checked == true) {
+        yMinValueEntry.removeAttribute("disabled");
+    }
+    else {
+        yMinValueEntry.setAttribute("disabled", "")
+    }
+}
+
+const plotControls = [yMaxCheckbox, yMinCheckbox, yMaxValueEntry, 
+    yMinValueEntry, absoluteRadio, relativeRadio];
+
+function getPlotControlsState() {
+    return {
+        "yMaxOn": yMaxCheckbox.checked,
+        "yMinOn": yMinCheckbox.checked,
+        "yMaxVal": yMaxValueEntry.value,
+        "yMinVal": yMinValueEntry.value,
+        "yAxisMode": document.querySelector("input[name=y-axis-type]:checked").value
+    };
+}
+
+var initialPlotState = getPlotControlsState()
+
+function checkPlotControlsState() {
+    const currentPlotState = getPlotControlsState();
+    for (var key in currentPlotState) {
+        if (initialPlotState[key] !== currentPlotState[key]) {
+            return false;
+        }
+    }
+    return true;
+}
+
+plotControls.forEach((element) => 
+    element.onchange = function() {
+        if (checkPlotControlsState()) { updateButton.setAttribute("disabled", ""); }
+        else { updateButton.removeAttribute("disabled"); }
+    }
+);

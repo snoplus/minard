@@ -4,16 +4,18 @@ const crateField = document.getElementById("baseline-crate");
 const triggerDropdown = document.getElementById("baseline-trigger");
 const flippyVoltage = document.getElementById("supply-flippy");
 const MTCDVoltage = document.getElementById("mtcd");
-const defaultVoltage = document.getElementById("default-voltage");
 const supplyRadio = document.getElementById("supply");
 const baselineRadio = document.getElementById("baseline");
-const metadataTable = document.getElementById("datastreams-listing")
-const newPlotButton = document.getElementById("new-plot")
 const appendPlotButton = document.getElementById("append-plot")
+const newPlotButton = document.getElementById("new-plot")
 const mismatchWarningText = document.getElementById("mismatch-warning")
-const datetimeLowInput = document.getElementById("datetime_low");
-const datetimeHighInput = document.getElementById("datetime_high");
-const dateWarningText = document.getElementById("date-warning");
+const yMaxCheckbox = document.getElementById("y-max-check");
+const yMinCheckbox = document.getElementById("y-min-check");
+const yMaxValueEntry = document.getElementById("y-max-value");
+const yMinValueEntry = document.getElementById("y-min-value");
+const absoluteRadio = document.getElementById("y-axis-absolute");
+const relativeRadio = document.getElementById("y-axis-relative");
+const updateButton = document.getElementById("update-plot")
 
 rackDropdown.onchange = function() {
     supplyRadio.checked = true;
@@ -47,27 +49,23 @@ triggerDropdown.onchange = function() {
 supplyRadio.onclick = function() {
     var currentMode = sessionStorage.getItem("dataType");
     if (currentMode == supplyRadio.id || currentMode == undefined) {
-        //newPlotButton.removeAttribute("disabled");
         appendPlotButton.removeAttribute("disabled");
-        mismatchWarningText.setAttribute("hidden", "");
+        mismatchWarningText.style.visibility = "hidden";
     }
     else {
-        //newPlotButton.setAttribute("disabled", "");
         appendPlotButton.setAttribute("disabled", "");
-        mismatchWarningText.removeAttribute("hidden");
+        mismatchWarningText.style.visibility = "";
     }
 }
 
 baselineRadio.onclick = function() {
     var currentMode = sessionStorage.getItem("dataType");
     if (currentMode == baselineRadio.id || currentMode == undefined) {
-        //newPlotButton.removeAttribute("disabled");
         appendPlotButton.removeAttribute("disabled");
-        mismatchWarningText.setAttribute("hidden", "");
+        mismatchWarningText.style.visibility = "hidden";
     }
     else {
-        //newPlotButton.setAttribute("disabled", "");
         appendPlotButton.setAttribute("disabled", "");
-        mismatchWarningText.removeAttribute("hidden")
+        mismatchWarningText.style.visibility = "";
     }
 }

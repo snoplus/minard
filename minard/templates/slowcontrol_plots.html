@@ -19,13 +19,17 @@
         <div class="col-md-12">
             <table class="table table-hover">
             <tr>
-                <th> Date Range: </th>
-                <th> Datastream: </th>
-                <th> </th>
+                <th> Date Range </th>
+                <th> Datastream </th>
+                <th> Plot Actions </th>
+                <th> Plot Controls 
+                    <button style="margin-left:0.5em; {% if not slow_data %} visibility:hidden {% endif %}" disabled 
+                    id="update-plot" onclick="updatePlot()">Update</button> 
+                </th>
             </tr>
             <tr>
                 <!-- Data datetime inputs -->
-                <th>
+                <th class="col-s-3 col-xs-offset-0">
                     <div>
                         <input style="margin-bottom: 10px;" type="datetime-local" id="datetime_low" value="{{datetime_low}}" required></input> 
                     </div>
@@ -35,60 +39,84 @@
                     <div id="date-warning" hidden style="color:red">Clear the plot to unlock dates.</div>
                 </th>
                 <!-- Channel selector -->
-                <th>
-                    <div>
-                        <label for="supply">Supply Voltage</label>
-                        <input type="radio" id="supply" value="supply" name="channel-type" checked>
-                        <label for="supply-rack">Rack #</label>
-                        <select name="supply-rack" id="supply-rack">
-                            <option disabled selected hidden>...</option>
-                            <option value="1">Rack 1</option>
-                            <option value="2">Rack 2</option>
-                            <option value="3">Rack 3</option>
-                            <option value="4">Rack 4</option>
-                            <option value="5">Rack 5</option>
-                            <option value="6">Rack 6</option>
-                            <option value="7">Rack 7</option>
-                            <option value="8">Rack 8</option>
-                            <option value="9">Rack 9</option>
-                            <option value="10">Rack 10</option>
-                            <option value="11">Rack 11</option>
-                            <option value="timing">Timing Rack</option>
-                        </select>
-                        <label for="supply-voltage">Voltage</label>
-                        <select name="supply-voltage" id="supply-voltage">
-                            <option disabled selected hidden id="default-voltage">...</option>
-                            <option value="24">24V</option>
-                            <option value="-24">-24V</option>
-                            <option value="8" id="supply-flippy">8V</option>
-                            <option value="5">5V</option>
-                            <option value="-5">-5V</option>
-                            <option value="mtcd" id="mtcd" hidden>MTCD 2V</option>
-                        </select>
-                    </div>
-
-                    <div>
-                        <label for="baseline">Baseline Voltage</label>
-                        <input type="radio" id="baseline" value="baseline" name="channel-type">
-                        <label for="baseline-crate">Crate #</label>
-                        <input type="number" id="baseline-crate" name="baseline-crate" min="0" max="18" value="" style="width: 4em">
-                        <label for="baseline-trigger">Trigger</label>
-                        <select name="baseline-trigger" id="baseline-trigger">
-                            <option disabled selected hidden>...</option>
-                            <option value="100">N100_BL</option>
-                            <option value="20">N20_BL</option>
-                        </select>
-                    </div>
+                <th class="col-s-3 col-xs-offset-0">
+                    <table style="border-spacing:0 1em; border-collapse:separate">
+                        <tr>
+                            <th class="col-m-3 col-xs-offset-0" style="padding-right:1em">
+                                <label for="supply">Supply Voltage</label>
+                                <input type="radio" id="supply" value="supply" name="channel-type" style="float:right" checked>
+                            </th>
+                            <th class="col-m-3 col-xs-offset-0" style="padding-right:1em">
+                                <label for="supply-rack">Rack #</label>
+                                <select name="supply-rack" id="supply-rack">
+                                    <option disabled selected hidden>...</option>
+                                    <option value="1">Rack 1</option>
+                                    <option value="2">Rack 2</option>
+                                    <option value="3">Rack 3</option>
+                                    <option value="4">Rack 4</option>
+                                    <option value="5">Rack 5</option>
+                                    <option value="6">Rack 6</option>
+                                    <option value="7">Rack 7</option>
+                                    <option value="8">Rack 8</option>
+                                    <option value="9">Rack 9</option>
+                                    <option value="10">Rack 10</option>
+                                    <option value="11">Rack 11</option>
+                                    <option value="timing">Timing Rack</option>
+                                </select>
+                            </th>
+                            <th class="col-m-3 col-xs-offset-0">
+                                <label for="supply-voltage">Voltage</label>
+                                <select name="supply-voltage" id="supply-voltage">
+                                    <option disabled selected hidden id="default-voltage">...</option>
+                                    <option value="24">24V</option>
+                                    <option value="-24">-24V</option>
+                                    <option value="8" id="supply-flippy">8V</option>
+                                    <option value="5">5V</option>
+                                    <option value="-5">-5V</option>
+                                    <option value="mtcd" id="mtcd" hidden>MTCD 2V</option>
+                                </select>
+                            <th>
+                        </tr>
+                        <tr>
+                            <th class="col-m-3 col-xs-offset-0" style="padding-right:1em">
+                                <label for="baseline">Baseline Voltage</label>
+                                <input type="radio" id="baseline" value="baseline" name="channel-type">
+                            </th>
+                            <th class="col-m-3 col-xs-offset-0" style="padding-right:1em">
+                                <label for="baseline-crate">Crate #</label>
+                                <input type="number" id="baseline-crate" name="baseline-crate" min="0" max="18" value="" style="width: 4em">
+                            </th>
+                            <th>
+                                <label for="baseline-trigger">Trigger</label>
+                                <select name="baseline-trigger" id="baseline-trigger">
+                                    <option disabled selected hidden>...</option>
+                                    <option value="100">N100_BL</option>
+                                    <option value="20">N20_BL</option>
+                                </select>
+                            </th>
+                        </tr>
+                    </table>
+                </th>
+                <!-- Plot actions -->
+                <th class="col-xl-3 col-xs-offset-0" style="padding-left">
+                    <div style="padding-bottom:0.5em"> <button type=button id="new-plot" onclick="historyNew();">Generate New Plot</button> </div>
+                    <div style="padding-bottom:0.5em"> <button type=button id="append-plot" onclick="historyAppend();">Add To Plot</button> </div>
+                    <div> <button type=button id="append-plot" onclick="historyClear();">Clear Plot</button> </div>
+                    <div id="mismatch-warning" style="color:red; padding-top:0.6em; visibility:hidden">Data types must match.</div>
                 </th>
                 <!-- Plot controls -->
-                <th class="col-xs-3 col-xs-offset-0">
-                    <div> <button type=button id="new-plot" onclick="historyNew();">Generate New Plot</button> </div>
-                    <div> <button type=button id="append-plot" onclick="historyAppend();">Add To Plot</button> </div>
-                    <div id="mismatch-warning" style="color:red" hidden>Data types must match.</div>
-                    <div> <button type=button id="append-plot" onclick="historyClear();">Clear Plot</button> </div>
+                <th class="col-s-3 col-xs-offset-0">
+                    {% if slow_data %}
+                    <div> <input type=checkbox id="y-max-check"> Override Max </input> <input type="number" id="y-max-value" step="0.1" style="width:4em" disabled> </div>
+                    <div> <input type=checkbox id="y-min-check"> Override Min </input> <input type="number" id="y-min-value" step="0.1" style="width:4em" disabled> </div>
+                    <div> <input type="radio" id="y-axis-relative" value="relative" name="y-axis-type" checked> <label for="axis-relative">Relative Default Range</label> </div>
+                    <div> <input type="radio" id="y-axis-absolute" value="absolute" name="y-axis-type"> <label for="axis-absolute">Absolute Default Range</label> </div>
+                    {% else %}
+                    <div> (No data) </div>
+                    {% endif %}
                 </th>
-                </tr>
-                </table>
+            </tr>
+            </table>
     <div class="row">
         <div class="col-md-12" id="sum">
             <div id="waiting" { % if not slow_data % } hidden { % endif % }>
@@ -177,11 +205,16 @@
     <script src="{{ url_for('static', filename='js/stream_utilities.js') }}"></script>
     <script src="{{ url_for('static', filename='js/slowcontrol_plots.js') }}"></script>
     <script>
-        if (url_params.datetime_low && document.getElementById("datetime_low").value == "") {
-            document.getElementById("datetime_low").value = url_params.datetime_low;
+
+        const datetimeLowInput = document.getElementById("datetime_low");
+        const datetimeHighInput = document.getElementById("datetime_high");
+        const dateWarningText = document.getElementById("date-warning");
+
+        if (url_params.datetime_low && datetimeLowInput.value == "") {
+            datetimeLowInput.value = url_params.datetime_low;
         }
-        if (url_params.datetime_high && document.getElementById("datetime_high").value == "") {
-            document.getElementById("datetime_high").value = url_params.datetime_high;
+        if (url_params.datetime_high && datetimeHighInput.value == "") {
+            datetimeHighInput.value = url_params.datetime_high;
         }
         if (url_params.channel_type) {
             document.getElementById(url_params.channel_type).checked = true 
@@ -209,6 +242,7 @@
         var dataNames = initializeStoredArray("storedDataNames")
         var baseRanges = initializeStoredArray("storedBaseRanges")
         var dataType = sessionStorage.getItem("dataType");
+        var plotControlsState = sessionStorage.getItem("storedPlotControls")
 
         if (newSlowData !== null) { //unfortunate, but null handling is hard
             slowData.push(newSlowData)
@@ -218,6 +252,19 @@
         }
         if (newBaseRange !== null && !baseRanges.includes(newBaseRange)) {
             baseRanges.push(newBaseRange)
+        }
+
+        if (plotControlsState !== null) {
+            yMaxCheckbox.checked = plotControlsState["yMaxOn"];
+            yMinCheckbox.checked = plotControlsState["yMinOn"];
+            yMaxValueEntry.checked = plotControlsState["yMaxVal"];
+            yMinValueEntry.checked = plotControlsState["yMinVal"];
+            if (plotControlsState["yAxisMode"] === "relative") {
+                relativeRadio.checked = true;
+            }
+            else if (plotControlsState["yAxisMode"] === "absolute") {
+                absoluteRadio.checked = true;
+            }
         }
 
         var mergedData = []
@@ -246,42 +293,97 @@
         } 
 
         var time_fmt = 'MMMM Do YYYY, h:mm:ss a';
-
-        var dparams = {
-            area: false,
-            data: slowData,
-            width: $('#main').width(),
-            left: 100,
-            right: 100,
-            height: 500,
-            target: "#main",
-            time_scale: cscale,
-            x_accessor:'key',
-            y_accessor:'value',
-            point_size: 4.0,
-            x_label: "Time",
-            y_label: "Voltage",
-            max_y: (Math.max(...baseRanges) * 1.1) + 1,
-            min_y: (Math.min(...baseRanges) - (0.1 * Math.abs(Math.min(...baseRanges)))) - 1,
-            baselines: baseRanges.map(function(baseline, index) {
-                    return {"value": baseline, "label": `${baseline}V`};
-                }),
-            decimals: 4,
-            legend: dataNames,
-            interpolate: 'linear',
-
-            y_mouseover: function(data) {
-                var voltage = parseFloat(data['value']).toFixed(4);
-                return voltage + ' V';
-            },
-
-            x_mouseover: function(data) {
-                return moment(data.key).format(time_fmt);
+        
+        function getMaxY() {
+            if (yMaxCheckbox.checked) { 
+                return yMaxValueEntry.value; 
             }
-        };
+            else {
+                var axisMode = document.querySelector("input[name=y-axis-type]:checked").value;
+                if (axisMode === relativeRadio.value) { 
+                    return (Math.max(...baseRanges) * 1.1) + 1; 
+                }
+                else if (axisMode === absoluteRadio.value) { 
+                    return null; 
+                }
+            }
+            return null;
+        }
+        
+        function getMinY() {
+            if (yMinCheckbox.checked) { 
+                return yMinValueEntry.value; 
+            }
+            else {
+                var axisMode = document.querySelector("input[name=y-axis-type]:checked").value;
+                if (axisMode === relativeRadio.value) { 
+                    return (Math.min(...baseRanges) - (0.1 * Math.abs(Math.min(...baseRanges)))) - 1;
+                }
+                else if (axisMode === absoluteRadio.value) { 
+                    return null; 
+                }
+            }
+            return null;
+        }
 
-        if (slowData.length > 0) {
-            MG.data_graphic(dparams); //replaces "No data" text
+        function updatePlot() {
+            var dparams = {
+                area: false,
+                data: slowData,
+                width: $('#main').width(),
+                left: 100,
+                right: 100,
+                height: 500,
+                target: "#main",
+                time_scale: cscale,
+                animate_on_load: true,
+                x_accessor:'key',
+                y_accessor:'value',
+                point_size: 4.0,
+                x_label: "Time",
+                y_label: "Voltage",
+                max_y: getMaxY(),
+                min_y: getMinY(), 
+                baselines: baseRanges.map(function(baseline, index) {
+                        return {"value": baseline, "label": `${baseline}V`};
+                    }),
+                decimals: 4,
+                legend: dataNames,
+                interpolate: 'linear',
+
+                y_mouseover: function(data) {
+                    var voltage = parseFloat(data['value']).toFixed(4);
+                    return voltage + ' V' ;
+                },
+
+                x_mouseover: function(data) {
+                    return moment(data.key).format(time_fmt);
+                }
+            };
+
+            sessionStorage.setItem("storedPlotControls", getPlotControlsState())
+            initialPlotState = getPlotControlsState()
+            updateButton.setAttribute("disabled", "");
+
+            if (slowData.length > 0) {
+                MG.data_graphic(dparams); //replaces "No data" text
+            }
+
+            // the only way to change line width, i tried. ugh
+            // changing dparams or overriding CSS did NOT work, for me at least
+            // needs to be in here to update new lines
+            document.querySelectorAll('#main svg path.mg-main-line').forEach(function(path) {
+                path.style.strokeWidth = '1.5px';
+            });
+            document.querySelectorAll('#main svg .mg-line-legend text').forEach(function(text) {
+                text.style.fontSize = '1.2em';
+                text.style.fontWeight = '600';
+            });
+            document.querySelectorAll('.mg-x-axis text, .mg-y-axis text, .mg-histogram .axis text').forEach(function(text) {
+                text.style.fontSize = '1.1em';
+            });
+
+            return dparams;
         }
 
         function deleteStream(index) {
@@ -295,18 +397,16 @@
         }
 
         function addDatastreamTableRow(name, first, last, length, index) {
-            console.log(`Adding row: ${index} ${name} ${first} ${last} ${length}`)
-            
             tableData=
-                `<tr>
+            `<tr>
                     <td class="mg-line${index+1}-legend-color">${index+1}</td>
                     <td>${name}</td>
                     <td>${first}</td>
                     <td>${last}</td>
                     <td>${length}</td>
                     <td><button onclick="deleteStream(${index})">Remove</button></td>
-                </tr>`;
-            var newRow = metadataTable.insertRow();
+                    </tr>`;
+            var newRow = document.getElementById("datastreams-listing").insertRow();
             newRow.innerHTML = tableData;
             return true;
         } //would really rather put these in the .js, but alas...
@@ -329,19 +429,6 @@
             dateWarningText.setAttribute("hidden", "");
         }
 
-        // the only way to change line width, i tried. ugh
-        // changing dparams or overriding CSS did NOT work, for me at least
-        document.querySelectorAll('#main svg path.mg-main-line').forEach(function(path) {
-            path.style.strokeWidth = '1.5px';
-        });
-        document.querySelectorAll('#main svg .mg-line-legend text').forEach(function(text) {
-            text.style.fontSize = '1.2em';
-            text.style.fontWeight = '600';
-        });
-        document.querySelectorAll('.mg-x-axis text, .mg-y-axis text, .mg-histogram .axis text').forEach(function(text) {
-            text.style.fontSize = '1.1em';
-        });
-
         function history() {
             var params = {};
             
@@ -355,7 +442,7 @@
             // in either case, set the parameter to this stored value
             try {
                 if (sessionStorage.getItem("startTimestamp") === null) {
-                    sessionStorage.setItem("startTimestamp", document.getElementById("datetime_low").value);
+                    sessionStorage.setItem("startTimestamp", datetimeLowInput.value);
                 }
             } catch (e) {
                 sessionStorage.setItem("startTimestamp", "2024-02-19T00:00");
@@ -364,7 +451,7 @@
             }
             try {
                 if (sessionStorage.getItem("endTimestamp") === null) {
-                    sessionStorage.setItem("endTimestamp", document.getElementById("datetime_high").value);
+                    sessionStorage.setItem("endTimestamp", datetimeHighInput.value);
                 }
                 params['datetime_high'] = sessionStorage.getItem("endTimestamp")
             } catch (e) {
@@ -428,6 +515,8 @@
             sessionStorage.clear();
             window.location.replace($SCRIPT_ROOT + "/slowcontrol_plots");
         }
+
+        updatePlot();
 
     </script>
 {% endblock %}

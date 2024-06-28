@@ -64,7 +64,13 @@ class SlowDataObject():
         self.data = data
 
     def build_view_name(self):
-        self.viewName = str(self.ios) + "_" + str(self.card) + "_" + str(self.channel)
+        self.viewName = "{0}_{1}_{2}".format(self.ios, self.card, self.channel)
+    
+    def compactData(self):
+        self.points = len(self.data)
+        if self.points > MAX_ROWS_RETURNED:
+            crushFactor = int(self.points/MAX_ROWS_RETURNED) #cap rows
+            self.data = [self.data[0]] + self.data[crushFactor::crushFactor] + [self.data[-1]]
 
 class SupplyDataObject(SlowDataObject):
     def __init__(self, datelow, datehigh, rack, voltage):
@@ -77,32 +83,27 @@ class SupplyDataObject(SlowDataObject):
         self.calc_view_name()
         self.get_data_from_view_http_threaded()
 
-        self.points = len(self.data)
-        if self.points > MAX_ROWS_RETURNED:
-            crushFactor = int(self.points/MAX_ROWS_RETURNED) #cap rows
-            self.data = [self.data[0]] + self.data[crushFactor::crushFactor] + [self.data[-1]]
-        
-        # return json.dumps(data), friendlyViewName, baseRange
-    
+        self.compactData()
+
     def handle_input_channel(self, rack, voltage):
         try: #verify rack is int OR the string "timing"
             rack = int(rack)
-            self.caption = "Rack " + str(rack) + ": " + str(voltage) + "V"
+            self.caption = "Rack {0}: {1}V".format(voltage, rack)
         except ValueError:
             if rack == "timing":
                 if voltage == "mtcd":
                     self.caption = "MTCD -2V"
-                else: 
-                    self.caption = "Timing Rack: " + str(voltage) + "V"
+                else: #0-400nhits 
+                    self.caption = "Timing Rack: {0}V".format(voltage)
             else:
-                raise Exception("Rack " + str(rack) + "was invalid.")
+                raise Exception("Rack {0}was invalid.".format(rack))
 
         try: 
             voltage = int(voltage)
             self.baseline = voltage
         except ValueError:
             if voltage != "mtcd":
-                raise Exception("Voltage " + str(voltage) + "was invalid.")
+                raise Exception("Voltage {0}was invalid.".format(voltage))
             self.baseline = -2
         
         self.rack = rack
@@ -121,9 +122,9 @@ class SupplyDataObject(SlowDataObject):
         ios = 2
 
         if rack not in RACKS:
-            raise Exception("Rack " + str(rack) + " is invalid.")
+            raise Exception("Rack {0} is invalid.".format(rack))
         if voltage not in VOLTAGES + VOLTAGES_TIMING: 
-            raise Exception("Voltage " + str(voltage) + " is invalid.")
+            raise Exception("Voltage {0} is invalid.".format(voltage))
 
         if rack == "timing":
             card = 'D'
@@ -151,26 +152,21 @@ class BaselineDataObject(SlowDataObject):
         self.calc_view_name()
         self.get_data_from_view_http_threaded()
         
-        self.points = len(self.data) 
-        if self.points > MAX_ROWS_RETURNED:
-            crushFactor = int(self.points/MAX_ROWS_RETURNED) #cap rows
-            self.data = [self.data[0]] + self.data[crushFactor::crushFactor] + [self.data[-1]]
-        
-        # return json.dumps(data), friendlyViewName, baseRange
+        self.compactData()
     
     def handle_input_channel(self, crate, trigger):
         try: #verify crate, trigger is int - this SUCKS prob just returns string always anyways
             self.crate = int(crate)
         except ValueError:
-            raise Exception("Crate (" + str(crate) + ") was invalid.")
+            raise Exception("Crate ({0}) was invalid.".format(crate))
 
         try:
             self.trigger = int(trigger)
         except ValueError:
-            raise Exception("Trigger (" + str(trigger) + ") was invalid.")
+            raise Exception("Trigger ({0}) was invalid.".format(trigger))
 
         self.baseline = 0 #TODO            
-        self.caption = "Crate " + str(crate) + ": N" + str(trigger) + "_BL"
+        self.caption = "Crate {0}: N{1}_BL".format(trigger, crate)
 
     def calc_view_name(self):
         '''Gets the view name for a specified crate and trigger baseline voltage.
@@ -183,8 +179,8 @@ class BaselineDataObject(SlowDataObject):
         trigger = self.trigger
         ios = 4
 
-        if crate not in CRATES: raise Exception("Crate " + str(crate) + " is invalid.")
-        if trigger not in TRIGGERS: raise Exception("Trigger " + str(trigger) + " is invalid.")
+        if crate not in CRATES: raise Exception("Crate {0} is invalid.".format(crate))
+        if trigger not in TRIGGERS: raise Exception("Trigger {0} is invalid.".format(trigger))
 
         card = CARDS[crate // 6]
         channel = (crate % 6) * 3 + TRIGGERS.index(trigger)

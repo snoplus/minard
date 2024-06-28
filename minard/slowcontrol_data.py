@@ -90,14 +90,11 @@ class SupplyDataObject(SlowDataObject):
             :param datetime datehigh: The end date/time of the query.
             :param int|str rack: Rack value from 1-11 or "timing".
             :param int|str voltage: Voltage value valid for that rack.'''
-        self.startkey = getTimestamp(datelow)
-        self.endkey = getTimestamp(datehigh)
-
+        self.startkey, self.endkey = map(getTimestamp, [datelow, datehigh])
         self.handle_input_channel(rack, voltage)
-        
+
         self.calc_view_name()
         self.get_data_from_view_http_threaded()
-
         self.compactData()
 
     def handle_input_channel(self, rack, voltage):
@@ -169,14 +166,11 @@ class BaselineDataObject(SlowDataObject):
             :param datetime datehigh: The end date/time of the query.
             :param int|str crate: Crate value from 0-18.
             :param int|str trigger: Trigger value, either 20 or 100.'''
-        self.startkey = getTimestamp(datelow)
-        self.endkey = getTimestamp(datehigh)
+        self.startkey, self.endkey = map(getTimestamp, [datelow, datehigh])
+        self.handle_input_channel(crate, trigger)  
 
-        self.handle_input_channel(crate, trigger)
-        
         self.calc_view_name()
         self.get_data_from_view_http_threaded()
-        
         self.compactData()
     
     def handle_input_channel(self, crate, trigger):

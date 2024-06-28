@@ -32,7 +32,7 @@
                     <div>
                         <input style="margin-bottom: 10px;" type="datetime-local" id="datetime_high" value="{{datetime_high}}" required></input>
                     </div>
-                    <div id="date-warning" hidden style="color:red">Clear the plot to unlock.</div>
+                    <div id="date-warning" hidden style="color:red">Clear the plot to unlock dates.</div>
                 </th>
                 <!-- Channel selector -->
                 <th>
@@ -201,9 +201,9 @@
             return sessionStorage.setItem(name, JSON.stringify(data));
         }
 
-        var newSlowData = {{ slow_data | safe if slow_data else "null" }};
-        var newDataName = "{{ data_name | safe if data_name else "null" }}"; // this sucks i am so sorry
-        var newBaseRange = {{ base_range | safe if base_range else "null" }};
+        var newSlowData = {{ slow_data | safe if slow_data is not none else "null" }};
+        var newDataName = "{{ data_name | safe if data_name is not none else "null" }}"; // this sucks i am so sorry
+        var newBaseRange = {{ base_range | safe if base_range is not none else "null" }};
 
         var slowData = initializeStoredArray("storedSlowData")
         var dataNames = initializeStoredArray("storedDataNames")
@@ -319,7 +319,7 @@
             addDatastreamTableRow(myName, myFirstTime, myLastTime, streamLength, i);
         }
         
-        document.getElementById("waiting").innerHTML="";
+        document.getElementById("waiting").setAttribute("hidden", "")
 
         if (slowData.length !== 0) {
             datetimeLowInput.setAttribute("disabled", "");

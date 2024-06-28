@@ -18,7 +18,7 @@ class SlowDataObject():
         baseThreadParams = {
             "stable": stable,
             "update": update,
-            "inclusive_end": "true",
+            "inclusive_end": "false", #avoid overlaps
             "sorted": "false", #faster to sort on our end with concurrent requests
         }
 
@@ -30,6 +30,9 @@ class SlowDataObject():
             newThreadParams["startkey"] = str(step)
             newThreadParams["endkey"] = str(step + interval)
             threadParamsList.append(newThreadParams)
+        
+        #make sure the LAST one includes the last point
+        threadParamsList[-1]["inclusive_end"] = "true"
         
         startTime = datetime.datetime.now()
 

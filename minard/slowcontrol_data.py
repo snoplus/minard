@@ -46,7 +46,7 @@ class SlowDataObject():
 
         #next, use grequests to submit all requests concurrently
         callList = (grequests.get(server+"/slowcontrol-data-5sec/_design/echolocator/_view/"+self.viewName,
-            params=params) for params in threadParamsList) #define the requests
+            auth=auth, params=params) for params in threadParamsList) #define the requests
         responses = grequests.map(callList) #submit all requests
         responseTime = datetime.datetime.now()
         print("{0} threads returned in {1}s".format(len(responses), responseTime-startTime))
@@ -105,7 +105,7 @@ class SupplyDataObject(SlowDataObject):
             :param int|str voltage: Voltage value valid for that rack.'''
         try: #verify rack is int OR the string "timing"
             rack = int(rack)
-            self.caption = "Rack {0}: {1}V".format(voltage, rack)
+            self.caption = "Rack {0}: {1}V".format(rack, voltage)
         except ValueError:
             if rack == "timing":
                 if voltage == "mtcd":
@@ -190,7 +190,7 @@ class BaselineDataObject(SlowDataObject):
             raise Exception("Trigger ({0}) was invalid.".format(trigger))
 
         self.baseline = 0 #TODO? is this correct?       
-        self.caption = "Crate {0}: N{1}_BL".format(trigger, crate)
+        self.caption = "Crate {0}: N{1}_BL".format(crate, trigger)
 
     def calc_view_name(self):
         '''Gets the view name for a specified crate and trigger baseline voltage.

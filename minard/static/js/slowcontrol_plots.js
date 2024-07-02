@@ -92,12 +92,17 @@ const plotControls = [yMaxCheckbox, yMinCheckbox, yMaxValueEntry,
     yMinValueEntry, absoluteRadio, relativeRadio];
 
 function getPlotControlsState() {
+    const yMaxOn = yMaxCheckbox.checked;
+    const yMinOn = yMinCheckbox.checked;
+    const yMaxVal = yMaxCheckbox.checked ? yMaxValueEntry.value : null;
+    const yMinVal = yMinCheckbox.checked ? yMinValueEntry.value : null;
+    const yAxisMode = document.querySelector("input[name=y-axis-type]:checked").value;
     return {
-        "yMaxOn": yMaxCheckbox.checked,
-        "yMinOn": yMinCheckbox.checked,
-        "yMaxVal": yMaxValueEntry.value,
-        "yMinVal": yMinValueEntry.value,
-        "yAxisMode": document.querySelector("input[name=y-axis-type]:checked").value
+        "yMaxOn": yMaxOn, 
+        "yMinOn": yMinOn, 
+        "yMaxVal": yMaxVal, 
+        "yMinVal": yMinVal, 
+        "yAxisMode": yAxisMode, 
     };
 }
 

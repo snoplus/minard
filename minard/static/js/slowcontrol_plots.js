@@ -14,7 +14,8 @@ const yMinCheckbox = document.getElementById("y-min-check");
 const yMaxValueEntry = document.getElementById("y-max-value");
 const yMinValueEntry = document.getElementById("y-min-value");
 const absoluteRadio = document.getElementById("y-axis-absolute");
-const relativeRadio = document.getElementById("y-axis-relative");
+const boundedRadio = document.getElementById("y-axis-bounded");
+const focusedRadio = document.getElementById("y-axis-focused");
 const updateButton = document.getElementById("update-plot")
 
 rackDropdown.onchange = function() {
@@ -89,7 +90,7 @@ yMinCheckbox.onclick = function() {
 }
 
 const plotControls = [yMaxCheckbox, yMinCheckbox, yMaxValueEntry, 
-    yMinValueEntry, absoluteRadio, relativeRadio];
+    yMinValueEntry, absoluteRadio, boundedRadio, focusedRadio];
 
 function getPlotControlsState() {
     const yMaxOn = yMaxCheckbox.checked;

@@ -127,10 +127,11 @@
                 <!-- Plot controls -->
                 <th id="plot-controls-layer-1" class="col-md-2"> <!-- this and child used to disable when no data -->
                     <div id="plot-controls-layer-2"> <!-- cannot be done using jinja template, as python only sends NEW data (stateless) :( -->
+                        <div> <input type="radio" id="y-axis-bounded" value="bounded" name="y-axis-type" checked> <label for="axis-bounded"> <abbr title="Sets the plot range based on the expected voltage range.">Bounded</abbr> Default Range</label> </div>
+                        <div> <input type="radio" id="y-axis-absolute" value="absolute" name="y-axis-type"> <label for="axis-absolute"> <abbr title="Sets the plot range based on the data range, including zero.">Absolute</abbr> Default Range</label> </div>
+                        <div> <input type="radio" id="y-axis-focused" value="focused" name="y-axis-type"> <label for="axis-focused"> <abbr title="Sets the plot range based on the data range.">Focused</abbr> Default Range</label> </div>
                         <div> <input type=checkbox id="y-max-check"> Override Max </input> <input type="number" id="y-max-value" step="0.1" style="width:4em" disabled> </div>
                         <div> <input type=checkbox id="y-min-check"> Override Min </input> <input type="number" id="y-min-value" step="0.1" style="width:4em" disabled> </div>
-                        <div> <input type="radio" id="y-axis-relative" value="relative" name="y-axis-type" checked> <label for="axis-relative">Relative Default Range</label> </div>
-                        <div> <input type="radio" id="y-axis-absolute" value="absolute" name="y-axis-type"> <label for="axis-absolute">Absolute Default Range</label> </div>
                     </div>
                 </th>
             </tr>
@@ -272,11 +273,14 @@
             yMinCheckbox.checked = plotControlsState["yMinOn"];
             yMaxValueEntry.value = plotControlsState["yMaxVal"];
             yMinValueEntry.value = plotControlsState["yMinVal"];
-            if (plotControlsState["yAxisMode"] === "relative") {
-                relativeRadio.checked = true;
+            if (plotControlsState["yAxisMode"] === "bounded") {
+                boundedRadio.checked = true;
             }
             else if (plotControlsState["yAxisMode"] === "absolute") {
                 absoluteRadio.checked = true;
+            }
+            else if (plotControlsState["yAxisMode"] === "focused") {
+                focusedRadio.checked = true;
             }
         }
 
@@ -318,52 +322,27 @@
         var time_fmt = 'MMMM Do YYYY, h:mm:ss a';
         
         function getMaxY() {
-            try {
-                if (yMaxCheckbox.checked) { 
-                    return yMaxValueEntry.value; 
-                }
-                else {
-                    var axisMode = document.querySelector("input[name=y-axis-type]:checked").value;
-                    if (axisMode === relativeRadio.value) { 
-                        return (Math.max(...baseRanges) * 1.1) + 1; 
-                    }
-                    else if (axisMode === absoluteRadio.value) { 
-                        return null; 
-                    }
-                }
+            if (yMaxCheckbox.checked) { return yMaxValueEntry.value; }
+            
+            var axisMode = document.querySelector("input[name=y-axis-type]:checked").value;
+            if (axisMode === boundedRadio.value) { 
+                return (Math.max(...baseRanges) * 1.1) + 1; 
             }
-            finally { //if error, checkbox does not exist
-                return null; //if exists but no condition hit, return null
-            }
+
+            // else, axisMode is absolute or focused
+            return null; 
         }
         
         function getMinY() {
-            try {
-                if (yMinCheckbox.checked) { 
-                    return yMinValueEntry.value;
-                }
-                else {
-                    var axisMode = document.querySelector("input[name=y-axis-type]:checked").value;
-                    if (axisMode === relativeRadio.value) { 
-                        const val = (Math.min(...baseRanges) - (0.1 * Math.abs(Math.min(...baseRanges)))) - 1;
-                        console.log(`using relative: ${val}`);
-                        return val;
-                    }
-                    else if (axisMode === absoluteRadio.value) { 
-                        console.log("using absolute")
-                        return null;
-                    }
-                }
+            if (yMinCheckbox.checked) { return yMinValueEntry.value;}
+            
+            var axisMode = document.querySelector("input[name=y-axis-type]:checked").value;
+            if (axisMode === boundedRadio.value) { 
+                return (Math.min(...baseRanges) - (0.1 * Math.abs(Math.min(...baseRanges)))) - 1;
             }
-            finally {
-                return null;
-            }
-        }
 
-        function wgetMinY() {
-            var y = getMinY();
-            console.log(`min y: ${y}`);
-            return y;
+            // else, axisMode is absolute or focused
+            return null;
         }
 
         function updatePlot() {
@@ -383,7 +362,8 @@
                 x_label: "Time",
                 y_label: "Voltage",
                 max_y: getMaxY(),
-                min_y: wgetMinY(), 
+                min_y: getMinY(),
+                min_y_from_data: focusedRadio.checked, //sets min y to min of data (or 0 if false)
                 baselines: baseRanges.map(function(baseline, index) {
                         return {"value": baseline, "label": `${baseline}V`};
                     }),
@@ -410,9 +390,7 @@
                 try {
                     document.getElementById("data-status").remove();
                 }
-                catch { 
-                    console.log("testing!")
-                } //if it already doesn't exist, just continue
+                catch { } //if it already doesn't exist, just continue
             }
 
             // the only way to change line width, i tried. ugh

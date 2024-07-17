@@ -516,7 +516,7 @@
 
         function getEstTimeString() {
             var millisecondDifference = moment(datetimeHighInput.value) - moment(datetimeLowInput.value);
-            const DataMsPerMsQueryTime = 400000; //ie. 1 ms of query time returns ~80 results, or 400secs of data (when threaded)
+            const DataMsPerMsQueryTime = 100000; //ie. 1 ms of query time returns ~20 results, or 100secs of data (when threaded)
             var estWaitTimeMs = millisecondDifference / DataMsPerMsQueryTime;
             return moment.duration(estWaitTimeMs).locale('en').humanize(); 
         }

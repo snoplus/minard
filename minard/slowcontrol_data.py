@@ -9,7 +9,7 @@ def getTimestamp(targetTime):
     return int(targetTime.strftime("%s")) #python2 doesn't support unix ts, but somehow this method does... on unix only
 
 class SlowDataObject():
-    def get_data_from_view_http_threaded(self, threadCount=20, server="http://couch.snopl.us", auth=(app.config['COUCH_USER'], app.config['COUCH_PASS'])):
+    def get_data_from_view_http_threaded(self, threadCount=10, server="http://couch.snopl.us", auth=(app.config['COUCH_USER'], app.config['COUCH_PASS'])):
         '''Makes a multithreaded request to the CouchDB server for data from an echolocator view.
             Returns a list of dicts with schema `{"_id": str, "key": int, "value": int}`.
             `_id` is the internal CouchDB document ID.

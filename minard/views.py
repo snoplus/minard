@@ -1986,6 +1986,11 @@ def runselection():
     result_bronze = request.args.get("result_bronze", "All", type=str)
     result_nickel = request.args.get("result_nickel", "All", type=str)
 
+    # Normalize criteria: collapse scintillator variants to 'scintillator' for UI behavior
+    scint_variants = ['scintillator', 'scintillator_silver', 'scintillator_bronze', 'scintillator_nickel']
+    if criteria in scint_variants and criteria != 'scintillator':
+        criteria = 'scintillator'
+
     # Use this to get run info from databases, to display in list
     run_range = [run_range_low, run_range_high]
     date_range = [[year_low, month_low, day_low], [year_high, month_high, day_high]]
@@ -1998,6 +2003,20 @@ def runselection():
             'scintillator_nickel': result_nickel
         }
     run_info, drop_down_crits = RSTools.list_runs_info(limit, offset, result_param, criteria, selected_run, run_range, date_range)
+
+    # Collapse scintillator variants in dropdown: show only 'scintillator'
+    collapsed = []
+    added_scint = False
+    for c in drop_down_crits:
+        if c in scint_variants:
+            if not added_scint:
+                collapsed.append('scintillator')
+                added_scint = True
+            # skip additional variants
+            continue
+        if c not in collapsed:
+            collapsed.append(c)
+    drop_down_crits = collapsed
 
     # Return info to webpage
     return render_template('runselection.html', run_info=run_info, drop_down_crits=drop_down_crits, criteria=criteria, limit=limit, offset=offset, result=result, selected_run=selected_run, run_range_low=run_range_low, run_range_high=run_range_high,

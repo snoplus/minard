@@ -509,9 +509,11 @@ def list_runs_info(limit, offset, result, criteria, selected_run, run_range, dat
         candidate_runs = []
         if all_none:
             # Build candidate runs from run_state and exclude any run that has any scintillator variant
-            # Determine fetch size and time window
+            # Determine fetch size and time window - only physics runs
             fetch_limit = max(500, (offset + limit) * 8)
             conditions = []
+            # Physics runs only: run_type & 1 > 0
+            conditions.append("(run_type & 1) > 0")
             if run_min is not None:
                 conditions.append("run >= %d" % int(run_min))
             if run_max is not None:
@@ -521,8 +523,7 @@ def list_runs_info(limit, offset, result, criteria, selected_run, run_range, dat
             if min_runTime is not None:
                 conditions.append("timestamp::date >= '%s'" % (min_runTime.strftime('%Y-%m-%d')))
             query_base = "SELECT run FROM run_state"
-            if len(conditions) > 0:
-                query_base += " WHERE " + " AND ".join(conditions)
+            query_base += " WHERE " + " AND ".join(conditions)
             query_base += " ORDER BY run DESC LIMIT %d" % fetch_limit
             try:
                 conn_main = engine.connect()

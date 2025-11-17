@@ -12,6 +12,20 @@
         margin: 4px 2px;
         cursor: pointer;
     }
+    .rs-multi { 
+        display: grid; 
+        grid-template-columns: 60px auto; 
+        grid-row-gap: 4px; 
+        align-items: center; 
+    }
+    .rs-multi label { 
+        margin: 0; 
+        font-weight: normal; 
+    }
+    .rs-multi select { 
+        min-width: 120px; 
+        padding: 2px; 
+    }
   </style>
 {% endblock %}
 {% block body %}
@@ -62,14 +76,60 @@
 
                 <!-- Run-selection outcome drop-down -->
                 <th>
-                    <select id="res" onchange="get_limit(lim.value, {{offset}}, crit.value, this.value, run.value, low.value, high.value, y_low.value, m_low.value, d_low.value, y_high.value, m_high.value, d_high.value);">
-                    <option selected value="{{result}}">{{result}}</option>
-                    {% for n in ["All", "Pass", "Fail", "Purgatory"] %}
-                        {% if n != result %}
-                            <option value="{{n}}">{{n}}</option>
-                        {% endif %}
-                    {% endfor %}
-                    </select>
+                    {% if criteria == 'scintillator' %}
+                        <!-- Hidden legacy single result select to keep existing JS calls working -->
+                        <select id="res" style="display:none;">
+                            <option selected value="All">All</option>
+                        </select>
+                        <!-- Per-variant result filters -->
+                        <div class="rs-multi">
+                            <label style="margin:0;">Gold:</label>
+                            <select id="res_gold" onchange="get_limit(lim.value, {{offset}}, crit.value, res.value, run.value, low.value, high.value, y_low.value, m_low.value, d_low.value, y_high.value, m_high.value, d_high.value);">
+                                {% set selected = result_gold if result_gold is defined else 'All' %}
+                                <option value="All" {{ 'selected' if selected=='All' else '' }}>All</option>
+                                <option value="Pass" {{ 'selected' if selected=='Pass' else '' }}>Pass</option>
+                                <option value="Fail" {{ 'selected' if selected=='Fail' else '' }}>Fail</option>
+                                <option value="Purgatory" {{ 'selected' if selected=='Purgatory' else '' }}>Purgatory</option>
+                                <option value="None" {{ 'selected' if selected=='None' else '' }}>None</option>
+                            </select>
+                            <label style="margin:0;">Silver:</label>
+                            <select id="res_silver" onchange="get_limit(lim.value, {{offset}}, crit.value, res.value, run.value, low.value, high.value, y_low.value, m_low.value, d_low.value, y_high.value, m_high.value, d_high.value);">
+                                {% set selected = result_silver if result_silver is defined else 'All' %}
+                                <option value="All" {{ 'selected' if selected=='All' else '' }}>All</option>
+                                <option value="Pass" {{ 'selected' if selected=='Pass' else '' }}>Pass</option>
+                                <option value="Fail" {{ 'selected' if selected=='Fail' else '' }}>Fail</option>
+                                <option value="Purgatory" {{ 'selected' if selected=='Purgatory' else '' }}>Purgatory</option>
+                                <option value="None" {{ 'selected' if selected=='None' else '' }}>None</option>
+                            </select>
+                            <label style="margin:0;">Bronze:</label>
+                            <select id="res_bronze" onchange="get_limit(lim.value, {{offset}}, crit.value, res.value, run.value, low.value, high.value, y_low.value, m_low.value, d_low.value, y_high.value, m_high.value, d_high.value);">
+                                {% set selected = result_bronze if result_bronze is defined else 'All' %}
+                                <option value="All" {{ 'selected' if selected=='All' else '' }}>All</option>
+                                <option value="Pass" {{ 'selected' if selected=='Pass' else '' }}>Pass</option>
+                                <option value="Fail" {{ 'selected' if selected=='Fail' else '' }}>Fail</option>
+                                <option value="Purgatory" {{ 'selected' if selected=='Purgatory' else '' }}>Purgatory</option>
+                                <option value="None" {{ 'selected' if selected=='None' else '' }}>None</option>
+                            </select>
+                            <label style="margin:0;">Nickel:</label>
+                            <select id="res_nickel" onchange="get_limit(lim.value, {{offset}}, crit.value, res.value, run.value, low.value, high.value, y_low.value, m_low.value, d_low.value, y_high.value, m_high.value, d_high.value);">
+                                {% set selected = result_nickel if result_nickel is defined else 'All' %}
+                                <option value="All" {{ 'selected' if selected=='All' else '' }}>All</option>
+                                <option value="Pass" {{ 'selected' if selected=='Pass' else '' }}>Pass</option>
+                                <option value="Fail" {{ 'selected' if selected=='Fail' else '' }}>Fail</option>
+                                <option value="Purgatory" {{ 'selected' if selected=='Purgatory' else '' }}>Purgatory</option>
+                                <option value="None" {{ 'selected' if selected=='None' else '' }}>None</option>
+                            </select>
+                        </div>
+                    {% else %}
+                        <select id="res" onchange="get_limit(lim.value, {{offset}}, crit.value, this.value, run.value, low.value, high.value, y_low.value, m_low.value, d_low.value, y_high.value, m_high.value, d_high.value);">
+                            <option selected value="{{result}}">{{result}}</option>
+                            {% for n in ["All", "Pass", "Fail", "Purgatory"] %}
+                                {% if n != result %}
+                                    <option value="{{n}}">{{n}}</option>
+                                {% endif %}
+                            {% endfor %}
+                        </select>
+                    {% endif %}
                 </th>
 
                 <!-- Criteria drop-down -->
@@ -104,8 +164,14 @@
                 <thead>
                     <tr>
                         <th>Run</th>
-                        <th>Result</th>
-                        <th>Criteria</th>
+                        {% if criteria == 'scintillator' %}
+                            <th>Gold</th>
+                            <th>Silver</th>
+                            <th>Bronze</th>
+                            <th>Nickel</th>
+                        {% else %}
+                            <th>{{ criteria }}</th>
+                        {% endif %}
                         <th>Overlord</th>
                         <th>Run Start (ET)</th>
                         <th>Last review (ET)</th>
@@ -124,18 +190,73 @@
                     {% else %}
                         {% for run_number in run_info.keys() %}
                             <tr>
-                                <td><a href="{{ url_for('runselection_run', run_number=run_number)}}">{{run_number}}</a></td>
-                                {% if run_info[run_number][criteria]["meta_data"]["decision"]["result"] == True %}
-                                <td><font color="green">Pass</font></td>
-                                {% elif run_info[run_number][criteria]["meta_data"]["decision"]["result"] == None %}
-                                <td>Purgatory</td>
+                                {% set det = run_info[run_number]["summary"] %}
+                                {% if 'missing' in det and det['missing'] %}
+                                <td>{{ run_number }}</td>
                                 {% else %}
-                                <td><font color="red">Fail</font></td>
+                                <td><a href="{{ url_for('runselection_run', run_number=run_number)}}">{{run_number}}</a></td>
                                 {% endif %}
-                                <td>{{ run_info[run_number][criteria]["meta_data"]["index"] }}</td>
-                                <td>{{ run_info[run_number][criteria]["name"] }}</td>
-                                <td>{{ run_info[run_number][criteria]["run_start"] }}</td>
-                                <td>{{ run_info[run_number][criteria]["timestamp"] }}</td>
+
+                                {% if criteria == 'scintillator' %}
+                                    {% set cell = run_info[run_number]["scintillator"] %}
+                                    {% if 'missing' in cell and cell['missing'] %}
+                                    <td>None</td>
+                                    {% elif cell["meta_data"]["decision"]["result"] == True %}
+                                    <td><font color="green">Pass</font></td>
+                                    {% elif cell["meta_data"]["decision"]["result"] == None %}
+                                    <td>Purgatory</td>
+                                    {% else %}
+                                    <td><font color="red">Fail</font></td>
+                                    {% endif %}
+
+                                    {% set cell = run_info[run_number]["scintillator_silver"] %}
+                                    {% if 'missing' in cell and cell['missing'] %}
+                                    <td>None</td>
+                                    {% elif cell["meta_data"]["decision"]["result"] == True %}
+                                    <td><font color="green">Pass</font></td>
+                                    {% elif cell["meta_data"]["decision"]["result"] == None %}
+                                    <td>Purgatory</td>
+                                    {% else %}
+                                    <td><font color="red">Fail</font></td>
+                                    {% endif %}
+
+                                    {% set cell = run_info[run_number]["scintillator_bronze"] %}
+                                    {% if 'missing' in cell and cell['missing'] %}
+                                    <td>None</td>
+                                    {% elif cell["meta_data"]["decision"]["result"] == True %}
+                                    <td><font color="green">Pass</font></td>
+                                    {% elif cell["meta_data"]["decision"]["result"] == None %}
+                                    <td>Purgatory</td>
+                                    {% else %}
+                                    <td><font color="red">Fail</font></td>
+                                    {% endif %}
+
+                                    {% set cell = run_info[run_number]["scintillator_nickel"] %}
+                                    {% if 'missing' in cell and cell['missing'] %}
+                                    <td>None</td>
+                                    {% elif cell["meta_data"]["decision"]["result"] == True %}
+                                    <td><font color="green">Pass</font></td>
+                                    {% elif cell["meta_data"]["decision"]["result"] == None %}
+                                    <td>Purgatory</td>
+                                    {% else %}
+                                    <td><font color="red">Fail</font></td>
+                                    {% endif %}
+                                {% else %}
+                                    {% set cell = run_info[run_number][criteria] %}
+                                    {% if 'missing' in cell and cell['missing'] %}
+                                    <td>None</td>
+                                    {% elif cell["meta_data"]["decision"]["result"] == True %}
+                                    <td><font color="green">Pass</font></td>
+                                    {% elif cell["meta_data"]["decision"]["result"] == None %}
+                                    <td>Purgatory</td>
+                                    {% else %}
+                                    <td><font color="red">Fail</font></td>
+                                    {% endif %}
+                                {% endif %}
+                                {% set det = run_info[run_number]["summary"] %}
+                                <td>{{ det["name"] }}</td>
+                                <td>{{ det["run_start"] }}</td>
+                                <td>{{ det["timestamp"] }}</td>
                             </tr> 
                         {% endfor %}
                     {% endif %}
@@ -152,7 +273,19 @@
       params["limit"] = limit;
       params["offset"] = offset;
       params["criteria"] = criteria;
-      params["result"] = result;
+            params["result"] = result;
+            if (criteria === 'scintillator') {
+                var rg = document.getElementById('res_gold');
+                var rs = document.getElementById('res_silver');
+                var rb = document.getElementById('res_bronze');
+                var rn = document.getElementById('res_nickel');
+                params["result_gold"] = rg ? rg.value : 'All';
+                params["result_silver"] = rs ? rs.value : 'All';
+                params["result_bronze"] = rb ? rb.value : 'All';
+                params["result_nickel"] = rn ? rn.value : 'All';
+                // Ensure single result is neutral when using per-variant filters
+                params["result"] = 'All';
+            }
       params["selected_run"] = selected_run;
       params["run_range_low"] = run_range_low;
       params["run_range_high"] = run_range_high;

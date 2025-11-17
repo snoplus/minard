@@ -29,68 +29,83 @@
     <div class="container">
         <div class="col-md-12">
             <table class="table table-hover">
-            <tr>
-                <th> Date Range: </th>
-                <th> Criteria: </th>
-                <th> </th>
-            </tr>
-            <tr>
-                <!-- Run date inputs -->
-                <th>
-		            <input style="margin-bottom: 30px;" type="date" id="date_low" value={{date_low}} required></input>
-                    -
-                    <input style="margin-bottom: 30px;" type="date" id="date_high" value={{date_high}} required></input>
-                </th>
-                <!-- Criteria drop-down -->
-                <th>
-                    <select id="crit">
-                    <option selected value="{{criteria}}">{{criteria}}</option>
-                    {% for n in drop_down_crits %}
-                        {% if n != criteria %}
-                            <option value="{{n}}">{{n}}</option>
-                        {% endif %}
-                    {% endfor %}
-                    </select>
-                </th>
-                <!-- Button to update plots with the run dates & criteria -->
-                <th class="col-xs-3 col-xs-offset-0">
-                    <button type=button onclick="history();">Update Plot</button>
-</th>
-</tr>
-</table>
-<!-- Runs summary goes here -->
-    <div class="row">
-    <div class="col-md-12" id="sum">
-        <h2 align="left"> Summary: </h2>
-        <p id="phys_summary"> </p>
-        <p id="pass_summary"> </p>
-        <p id="fail_summary"> </p>
-        <p id="purg_summary"> </p>
-    </div>
+                <tr>
+                    <th> Date Range: </th>
+                    <th> Criteria: </th>
+                    <th> </th>
+                </tr>
+                <tr>
+                    <!-- Run date inputs -->
+                    <th>
+                        <input style="margin-bottom: 30px;" type="date" id="date_low" value={{date_low}} required></input>
+                        -
+                        <input style="margin-bottom: 30px;" type="date" id="date_high" value={{date_high}} required></input>
+                    </th>
+                    <!-- Criteria drop-down -->
+                    <th>
+                        <select id="crit">
+                        <option selected value="{{criteria}}">{{criteria}}</option>
+                        {% for n in drop_down_crits %}
+                            {% if n != criteria %}
+                                <option value="{{n}}">{{n}}</option>
+                            {% endif %}
+                        {% endfor %}
+                        </select>
+                    </th>
+                    <!-- Button to update plots with the run dates & criteria -->
+                    <th class="col-xs-3 col-xs-offset-0">
+                        <button type=button onclick="history();">Update Plot</button>
+                    </th>
+                </tr>
+            </table>
+    <!-- Runs summary goes here -->
+        <div class="row">
+            <div class="col-md-12" id="sum">
+                <h2 align="left"> Summary: </h2>
+                <p id="phys_summary"> </p>
+                <p id="pass_summary"> </p>
+                <p id="fail_summary"> </p>
+                <p id="purg_summary"> </p>
+            </div>
         </div>
-<!-- Plot goes here -->
-    <div class="row">
-    <div class="col-md-12" id="main">
-      {% if not rs_plot_data %}
-        <h2 align="left"> No data available </h2>
-      {% endif %}
-
-    </div>
+    <!-- Stacked Filled Area Line Plot -->
+        <div class="row">
+            <div class="col-md-12">
+                <!-- <h3>Cumulative Plot</h3> -->
+                <div id="chartContainer" style="height: 500px;">
+                    <canvas id="RunSelectionPlot"></canvas>
+                </div>
+            </div>
         </div>
 
+    <!-- Differential Plot (Bar) -->
+        <div class="row" style="margin-top:20px;">
+            <div class="col-md-12">
+                <!-- <h3>Differential Plot</h3> -->
+                <div id="diffChartContainer" style="height: 400px;">
+                    <canvas id="RunSelectionDiffPlot"></canvas>
+                </div>
+            </div>
+        </div>
+    <!-- Line Plot -->
+        <div class="row">
+            <div class="col-md-12" id="main">
+            {% if not rs_plot_data %}
+                <h2 align="left"> No data available </h2>
+            {% endif %}
+            </div>
+        </div>
     </div>
 </div>
 
 {% endblock %}
 
 {% block script %}
-    <script src="{{ url_for('static', filename='js/d3.js') }}"></script>
     <script src="{{ url_for('static', filename='js/moment.min.js') }}"></script>
     <script src="{{ url_for('static', filename='js/moment-timezone-with-data.min.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/tzscale.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/metricsgraphics.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/mg_line_brushing.js') }}"></script>
     <script src="{{ url_for('static', filename='js/stream_utilities.js') }}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
     <script>
         if (url_params.date_low && document.getElementById("date_low").value == "") {
             document.getElementById("date_low").value = url_params.date_low;
@@ -104,105 +119,291 @@
 
         var rs_plot_data = {{ rs_plot_data | safe }};
 
-        var dates = new Array();
-        var phys = new Array();
-        var pass = new Array();
-        var fail = new Array();
-        var purg = new Array();
+        var dates = [];
+        var phys = [];
+        var pass = [];
+        var fail = [];
+        var purg = [];
 
-        for (var i=0; i < rs_plot_data.length; i++)
+        // Track last known values for flat-lining when data is missing
+        var lastPhys = null;
+        var lastPass = null;
+        var lastFail = null;
+        var lastPurg = null;
+
+        // Iterate backwards so oldest dates are first (left) and newest last (right)
+        for (var i = rs_plot_data.length - 1; i >= 0; i--)
         {
-            date_ = moment(rs_plot_data[i]['timestamp']).toDate();
+            var date_ = moment(rs_plot_data[i]['timestamp']).toDate();
             dates.push(date_);
-            phys.push({'date': date_, 'value': rs_plot_data[rs_plot_data.length - 1]['phys_total'] - rs_plot_data[i]['phys_total']});
-            pass.push({'date': date_, 'value': rs_plot_data[rs_plot_data.length - 1]['pass_total'] - rs_plot_data[i]['pass_total']});
-            fail.push({'date': date_, 'value': rs_plot_data[rs_plot_data.length - 1]['fail_total'] - rs_plot_data[i]['fail_total']});
-            purg.push({'date': date_, 'value': rs_plot_data[rs_plot_data.length - 1]['purg_total'] - rs_plot_data[i]['purg_total']});
+            
+            // Calculate current values
+            var physVal = rs_plot_data[rs_plot_data.length - 1]['phys_total'] - rs_plot_data[i]['phys_total'];
+            var passVal = rs_plot_data[rs_plot_data.length - 1]['pass_total'] - rs_plot_data[i]['pass_total'];
+            var failVal = rs_plot_data[rs_plot_data.length - 1]['fail_total'] - rs_plot_data[i]['fail_total'];
+            var purgVal = rs_plot_data[rs_plot_data.length - 1]['purg_total'] - rs_plot_data[i]['purg_total'];
+            
+            // Convert from days to hours
+            physVal = physVal * 24;
+            passVal = passVal * 24;
+            failVal = failVal * 24;
+            purgVal = purgVal * 24;
+            
+            // If value is null/undefined/NaN, use last known value (flat line)
+            if (physVal == null || isNaN(physVal)) {
+                physVal = lastPhys != null ? lastPhys : 0;
+            } else {
+                lastPhys = physVal;
+            }
+            
+            if (passVal == null || isNaN(passVal)) {
+                passVal = lastPass != null ? lastPass : 0;
+            } else {
+                lastPass = passVal;
+            }
+            
+            if (failVal == null || isNaN(failVal)) {
+                failVal = lastFail != null ? lastFail : 0;
+            } else {
+                lastFail = failVal;
+            }
+            
+            if (purgVal == null || isNaN(purgVal)) {
+                purgVal = lastPurg != null ? lastPurg : 0;
+            } else {
+                lastPurg = purgVal;
+            }
+            
+            phys.push(physVal);
+            pass.push(passVal);
+            fail.push(failVal);
+            purg.push(purgVal);
         }
-        var cscale = tzscale().domain(dates).zone('America/Toronto');
 
-        var time_fmt = 'MMM Do YYYY';
-        
-<!-- Messy bit of code to get the run summary section but it works... -MD -->
-	var summaryTime = [rs_plot_data[rs_plot_data.length - 1]['phys_total'],rs_plot_data[rs_plot_data.length - 1]['pass_total'],rs_plot_data[rs_plot_data.length - 1]['fail_total'],rs_plot_data[rs_plot_data.length - 1]['purg_total']]
-    
-    var summaryRuns = [rs_plot_data[rs_plot_data.length - 1]['phys_runs'],rs_plot_data[rs_plot_data.length - 1]['pass_runs'],rs_plot_data[rs_plot_data.length - 1]['fail_runs'],rs_plot_data[rs_plot_data.length - 1]['purg_runs']]
-    
+        // Summary
+        var summaryTime = [
+            rs_plot_data[rs_plot_data.length - 1]['phys_total'] * 24,
+            rs_plot_data[rs_plot_data.length - 1]['pass_total'] * 24,
+            rs_plot_data[rs_plot_data.length - 1]['fail_total'] * 24,
+            rs_plot_data[rs_plot_data.length - 1]['purg_total'] * 24
+        ];
+        var summaryRuns = [
+            rs_plot_data[rs_plot_data.length - 1]['phys_runs'],
+            rs_plot_data[rs_plot_data.length - 1]['pass_runs'],
+            rs_plot_data[rs_plot_data.length - 1]['fail_runs'],
+            rs_plot_data[rs_plot_data.length - 1]['purg_runs']
+        ];
+        for (var i=0; i < summaryTime.length; i++)
+	    {
+		    summaryTime[i] = parseFloat(summaryTime[i]).toFixed(3);
+	    }
+        document.getElementById("phys_summary").innerHTML = 'Physics: ' + summaryTime[0].toString() + ' Hours, ' +summaryRuns[0].toString() + ' Runs';
+        document.getElementById("pass_summary").innerHTML = 'Passed: ' + summaryTime[1].toString() + ' Hours, ' +summaryRuns[1].toString() + ' Runs';
+        document.getElementById("fail_summary").innerHTML = 'Failed: ' + summaryTime[2].toString() + ' Hours, ' +summaryRuns[2].toString() + ' Runs';
+        document.getElementById("purg_summary").innerHTML = 'Purgatory: ' + summaryTime[3].toString()  + ' Hours, ' +summaryRuns[3].toString() + ' Runs';
 
-for (var i=0; i < summaryTime.length; i++)
-	{
-		var j = parseFloat(summaryTime[i]).toFixed(3);
-		summaryTime[i] = j;
-	}
-
-	document.getElementById("phys_summary").innerHTML = 'Physics: ' + summaryTime[0].toString() + ' Days, ' +summaryRuns[0].toString() + ' Runs';
-    if (summaryRuns[1] == 0) {document.getElementById("pass_summary").innerHTML = 'Passed: None';}
-    else{document.getElementById("pass_summary").innerHTML = 'Passed: ' + summaryTime[1].toString() + ' Days, ' +summaryRuns[1].toString() + ' Runs';}
-    if (summaryRuns[2] == 0) {document.getElementById("fail_summary").innerHTML = 'Failed: None';}
-    else{document.getElementById("fail_summary").innerHTML = 'Failed: ' + summaryTime[2].toString() + ' Days, ' +summaryRuns[2].toString() + ' Runs';}
-    if (summaryRuns[3] == 0) {document.getElementById("purg_summary").innerHTML = 'Purgatory: None';}
-    else{document.getElementById("purg_summary").innerHTML = 'Purgatory: ' + summaryTime[3].toString()  + ' Days, ' +summaryRuns[3].toString() + ' Runs';}
-
-        var dparams = {
-            area: false,
-            data: [phys, pass, fail, purg],
-            width: $('#main').width(),
-            left: 100,
-            right: 100,
-            height: 500,
-            target: "#main",
-            time_scale: cscale,
-            x_accessor:'date',
-            y_accessor:'value',
-            point_size: 4.0,
-            y_label: "Time (Days)",
-            x_label: "Date",
-            decimals: 5,
-            legend: ['Physics', 'Passed', 'Failed', 'Purgatory'],
-    
-	<!-- Adding the unit (days) to the mouse over legend and fixing the value to 3 decimal places -->
-            interpolate: 'linear',
-                        y_mouseover: function(d, i) {
-		 var y = parseFloat(d['value']).toFixed(3);
-                return y + ' (days)';
-
+        // Stacked Filled Area Line Plot using Chart.js
+        var ctx = document.getElementById('RunSelectionPlot').getContext('2d');
+        var chart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: dates.map(d => moment(d).format('MM-DD HH:mm')),
+                datasets: [
+                    {
+                        label: 'Passed',
+                        data: pass,
+                        borderColor: 'rgb(54, 162, 235)',
+                        backgroundColor: 'rgba(54, 162, 235, 0.5)',
+                        borderWidth: 2,
+                        tension: 0.1,
+                        pointRadius: 0,
+                        fill: 'origin'
+                    },
+                    {
+                        label: 'Failed',
+                        data: fail,
+                        borderColor: 'rgb(255, 99, 132)',
+                        backgroundColor: 'rgba(255, 99, 132, 0.5)',
+                        borderWidth: 2,
+                        tension: 0.1,
+                        pointRadius: 0,
+                        fill: '-1'
+                    },
+                    {
+                        label: 'Purgatory',
+                        data: purg,
+                        borderColor: 'rgb(255, 206, 86)',
+                        backgroundColor: 'rgba(255, 206, 86, 0.5)',
+                        borderWidth: 2,
+                        tension: 0.1,
+                        pointRadius: 0,
+                        fill: '-1'
+                    }
+                ]
             },
-        };
-
-        MG.data_graphic(dparams);
-
-        // the only way to change line width, i tried. ugh
-        // changing dparams or overriding CSS did NOT work, for me at least
-        document.querySelectorAll('#main svg path.mg-main-line').forEach(function(path) {
-            path.style.strokeWidth = '4px';
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                layout: {
+                    padding: {
+                        left: 0
+                    }
+                },
+                interaction: {
+                    mode: 'index',
+                    intersect: false
+                },
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top',
+                        labels: { font: { size: 14, weight: 'bold'}}
+                    },
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false,
+                        callbacks: {
+                            label: function(ctx) {
+                                return ctx.dataset.label + ': ' + Number(ctx.parsed.y).toFixed(2) + ' (hours)';
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        stacked: true,
+                        beginAtZero: true,
+                        title: { display: true, text: 'Cumulative Datahours', font: { size: 14 } },
+                        ticks: {
+                            font: { size: 12 },
+                            padding: 5,
+                            callback: function(v) { return Number(v).toFixed(2); }
+                        },
+                        afterFit: function(scaleInstance) {
+                            scaleInstance.width = 100;
+                        }
+                    },
+                    x: {
+                        display: false
+                        // stacked: true,
+                        // title: { display: true, text: 'Date', font: { size: 14 } },
+                        // ticks: { maxRotation: 45, minRotation: 45, font: { size: 11 } }
+                    }
+                }
+            }
         });
-        document.querySelectorAll('#main svg .mg-line-legend text').forEach(function(text) {
-            text.style.fontSize = '1.2em';
-            text.style.fontWeight = '600';
-        });
-        document.querySelectorAll('.mg-x-axis text, .mg-y-axis text, .mg-histogram .axis text').forEach(function(text) {
-            text.style.fontSize = '1.1em';
+
+        // Differential (time per interval) chart
+        var ddates = [];
+        var dpass = [];
+        var dfail = [];
+        var dpurg = [];
+
+        for (var i = rs_plot_data.length - 2; i >= 0; i--)
+        {
+            var date_ = moment(rs_plot_data[i]['timestamp']).toDate();
+            ddates.push(date_);
+
+            // Calculate delta in days (time added between this timestamp and next)
+            // Since we iterate backwards, rs_plot_data[i] is older, so subtract next from current
+            var dpassVal = (rs_plot_data[i + 1]['pass_total'] - rs_plot_data[i]['pass_total']) * 24;
+            var dfailVal = (rs_plot_data[i + 1]['fail_total'] - rs_plot_data[i]['fail_total']) * 24;
+            var dpurgVal = (rs_plot_data[i + 1]['purg_total'] - rs_plot_data[i]['purg_total']) * 24;
+
+            dpass.push(dpassVal || 0);
+            dfail.push(dfailVal || 0);
+            dpurg.push(dpurgVal || 0);
+        }
+
+        var ctx2 = document.getElementById('RunSelectionDiffPlot').getContext('2d');
+        var diffChart = new Chart(ctx2, {
+            type: 'bar',
+            data: {
+                labels: ddates.map(d => moment(d).format('MM-DD HH:mm')),
+                datasets: [
+                    {
+                        label: 'Passed',
+                        data: dpass,
+                        backgroundColor: 'rgba(54, 162, 235, 0.5)',
+                        borderColor: 'rgb(54, 162, 235)',
+                        borderWidth: 1,
+                        stack: 'runs'
+                    },
+                    {
+                        label: 'Failed',
+                        data: dfail,
+                        backgroundColor: 'rgba(255, 99, 132, 0.5)',
+                        borderColor: 'rgb(255, 99, 132)',
+                        borderWidth: 1,
+                        stack: 'runs'
+                    },
+                    {
+                        label: 'Purgatory',
+                        data: dpurg,
+                        backgroundColor: 'rgba(255, 206, 86, 0.5)',
+                        borderColor: 'rgb(255, 206, 86)',
+                        borderWidth: 1,
+                        stack: 'runs'
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                layout: {
+                    padding: {
+                        left: 0
+                    }
+                },
+                interaction: { mode: 'index', intersect: false },
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false,
+                        callbacks: {
+                            label: function(ctx) {
+                                return ctx.dataset.label + ': ' + Number(ctx.parsed.y).toFixed(2) + ' hours';
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: { 
+                        stacked: true, 
+                        title: { display: true, text: 'Date', font: { size: 14 } }, 
+                        ticks: { maxRotation: 45, minRotation: 45, font: { size: 11 } } 
+                    },
+                    y: { 
+                        stacked: true, 
+                        beginAtZero: true,
+                        max: 1.0,
+                        title: { display: true, text: 'Incremental Datahours', font: { size: 14 } }, 
+                        ticks: { font: { size: 12 }, padding: 5 },
+                        afterFit: function(scaleInstance) {
+                            scaleInstance.width = 100;
+                        }
+                    }
+                }
+            }
         });
 
         function history() {
             var params = {};
-            try {
-                params['date_low'] = document.getElementById("date_low").value;
-            } catch (e) {
-                params['date_low'] = "2024-02-19";
-            }
-            try {
-                params['date_high'] = document.getElementById("date_high").value;
-            } catch (e) {
-                params['date_high'] = "2024-05-29";
-            }
-            try {
-                params['criteria'] = document.getElementById("crit").value;
-            } catch (e) {
-                params['criteria'] = "scintillator_silver";
-            }
+
+            var oneWeekAgo = new Date();
+            oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+            var defaultLow = oneWeekAgo.toISOString().split('T')[0];
+
+            var today = new Date();
+            var defaultHigh = today.toISOString().split('T')[0];
+
+            try { params['date_low'] = document.getElementById("date_low").value; } catch(e) { params['date_low'] = defaultLow; }
+            try { params['date_high'] = document.getElementById("date_high").value; } catch(e) { params['date_high'] = defaultHigh; }
+            try { params['criteria'] = document.getElementById("crit").value; } catch(e) { params['criteria'] = 'scintillator'; }
             window.location.replace($SCRIPT_ROOT + "/runselection_plots?" + $.param(params));
         }
-
     </script>
 {% endblock %}

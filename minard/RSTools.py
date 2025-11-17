@@ -466,35 +466,197 @@ def list_runs_info(limit, offset, result, criteria, selected_run, run_range, dat
         except:
             return False, drop_down_crits
 
-    # Get filtered runs (download twice as many runs as needed, then filter by result)
-    filtered_rs_tables, run_numbers, no_more_tables = get_filtered_RS_tables(run_min, run_max, min_runTime, max_runTime, offset, limit, result, criteria)
-    if filtered_rs_tables is False:
-        return False, drop_down_crits
-    run_numbers.sort(reverse=True)
+    desired_criteria = ['scintillator', 'scintillator_silver', 'scintillator_bronze', 'scintillator_nickel']
 
-    # If there aren't enough, keep downloading more runs until we get enough. Either until enough
-    # are downloaded, or there are no more tables to download, or reach a hard cap in number of loops (just in case).
-    num_loops = 0
-    temp_lim = limit
-    while (len(run_numbers) <= (offset + limit)) and (no_more_tables == False) and (num_loops <= 100):
-        if len(run_numbers) == 0:
-            earliest_run = None
+    def placeholder_record(run_number, crit_name):
+        return {
+            'meta_data': {
+                'decision': {'result': None},
+                'index': crit_name
+            },
+            'name': 'No Data',
+            'run_start': 'No Data',
+            'timestamp': 'No Data',
+            'run_number': run_number,
+            'missing': True
+        }
+
+    if criteria == 'scintillator':
+        # All four scintillator criterias (Gold, Silver, Bronze, Nickel)
+        fetch_limit = max(200, (offset + limit) * 8)
+        rs_all = OrderedDict()  # run_number -> {crit: table}
+        for crit in desired_criteria:
+            tables = get_RS_reports(criteria=crit, run_min=run_min, run_max=run_max, limit=fetch_limit)
+            if not isinstance(tables, OrderedDict):
+                continue
+            for rn in tables.keys():
+                if rn not in rs_all:
+                    rs_all[rn] = {}
+                rs_all[rn][crit] = tables[rn][crit]
+
+        if len(rs_all) == 0:
+            return OrderedDict(), drop_down_crits
+
+        def choose_precedence(run_entry):
+            for crit in desired_criteria:
+                if crit in run_entry:
+                    return crit
+            return None
+
+        resultMapping = {'Pass': True, 'Purgatory': None, 'Fail': False}
+        # Special case: all four per-metal filters set to 'None' -> all unprocessed runs
+        all_none = isinstance(result, dict) and all(result.get(c, 'All') == 'None' for c in desired_criteria)
+        candidate_runs = []
+        if all_none:
+            # Build candidate runs from run_state and exclude any run that has any scintillator variant
+            # Determine fetch size and time window - only physics runs
+            fetch_limit = max(500, (offset + limit) * 8)
+            conditions = []
+            # Physics runs only: run_type & 1 > 0
+            conditions.append("(run_type & 1) > 0")
+            if run_min is not None:
+                conditions.append("run >= %d" % int(run_min))
+            if run_max is not None:
+                conditions.append("run <= %d" % int(run_max))
+            if max_runTime is not None:
+                conditions.append("timestamp::date <= '%s'" % (max_runTime.strftime('%Y-%m-%d')))
+            if min_runTime is not None:
+                conditions.append("timestamp::date >= '%s'" % (min_runTime.strftime('%Y-%m-%d')))
+            query_base = "SELECT run FROM run_state"
+            query_base += " WHERE " + " AND ".join(conditions)
+            query_base += " ORDER BY run DESC LIMIT %d" % fetch_limit
+            try:
+                conn_main = engine.connect()
+                res = conn_main.execute(query_base)
+                seen = set(rs_all.keys())
+                for row in res.fetchall():
+                    rn = int(row[0])
+                    if rn not in seen:
+                        candidate_runs.append(rn)
+            except:
+                # Fallback: no data gathered, leave candidate_runs empty
+                pass
+            finally:
+                try:
+                    conn_main.close()
+                except:
+                    pass
         else:
-            earliest_run = run_numbers[-1] - 1
-        new_filtered_rs_tables, new_run_numbers, no_more_tables = get_filtered_RS_tables(run_min, earliest_run, min_runTime, max_runTime, offset, temp_lim, result, criteria)
-        filtered_rs_tables.update(new_filtered_rs_tables)
-        run_numbers += new_run_numbers
+            for rn in rs_all.keys():
+                chosen = choose_precedence(rs_all[rn])
+                if chosen is None:
+                    continue
+                rec = rs_all[rn][chosen]
+                pass_date = True
+                run_start_str = rec.get('run_start', 'No Data')
+                if run_start_str != 'No Data':
+                    try:
+                        y, m, d = [int(x) for x in run_start_str.split(' ')[0].split('-')]
+                        run_start_date = datetime.date(y, m, d)
+                        if max_runTime is not None and run_start_date > max_runTime:
+                            pass_date = False
+                        if min_runTime is not None and run_start_date < min_runTime:
+                            pass_date = False
+                    except Exception:
+                        pass
+                pass_result = True
+                if isinstance(result, dict):
+                    for crit in desired_criteria:
+                        sel = result.get(crit, 'All')
+                        if sel != 'All':
+                            if sel == 'None':
+                                # Keep only runs where this variant is missing
+                                if crit in rs_all[rn]:
+                                    pass_result = False
+                                    break
+                                else:
+                                    continue
+                            # Otherwise require presence and exact result match
+                            if crit not in rs_all[rn]:
+                                pass_result = False
+                                break
+                            if rs_all[rn][crit].get('result') != resultMapping[sel]:
+                                pass_result = False
+                                break
+                else:
+                    if result != 'All':
+                        pass_result = (rec.get('result') == resultMapping[result])
+                if pass_date and pass_result:
+                    candidate_runs.append(rn)
+
+        candidate_runs = sorted(candidate_runs, reverse=True)
+        page_runs = candidate_runs[offset:offset+limit]
+
+        final_rs_tables = OrderedDict()
+        for rn in page_runs:
+            final_rs_tables[rn] = {}
+            # If run is in rs_all, attach available variants; otherwise placeholders
+            for crit in desired_criteria:
+                if rn in rs_all and crit in rs_all[rn]:
+                    final_rs_tables[rn][crit] = rs_all[rn][crit]
+                else:
+                    final_rs_tables[rn][crit] = placeholder_record(rn, crit)
+            # summary: highest-precedence available or placeholder
+            if rn in rs_all:
+                chosen = choose_precedence(rs_all[rn])
+                if chosen is not None:
+                    final_rs_tables[rn]['summary'] = rs_all[rn][chosen]
+                else:
+                    final_rs_tables[rn]['summary'] = placeholder_record(rn, 'scintillator')
+            else:
+                final_rs_tables[rn]['summary'] = placeholder_record(rn, 'scintillator')
+
+        return final_rs_tables, drop_down_crits
+    else:
+        # Single-criteria mode 
+        filtered_rs_tables, run_numbers, no_more_tables = get_filtered_RS_tables(run_min, run_max, min_runTime, max_runTime, offset, limit, result, criteria)
+        if filtered_rs_tables is False:
+            return False, drop_down_crits
         run_numbers.sort(reverse=True)
-        num_loops += 1
-        temp_lim *= 2
 
-    # Only keep the runs that will be listed on the page
-    final_rs_tables = OrderedDict()
-    for i in range(offset, (offset+limit)):
-        if i < len(run_numbers):
-            final_rs_tables[run_numbers[i]] = filtered_rs_tables[run_numbers[i]]
+        num_loops = 0
+        temp_lim = limit
+        while (len(run_numbers) <= (offset + limit)) and (no_more_tables == False) and (num_loops <= 100):
+            if len(run_numbers) == 0:
+                earliest_run = None
+            else:
+                earliest_run = run_numbers[-1] - 1
+            new_filtered_rs_tables, new_run_numbers, no_more_tables = get_filtered_RS_tables(run_min, earliest_run, min_runTime, max_runTime, offset, temp_lim, result, criteria)
+            filtered_rs_tables.update(new_filtered_rs_tables)
+            run_numbers += new_run_numbers
+            run_numbers.sort(reverse=True)
+            num_loops += 1
+            temp_lim *= 2
 
-    return final_rs_tables, drop_down_crits
+        final_rs_tables = OrderedDict()
+        for i in range(offset, (offset+limit)):
+            if i < len(run_numbers):
+                rn = run_numbers[i]
+                final_rs_tables[rn] = filtered_rs_tables[rn]
+
+        # Augment with the four scintillator variants for display and set summary to selected criteria
+        if len(final_rs_tables) > 0:
+            runs_display = list(final_rs_tables.keys())
+            run_min_disp = min(runs_display)
+            run_max_disp = max(runs_display)
+
+            # Ensure summary exists
+            for rn in runs_display:
+                if criteria in final_rs_tables[rn]:
+                    final_rs_tables[rn]['summary'] = final_rs_tables[rn][criteria]
+                else:
+                    final_rs_tables[rn]['summary'] = placeholder_record(rn, criteria)
+
+            for crit in desired_criteria:
+                other = get_RS_reports(criteria=crit, run_min=run_min_disp, run_max=run_max_disp, limit=len(runs_display)*4)
+                for rn in runs_display:
+                    if isinstance(other, OrderedDict) and rn in other and crit in other[rn]:
+                        final_rs_tables[rn][crit] = other[rn][crit]
+                    else:
+                        if crit not in final_rs_tables[rn]:
+                            final_rs_tables[rn][crit] = placeholder_record(rn, crit)
+
+        return final_rs_tables, drop_down_crits
 
 ############ RUNSELECTION_RUN PAGE FUNCTIONS ############
 

@@ -130,22 +130,31 @@
         var purg_incremental = [];
         var idle_incremental = [];
 
+        // Extract hourly data and run counts
+        var hourly_data = rs_plot_data.data || rs_plot_data;
+        var run_counts = rs_plot_data.run_counts || {
+            pass_runs: 0,
+            fail_runs: 0,
+            purg_runs: 0,
+            phys_runs: 0
+        };
+
         // Process hourly data to build cumulative and incremental arrays
         var cumulative_pass = 0;
         var cumulative_fail = 0;
         var cumulative_purg = 0;
         var cumulative_idle = 0;
 
-        for (var i = 0; i < rs_plot_data.length; i++)
+        for (var i = 0; i < hourly_data.length; i++)
         {
-            var date_ = moment(rs_plot_data[i]['timestamp']).toDate();
+            var date_ = moment(hourly_data[i]['timestamp']).toDate();
             dates.push(date_);
             
             // Get incremental values (hours in this specific hour)
-            var pass_inc = rs_plot_data[i]['pass_time'] || 0;
-            var fail_inc = rs_plot_data[i]['fail_time'] || 0;
-            var purg_inc = rs_plot_data[i]['purg_time'] || 0;
-            var idle_inc = rs_plot_data[i]['idle_time'] || 0;
+            var pass_inc = hourly_data[i]['pass_time'] || 0;
+            var fail_inc = hourly_data[i]['fail_time'] || 0;
+            var purg_inc = hourly_data[i]['purg_time'] || 0;
+            var idle_inc = hourly_data[i]['idle_time'] || 0;
             
             pass_incremental.push(pass_inc);
             fail_incremental.push(fail_inc);
@@ -164,17 +173,17 @@
             idle_cumulative.push(cumulative_idle);
         }
 
-        // Summary - use final cumulative values
+        // Summary - use final cumulative values and run counts
         var total_pass = cumulative_pass;
         var total_fail = cumulative_fail;
         var total_purg = cumulative_purg;
         var total_idle = cumulative_idle;
         var total_phys = total_pass + total_fail + total_purg;
 
-        document.getElementById("phys_summary").innerHTML = 'Physics: ' + total_phys.toFixed(2) + ' Hours';
-        document.getElementById("pass_summary").innerHTML = 'Passed: ' + total_pass.toFixed(2) + ' Hours';
-        document.getElementById("fail_summary").innerHTML = 'Failed: ' + total_fail.toFixed(2) + ' Hours';
-        document.getElementById("purg_summary").innerHTML = 'Purgatory: ' + total_purg.toFixed(2) + ' Hours';
+        document.getElementById("phys_summary").innerHTML = 'Physics: ' + total_phys.toFixed(2) + ' Hours, ' + run_counts.phys_runs + ' Runs';
+        document.getElementById("pass_summary").innerHTML = 'Passed: ' + total_pass.toFixed(2) + ' Hours, ' + run_counts.pass_runs + ' Runs';
+        document.getElementById("fail_summary").innerHTML = 'Failed: ' + total_fail.toFixed(2) + ' Hours, ' + run_counts.fail_runs + ' Runs';
+        document.getElementById("purg_summary").innerHTML = 'Purgatory: ' + total_purg.toFixed(2) + ' Hours, ' + run_counts.purg_runs + ' Runs';
 
         // Stacked Filled Area Line Plot using Chart.js
         var ctx = document.getElementById('RunSelectionPlot').getContext('2d');

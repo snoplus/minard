@@ -986,6 +986,14 @@ def pass_fail_plot_info(criteria, date_range):
     if rstables is False:
         return False, drop_down_crits, min_runTime, max_runTime
 
+    # Track run counts
+    run_counts = {
+        'pass_runs': 0,
+        'fail_runs': 0,
+        'purg_runs': 0,
+        'phys_runs': 0
+    }
+
     # Process each run and allocate its time to the appropriate hourly buckets
     for run_number in rstables.keys():
         if rstables[run_number][criteria]['run_duration'] == 'No Data':
@@ -1018,6 +1026,15 @@ def pass_fail_plot_info(criteria, date_range):
 
         # Get result (pass=True, fail=False, purgatory=None)
         result = rstables[run_number][criteria]['result']
+
+        # Count this run
+        run_counts['phys_runs'] += 1
+        if result == True:
+            run_counts['pass_runs'] += 1
+        elif result == False:
+            run_counts['fail_runs'] += 1
+        else:  # None = purgatory
+            run_counts['purg_runs'] += 1
 
         # Distribute run time across the hours it spans
         current_time = run_start_clipped
@@ -1054,7 +1071,13 @@ def pass_fail_plot_info(criteria, date_range):
     for hour_data in data:
         hour_data['idle_time'] = max(0.0, hour_data['idle_time'])
 
-    return data, drop_down_crits, min_runTime, max_runTime
+    # Add run counts to the data structure
+    summary = {
+        'data': data,
+        'run_counts': run_counts
+    }
+
+    return summary, drop_down_crits, min_runTime, max_runTime
 
 def get_RS_reports_date_range(criteria=None, run_max=None):
     '''Get run-selection tables in a run range. If duplicate tables, only keeps one

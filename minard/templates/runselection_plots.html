@@ -143,7 +143,6 @@
         var cumulative_pass = 0;
         var cumulative_fail = 0;
         var cumulative_purg = 0;
-        var cumulative_idle = 0;
 
         for (var i = 0; i < hourly_data.length; i++)
         {
@@ -154,30 +153,25 @@
             var pass_inc = hourly_data[i]['pass_time'] || 0;
             var fail_inc = hourly_data[i]['fail_time'] || 0;
             var purg_inc = hourly_data[i]['purg_time'] || 0;
-            var idle_inc = hourly_data[i]['idle_time'] || 0;
             
             pass_incremental.push(pass_inc);
             fail_incremental.push(fail_inc);
             purg_incremental.push(purg_inc);
-            idle_incremental.push(idle_inc);
             
             // Build cumulative values
             cumulative_pass += pass_inc;
             cumulative_fail += fail_inc;
             cumulative_purg += purg_inc;
-            cumulative_idle += idle_inc;
             
             pass_cumulative.push(cumulative_pass);
             fail_cumulative.push(cumulative_fail);
             purg_cumulative.push(cumulative_purg);
-            idle_cumulative.push(cumulative_idle);
         }
 
         // Summary - use final cumulative values and run counts
         var total_pass = cumulative_pass;
         var total_fail = cumulative_fail;
         var total_purg = cumulative_purg;
-        var total_idle = cumulative_idle;
         var total_phys = total_pass + total_fail + total_purg;
 
         document.getElementById("phys_summary").innerHTML = 'Physics: ' + total_phys.toFixed(2) + ' Hours, ' + run_counts.phys_runs + ' Runs';
@@ -286,7 +280,9 @@
                         backgroundColor: 'rgba(54, 162, 235, 0.5)',
                         borderColor: 'rgb(54, 162, 235)',
                         borderWidth: 1,
-                        stack: 'runs'
+                        barPercentage: 1.0,
+                        categoryPercentage: 1.0,
+                        stack: 'stack0'
                     },
                     {
                         label: 'Failed',
@@ -294,7 +290,9 @@
                         backgroundColor: 'rgba(255, 99, 132, 0.5)',
                         borderColor: 'rgb(255, 99, 132)',
                         borderWidth: 1,
-                        stack: 'runs'
+                        barPercentage: 1.0,
+                        categoryPercentage: 1.0,
+                        stack: 'stack0'
                     },
                     {
                         label: 'Purgatory',
@@ -302,15 +300,9 @@
                         backgroundColor: 'rgba(255, 206, 86, 0.5)',
                         borderColor: 'rgb(255, 206, 86)',
                         borderWidth: 1,
-                        stack: 'runs'
-                    },
-                    {
-                        label: 'Idle',
-                        data: idle_incremental,
-                        backgroundColor: 'rgba(200, 200, 200, 0.3)',
-                        borderColor: 'rgb(150, 150, 150)',
-                        borderWidth: 1,
-                        stack: 'runs'
+                        barPercentage: 1.0,
+                        categoryPercentage: 1.0,
+                        stack: 'stack0'
                     }
                 ]
             },
@@ -325,7 +317,7 @@
                 interaction: { mode: 'index', intersect: false },
                 plugins: {
                     legend: {
-                        display: true,
+                        display: false,
                         position: 'top',
                         labels: { font: { size: 14, weight: 'bold'}}
                     },
@@ -341,12 +333,12 @@
                 },
                 scales: {
                     x: { 
-                        stacked: true, 
+                        stacked: true,
                         title: { display: true, text: 'Date', font: { size: 14 } }, 
                         ticks: { maxRotation: 45, minRotation: 45, font: { size: 11 } } 
                     },
                     y: { 
-                        stacked: true, 
+                        stacked: true,
                         beginAtZero: true,
                         max: 1.0,
                         title: { display: true, text: 'Incremental Datahours', font: { size: 14 } }, 

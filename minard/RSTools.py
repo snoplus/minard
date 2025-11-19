@@ -982,7 +982,7 @@ def pass_fail_plot_info(criteria, date_range):
         })
 
     # Download physics runs in given date range
-    rstables = get_RS_reports_date_range(criteria=criteria)
+    rstables = get_RS_reports_date_range(criteria=criteria, min_date=min_runTime, max_date=max_runTime)
     if rstables is False:
         return False, drop_down_crits, min_runTime, max_runTime
 
@@ -1079,7 +1079,7 @@ def pass_fail_plot_info(criteria, date_range):
 
     return summary, drop_down_crits, min_runTime, max_runTime
 
-def get_RS_reports_date_range(criteria=None, run_max=None):
+def get_RS_reports_date_range(criteria=None, run_max=None, min_date=None, max_date=None):
     '''Get run-selection tables in a run range. If duplicate tables, only keeps one
     (takes one with latest version, and if they have the same version, the one with
     the latest timestamp).'''
@@ -1090,12 +1090,18 @@ def get_RS_reports_date_range(criteria=None, run_max=None):
         conditions.append("criteria = '%s'" % str(criteria))
     if run_max is not None:
         conditions.append("run_max < %d" % int(run_max))
+    
+    # Add date range filtering using the meta_data field
+    if min_date is not None:
+        conditions.append("(meta_data->'run_time'->'notes'->'dt'->>'timestamp')::timestamp >= '%s'" % min_date.strftime('%Y-%m-%d %H:%M:%S'))
+    if max_date is not None:
+        conditions.append("(meta_data->'run_time'->'notes'->'dt'->>'timestamp')::timestamp <= '%s'" % max_date.strftime('%Y-%m-%d %H:%M:%S'))
+    
     if len(conditions) > 0:
         for i in range(0, len(conditions)):
             query += " AND " + conditions[i]
     query += " ORDER BY run_min DESC"
-    # to speed things up, only download 100 runs at a time
-    query += " LIMIT 100"
+    
     c = False
     try:
         conn = engine_nl.connect()

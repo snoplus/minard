@@ -1,0 +1,105 @@
+{% extends "layout.html" %}
+{% block title %}Roboshifter Log{% endblock %}
+
+{% macro render_field(field) %}
+  <dt>{{ field.label }}
+  <dd>{{ field(**kwargs)|safe }}
+  {% if field.errors %}
+    <ul class=errors>
+    {% for error in field.errors %}
+      <li>{{ error }}</li>
+    {% endfor %}
+    </ul>
+  {% endif %}
+  </dd>
+{% endmacro %}
+
+
+{% block head %}
+    {{ super() }}
+    <style>
+        pre {
+            tab-size: 4;
+            counter-reset: linecounter;
+        }
+
+        pre span.line {
+            counter-increment: linecounter;
+        }
+        
+        .line {
+            background: #0000;
+            color: #000;
+            opacity: 1.0;
+        }
+
+        pre span.line::before{
+            content: counter(linecounter);
+            width: 30px;
+            display: inline-block;
+            border-right: 1px dotted #fff;
+            padding-right: 3px;
+            margin-right: 5px;
+            text-align: right;
+        }
+    </style>
+    <script type="text/javascript">
+        function addLineClass(pre){
+            var lines = pre.innerText.split("\n");
+            while(pre.childNodes.length > 0) {
+                pre.removeChild(pre.childNodes[0]);
+            }
+            for(var i =0; i < lines.length; i++){
+                var span = document.createElement("span");
+                span.className = "line";
+                span.innerText = lines[i];
+                pre.appendChild(span);
+                pre.appendChild(document.createTextNode("\n"))
+            }
+        }
+        window.addEventListener("load", function () {
+            var pres = document.getElementsByTagName("pre");
+            for(var i = 0; i < pres.length; i++){
+                addLineClass(pres[i]);
+            }
+        }, false);
+    </script>
+
+
+{% endblock %}
+
+{% block body %}
+    {{ super() }}
+    <div class="row">
+        <div class="col-md-6 col-md-offset-3">
+            <center>
+                {% if logdate %}
+                    <h2 style="display:inline">Roboshifter Logs for {{ logdate }} </h2> 
+                {% else %}
+                    <h2 style="display:inline">Roboshifter Logs</h2>
+                {% endif %}
+            </center>
+        </div>
+    </div>
+    <!-- Spacing the title and body here. Should figure out a proper way to do this. -->
+    <p></p>
+    <p></p>
+    <div class="container">
+        <div class="col-md-12">
+            <form method="get" action="{{ url_for('roboshifter_log') }}" role='form'>
+                {{ render_field(form.date) }}
+            </form>
+        </div>
+    </div>
+    <p></p>
+    <p></p>
+    <div class="container">
+        <div class="col-md-12">
+            <pre>
+                {%- for l in roboshifter_log -%}
+                    {{ l }}
+                {%- endfor -%}
+            </pre>
+        </div>
+    </div>
+{% endblock %}

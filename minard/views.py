@@ -55,6 +55,8 @@ from datetime import datetime, timedelta
 from functools import wraps, update_wrapper
 from dead_time import get_dead_time, get_dead_time_runs, get_dead_time_run_by_key
 from radon_monitor import get_radon_monitor
+from roboshifter_log import get_roboshifter_log, get_historic_roboshifter_log, RoboshifterLogDateForm
+from datetime import date
 
 TRIGGER_NAMES = \
 ['100L',
@@ -214,6 +216,19 @@ def update_pmtic_resistors():
         flash("Successfully submitted", 'success')
         return redirect(url_for('calculate_resistors', crate=form.crate.data, slot=form.slot.data))
     return render_template('update_pmtic_resistors.html', crate=crate, slot=slot, form=form, pc=pc)
+
+@app.route('/roboshifter-log')
+def roboshifter_log():
+    try:
+        selected_date = request.args.get("date")
+        log = get_roboshifter_log() if selected_date == date.today().strftime("%Y-%m-%d") else get_historic_roboshifter_log(selected_date)
+    except:
+        # get today's log if there is no argument with the request or the selected date does not exist
+        log = get_roboshifter_log()
+    # create a form instance
+    logdate = log.split(" ")[0]
+    form = RoboshifterLogDateForm()
+    return render_template('roboshifter_log.html', roboshifter_log=log, logdate=logdate, form=form)
 
 @app.route('/calculate-resistors')
 def calculate_resistors():

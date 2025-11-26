@@ -1118,7 +1118,7 @@ def get_RS_reports_date_range(criteria=None, run_max=None, min_date=None, max_da
             else:
                 tempt_dict['run_duration'] = 'No Data'
             tempt_dict['run_number'] = row[1]
-            tempt_dict['timestamp'] = row[2]
+            tempt_dict['timestamp'] = row[2].strftime('%Y-%m-%d %H:%M:%S')
             rs_tables_list.append(tempt_dict)
         if len(rs_tables_list) == 0:
             return OrderedDict()

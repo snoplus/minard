@@ -256,7 +256,7 @@
                                 {% set det = run_info[run_number]["summary"] %}
                                 <td>{{ det["name"] }}</td>
                                 <td>{{ det["run_start"] }}</td>
-                                <td>{{ det["timestamp"] }}</td>
+                                <td>{{ det["timestamp"].strftime('%Y-%m-%d %H:%M:%S') if det["timestamp"] != 'No Data' else 'No Data' }}</td>
                             </tr> 
                         {% endfor %}
                     {% endif %}

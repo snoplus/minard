@@ -120,87 +120,67 @@
         var rs_plot_data = {{ rs_plot_data | safe }};
 
         var dates = [];
-        var phys = [];
-        var pass = [];
-        var fail = [];
-        var purg = [];
+        var pass_cumulative = [];
+        var fail_cumulative = [];
+        var purg_cumulative = [];
+        
+        var pass_incremental = [];
+        var fail_incremental = [];
+        var purg_incremental = [];
 
-        // Track last known values for flat-lining when data is missing
-        var lastPhys = null;
-        var lastPass = null;
-        var lastFail = null;
-        var lastPurg = null;
+        // Extract hourly data and run counts
+        var hourly_data = rs_plot_data.data || rs_plot_data;
+        var run_counts = rs_plot_data.run_counts || {
+            pass_runs: 0,
+            fail_runs: 0,
+            purg_runs: 0,
+            phys_runs: 0
+        };
 
-        // Iterate backwards so oldest dates are first (left) and newest last (right)
-        for (var i = rs_plot_data.length - 1; i >= 0; i--)
+        // Process hourly data to build cumulative and incremental arrays
+        var cumulative_pass = 0;
+        var cumulative_fail = 0;
+        var cumulative_purg = 0;
+
+        for (var i = 0; i < hourly_data.length; i++)
         {
-            var date_ = moment(rs_plot_data[i]['timestamp']).toDate();
+            var date_ = moment(hourly_data[i]['timestamp']).toDate();
             dates.push(date_);
             
-            // Calculate current values
-            var physVal = rs_plot_data[rs_plot_data.length - 1]['phys_total'] - rs_plot_data[i]['phys_total'];
-            var passVal = rs_plot_data[rs_plot_data.length - 1]['pass_total'] - rs_plot_data[i]['pass_total'];
-            var failVal = rs_plot_data[rs_plot_data.length - 1]['fail_total'] - rs_plot_data[i]['fail_total'];
-            var purgVal = rs_plot_data[rs_plot_data.length - 1]['purg_total'] - rs_plot_data[i]['purg_total'];
+            // Get incremental values (hours in this specific hour)
+            var pass_inc = hourly_data[i]['pass_time'] || 0;
+            var fail_inc = hourly_data[i]['fail_time'] || 0;
+            var purg_inc = hourly_data[i]['purg_time'] || 0;
             
-            // Convert from days to hours
-            physVal = physVal * 24;
-            passVal = passVal * 24;
-            failVal = failVal * 24;
-            purgVal = purgVal * 24;
+            pass_incremental.push(pass_inc);
+            fail_incremental.push(fail_inc);
+            purg_incremental.push(purg_inc);
             
-            // If value is null/undefined/NaN, use last known value (flat line)
-            if (physVal == null || isNaN(physVal)) {
-                physVal = lastPhys != null ? lastPhys : 0;
-            } else {
-                lastPhys = physVal;
-            }
+            // Build cumulative values
+            cumulative_pass += pass_inc;
+            cumulative_fail += fail_inc;
+            cumulative_purg += purg_inc;
             
-            if (passVal == null || isNaN(passVal)) {
-                passVal = lastPass != null ? lastPass : 0;
-            } else {
-                lastPass = passVal;
-            }
-            
-            if (failVal == null || isNaN(failVal)) {
-                failVal = lastFail != null ? lastFail : 0;
-            } else {
-                lastFail = failVal;
-            }
-            
-            if (purgVal == null || isNaN(purgVal)) {
-                purgVal = lastPurg != null ? lastPurg : 0;
-            } else {
-                lastPurg = purgVal;
-            }
-            
-            phys.push(physVal);
-            pass.push(passVal);
-            fail.push(failVal);
-            purg.push(purgVal);
+            pass_cumulative.push(cumulative_pass);
+            fail_cumulative.push(cumulative_fail);
+            purg_cumulative.push(cumulative_purg);
         }
 
-        // Summary
-        var summaryTime = [
-            rs_plot_data[rs_plot_data.length - 1]['phys_total'] * 24,
-            rs_plot_data[rs_plot_data.length - 1]['pass_total'] * 24,
-            rs_plot_data[rs_plot_data.length - 1]['fail_total'] * 24,
-            rs_plot_data[rs_plot_data.length - 1]['purg_total'] * 24
-        ];
-        var summaryRuns = [
-            rs_plot_data[rs_plot_data.length - 1]['phys_runs'],
-            rs_plot_data[rs_plot_data.length - 1]['pass_runs'],
-            rs_plot_data[rs_plot_data.length - 1]['fail_runs'],
-            rs_plot_data[rs_plot_data.length - 1]['purg_runs']
-        ];
-        for (var i=0; i < summaryTime.length; i++)
-	    {
-		    summaryTime[i] = parseFloat(summaryTime[i]).toFixed(3);
-	    }
-        document.getElementById("phys_summary").innerHTML = 'Physics: ' + summaryTime[0].toString() + ' Hours, ' +summaryRuns[0].toString() + ' Runs';
-        document.getElementById("pass_summary").innerHTML = 'Passed: ' + summaryTime[1].toString() + ' Hours, ' +summaryRuns[1].toString() + ' Runs';
-        document.getElementById("fail_summary").innerHTML = 'Failed: ' + summaryTime[2].toString() + ' Hours, ' +summaryRuns[2].toString() + ' Runs';
-        document.getElementById("purg_summary").innerHTML = 'Purgatory: ' + summaryTime[3].toString()  + ' Hours, ' +summaryRuns[3].toString() + ' Runs';
+        // Convert incremental hours to minutes for ease of understanding
+        var pass_incremental_minutes = pass_incremental.map(v => v * 60)
+        var fail_incremental_minutes = fail_incremental.map(v => v * 60)
+        var purg_incremental_minutes = purg_incremental.map(v => v * 60)
+
+        // Summary - use final cumulative values and run counts
+        var total_pass = cumulative_pass;
+        var total_fail = cumulative_fail;
+        var total_purg = cumulative_purg;
+        var total_phys = total_pass + total_fail + total_purg;
+
+        document.getElementById("phys_summary").innerHTML = 'Physics: ' + total_phys.toFixed(2) + ' Hours, ' + run_counts.phys_runs + ' Runs';
+        document.getElementById("pass_summary").innerHTML = 'Passed: ' + total_pass.toFixed(2) + ' Hours, ' + run_counts.pass_runs + ' Runs';
+        document.getElementById("fail_summary").innerHTML = 'Failed: ' + total_fail.toFixed(2) + ' Hours, ' + run_counts.fail_runs + ' Runs';
+        document.getElementById("purg_summary").innerHTML = 'Purgatory: ' + total_purg.toFixed(2) + ' Hours, ' + run_counts.purg_runs + ' Runs';
 
         // Stacked Filled Area Line Plot using Chart.js
         var ctx = document.getElementById('RunSelectionPlot').getContext('2d');
@@ -211,7 +191,7 @@
                 datasets: [
                     {
                         label: 'Passed',
-                        data: pass,
+                        data: pass_cumulative,
                         borderColor: 'rgb(54, 162, 235)',
                         backgroundColor: 'rgba(54, 162, 235, 0.5)',
                         borderWidth: 2,
@@ -221,7 +201,7 @@
                     },
                     {
                         label: 'Failed',
-                        data: fail,
+                        data: fail_cumulative,
                         borderColor: 'rgb(255, 99, 132)',
                         backgroundColor: 'rgba(255, 99, 132, 0.5)',
                         borderWidth: 2,
@@ -231,7 +211,7 @@
                     },
                     {
                         label: 'Purgatory',
-                        data: purg,
+                        data: purg_cumulative,
                         borderColor: 'rgb(255, 206, 86)',
                         backgroundColor: 'rgba(255, 206, 86, 0.5)',
                         borderWidth: 2,
@@ -264,7 +244,7 @@
                         intersect: false,
                         callbacks: {
                             label: function(ctx) {
-                                return ctx.dataset.label + ': ' + Number(ctx.parsed.y).toFixed(2) + ' (hours)';
+                                return ctx.dataset.label + ': ' + Number(ctx.parsed.y).toFixed(2) + ' hours';
                             }
                         }
                     }
@@ -285,65 +265,47 @@
                     },
                     x: {
                         display: false
-                        // stacked: true,
-                        // title: { display: true, text: 'Date', font: { size: 14 } },
-                        // ticks: { maxRotation: 45, minRotation: 45, font: { size: 11 } }
                     }
                 }
             }
         });
 
         // Differential (time per interval) chart
-        var ddates = [];
-        var dpass = [];
-        var dfail = [];
-        var dpurg = [];
-
-        for (var i = rs_plot_data.length - 2; i >= 0; i--)
-        {
-            var date_ = moment(rs_plot_data[i]['timestamp']).toDate();
-            ddates.push(date_);
-
-            // Calculate delta in days (time added between this timestamp and next)
-            // Since we iterate backwards, rs_plot_data[i] is older, so subtract next from current
-            var dpassVal = (rs_plot_data[i + 1]['pass_total'] - rs_plot_data[i]['pass_total']) * 24;
-            var dfailVal = (rs_plot_data[i + 1]['fail_total'] - rs_plot_data[i]['fail_total']) * 24;
-            var dpurgVal = (rs_plot_data[i + 1]['purg_total'] - rs_plot_data[i]['purg_total']) * 24;
-
-            dpass.push(dpassVal || 0);
-            dfail.push(dfailVal || 0);
-            dpurg.push(dpurgVal || 0);
-        }
-
         var ctx2 = document.getElementById('RunSelectionDiffPlot').getContext('2d');
         var diffChart = new Chart(ctx2, {
             type: 'bar',
             data: {
-                labels: ddates.map(d => moment(d).format('MM-DD HH:mm')),
+                labels: dates.map(d => moment(d).format('MM-DD HH:mm')),
                 datasets: [
                     {
                         label: 'Passed',
-                        data: dpass,
+                        data: pass_incremental_minutes,
                         backgroundColor: 'rgba(54, 162, 235, 0.5)',
                         borderColor: 'rgb(54, 162, 235)',
                         borderWidth: 1,
-                        stack: 'runs'
+                        barPercentage: 1.0,
+                        categoryPercentage: 1.0,
+                        stack: 'stack0'
                     },
                     {
                         label: 'Failed',
-                        data: dfail,
+                        data: fail_incremental_minutes,
                         backgroundColor: 'rgba(255, 99, 132, 0.5)',
                         borderColor: 'rgb(255, 99, 132)',
                         borderWidth: 1,
-                        stack: 'runs'
+                        barPercentage: 1.0,
+                        categoryPercentage: 1.0,
+                        stack: 'stack0'
                     },
                     {
                         label: 'Purgatory',
-                        data: dpurg,
+                        data: purg_incremental_minutes,
                         backgroundColor: 'rgba(255, 206, 86, 0.5)',
                         borderColor: 'rgb(255, 206, 86)',
                         borderWidth: 1,
-                        stack: 'runs'
+                        barPercentage: 1.0,
+                        categoryPercentage: 1.0,
+                        stack: 'stack0'
                     }
                 ]
             },
@@ -358,30 +320,36 @@
                 interaction: { mode: 'index', intersect: false },
                 plugins: {
                     legend: {
-                        display: false
+                        display: false,
+                        position: 'top',
+                        labels: { font: { size: 14, weight: 'bold'}}
                     },
                     tooltip: {
                         mode: 'index',
                         intersect: false,
                         callbacks: {
                             label: function(ctx) {
-                                return ctx.dataset.label + ': ' + Number(ctx.parsed.y).toFixed(2) + ' hours';
+                                return ctx.dataset.label + ': ' + Number(ctx.parsed.y).toFixed(3) + ' minutes';
                             }
                         }
                     }
                 },
                 scales: {
                     x: { 
-                        stacked: true, 
+                        stacked: true,
                         title: { display: true, text: 'Date', font: { size: 14 } }, 
                         ticks: { maxRotation: 45, minRotation: 45, font: { size: 11 } } 
                     },
                     y: { 
-                        stacked: true, 
+                        stacked: true,
                         beginAtZero: true,
-                        max: 1.0,
+                        max: 60.0,
                         title: { display: true, text: 'Incremental Datahours', font: { size: 14 } }, 
-                        ticks: { font: { size: 12 }, padding: 5 },
+                        ticks: { 
+                            font: { size: 12 }, 
+                            padding: 5,
+                            callback: function(v) { return Number(v).toFixed(2); }
+                        },
                         afterFit: function(scaleInstance) {
                             scaleInstance.width = 100;
                         }

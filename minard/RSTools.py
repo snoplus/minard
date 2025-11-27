@@ -950,18 +950,10 @@ def format_data(runNum):
 def pass_fail_plot_info(criteria, date_range):
     ''' calculates the cumulative number of days of physics, passed, failed and purgatory runs 
         based on input criteria and date range '''
-    # list of values we want to plot
-    data = []
-    phys = 0
-    physrun = 0
-    passed = 0
-    passrun = 0
-    failed = 0
-    failrun = 0
-    purg = 0
-    purgrun = 0
+
     # Get list of criteria to put in drop-down menu (in order)
     drop_down_crits = app.config['DROP_DOWN_MENU_CRITS']
+
     # Get date limits
     min_runTime = None
     max_runTime = None
@@ -975,66 +967,119 @@ def pass_fail_plot_info(criteria, date_range):
         max_runTime = min(max_runTime, datetime.datetime.now())
     else:
         return False, drop_down_crits, min_runTime, None
-    # download physics runs in given date range - do this 1000 runs at a time until all the runs in the date range have been downloaded
-    min_dl_time = max_runTime  # the minimum time that has been dowloaded to compare with the minimum time we want to download
-    final_run_num = None
-    attempt = 1
-    while min_dl_time > min_runTime:
-        rs_tables = get_RS_reports_date_range(criteria=criteria, run_max=final_run_num)
-        if rs_tables is False:
-            return False, drop_down_crits, min_runTime, max_runTime
-        # Loop through RS tables and sum up the cumulative number of days of each result
-        for run_number in rs_tables.keys():
-            # check run duration was found and if it was convert into days, skip if not
-            if rs_tables[run_number][criteria]['run_duration'] == 'No Data':
-                continue
-            # Get run time and put into specific format
-            run_start_time = str(rs_tables[run_number][criteria]['run_start']).replace(' ', 'T')
-            # get the run date to apply date range to
-            run_start_lst = rs_tables[run_number][criteria]['run_start'].split(' ')[0].split('-')
-            run_start_date = datetime.datetime(int(run_start_lst[0]), int(run_start_lst[1]), int(run_start_lst[2]), 0, 0)
-            # if no date conditions were given, skip the filter
-            if not min_runTime is None:
-                if run_start_date < min_runTime:
-                    continue
-            if not max_runTime is None:
-                if run_start_date > max_runTime:
-                    continue
-            run_length = rs_tables[run_number][criteria]['run_duration']/(60**2*24)
-            # get result (pass=True, fail=False, purgatory=None)
-            result = rs_tables[run_number][criteria]['result']
-            # add number of days to cumulative sum
-            phys += run_length
-            physrun += 1
-            if result == True:
-                passed += run_length
-                passrun += 1
-            if result == False:
-                failed += run_length
-                failrun += 1
-            if result == None:
-                purg += run_length
-                purgrun += 1
-            rs_result = {}
-            rs_result['timestamp'] = run_start_time
-            rs_result['phys_total'] = phys
-            rs_result['phys_runs'] = physrun
-            rs_result['pass_total'] = passed
-            rs_result['pass_runs'] = passrun
-            rs_result['fail_total'] = failed
-            rs_result['fail_runs'] = failrun
-            rs_result['purg_total'] = purg
-            rs_result['purg_runs'] = purgrun
-            data.append(rs_result)
-        # get final run number and date of final run to check if more runs need to be downloaded
-        len_rs_tables = len(rs_tables)
-        final_run_num = rs_tables.keys()[len_rs_tables-1]
-        last_run_start = rs_tables[final_run_num][criteria]['run_start'].split(' ')[0].split('-')
-        min_dl_time = datetime.datetime(int(last_run_start[0]), int(last_run_start[1]), int(last_run_start[2]), 0, 0)
-        attempt += 1
-    return data, drop_down_crits, min_runTime, max_runTime
 
-def get_RS_reports_date_range(criteria=None, run_max=None):
+    # Create hourly buckets for the entire time range
+    num_hours = int((max_runTime - min_runTime).total_seconds() / 3600) + 1
+    data = []
+    for i in range(num_hours):
+        hour_start = min_runTime + datetime.timedelta(hours=i)
+        data.append({
+            'timestamp': hour_start.isoformat(),
+            'pass_time': 0.0,  # hours spent in passing state
+            'fail_time': 0.0,  # hours spent in failing state
+            'purg_time': 0.0,  # hours spent in purgatory state
+            'idle_time': 1.0   # hours with no run (default to full hour)
+        })
+
+    # Download physics runs in given date range
+    rstables = get_RS_reports_date_range(criteria=criteria, min_date=min_runTime, max_date=max_runTime)
+    if rstables is False:
+        return False, drop_down_crits, min_runTime, max_runTime
+
+    # Track run counts
+    run_counts = {
+        'pass_runs': 0,
+        'fail_runs': 0,
+        'purg_runs': 0,
+        'phys_runs': 0
+    }
+
+    # Process each run and allocate its time to the appropriate hourly buckets
+    for run_number in rstables.keys():
+        if rstables[run_number][criteria]['run_duration'] == 'No Data':
+            continue
+        if rstables[run_number][criteria]['run_start'] == 'No Data':
+            continue
+
+        # Parse run start time
+        run_start_str = rstables[run_number][criteria]['run_start']
+        try:
+            # Handle both formats: with and without microseconds
+            if '.' in run_start_str:
+                run_start = datetime.datetime.strptime(run_start_str, '%Y-%m-%d %H:%M:%S.%f')
+            else:
+                run_start = datetime.datetime.strptime(run_start_str, '%Y-%m-%d %H:%M:%S')
+        except:
+            continue
+
+        # Get run duration in seconds
+        run_duration_seconds = rstables[run_number][criteria]['run_duration']
+        run_end = run_start + datetime.timedelta(seconds=run_duration_seconds)
+
+        # Skip runs outside our time range
+        if run_end < min_runTime or run_start > max_runTime:
+            continue
+
+        # Clip run to our time range
+        run_start_clipped = max(run_start, min_runTime)
+        run_end_clipped = min(run_end, max_runTime)
+
+        # Get result (pass=True, fail=False, purgatory=None)
+        result = rstables[run_number][criteria]['result']
+
+        # Count this run
+        run_counts['phys_runs'] += 1
+        if result == True:
+            run_counts['pass_runs'] += 1
+        elif result == False:
+            run_counts['fail_runs'] += 1
+        else:  # None = purgatory
+            run_counts['purg_runs'] += 1
+
+        # Distribute run time across the hours it spans
+        current_time = run_start_clipped
+        while current_time < run_end_clipped:
+            # Find which hour bucket this time falls into
+            hours_from_start = (current_time - min_runTime).total_seconds() / 3600
+            hour_index = int(hours_from_start)
+            
+            if hour_index >= len(data):
+                break
+
+            # Calculate how much of this hour the run occupies
+            hour_start = min_runTime + datetime.timedelta(hours=hour_index)
+            hour_end = hour_start + datetime.timedelta(hours=1)
+            
+            segment_start = max(current_time, hour_start)
+            segment_end = min(run_end_clipped, hour_end)
+            segment_duration_hours = (segment_end - segment_start).total_seconds() / 3600
+
+            # Add to appropriate category and subtract from idle
+            if result == True:
+                data[hour_index]['pass_time'] += segment_duration_hours
+            elif result == False:
+                data[hour_index]['fail_time'] += segment_duration_hours
+            else:  # None = purgatory
+                data[hour_index]['purg_time'] += segment_duration_hours
+            
+            data[hour_index]['idle_time'] -= segment_duration_hours
+
+            # Move to next hour
+            current_time = hour_end
+
+    # Ensure idle_time doesn't go negative due to overlapping runs
+    for hour_data in data:
+        hour_data['idle_time'] = max(0.0, hour_data['idle_time'])
+
+    # Add run counts to the data structure
+    summary = {
+        'data': data,
+        'run_counts': run_counts
+    }
+
+    return summary, drop_down_crits, min_runTime, max_runTime
+
+def get_RS_reports_date_range(criteria=None, run_max=None, min_date=None, max_date=None):
     '''Get run-selection tables in a run range. If duplicate tables, only keeps one
     (takes one with latest version, and if they have the same version, the one with
     the latest timestamp).'''
@@ -1045,12 +1090,18 @@ def get_RS_reports_date_range(criteria=None, run_max=None):
         conditions.append("criteria = '%s'" % str(criteria))
     if run_max is not None:
         conditions.append("run_max < %d" % int(run_max))
+    
+    # Add date range filtering using the meta_data field
+    if min_date is not None:
+        conditions.append("(meta_data->'run_time'->'notes'->'dt'->>'timestamp')::timestamp >= '%s'" % min_date.strftime('%Y-%m-%d %H:%M:%S'))
+    if max_date is not None:
+        conditions.append("(meta_data->'run_time'->'notes'->'dt'->>'timestamp')::timestamp <= '%s'" % max_date.strftime('%Y-%m-%d %H:%M:%S'))
+    
     if len(conditions) > 0:
         for i in range(0, len(conditions)):
             query += " AND " + conditions[i]
     query += " ORDER BY run_min DESC"
-    # to speed things up, only download 100 runs at a time
-    query += " LIMIT 100"
+    
     c = False
     try:
         conn = engine_nl.connect()

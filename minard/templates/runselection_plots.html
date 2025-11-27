@@ -123,12 +123,10 @@
         var pass_cumulative = [];
         var fail_cumulative = [];
         var purg_cumulative = [];
-        var idle_cumulative = [];
         
         var pass_incremental = [];
         var fail_incremental = [];
         var purg_incremental = [];
-        var idle_incremental = [];
 
         // Extract hourly data and run counts
         var hourly_data = rs_plot_data.data || rs_plot_data;
@@ -167,6 +165,11 @@
             fail_cumulative.push(cumulative_fail);
             purg_cumulative.push(cumulative_purg);
         }
+
+        // Convert incremental hours to minutes for ease of understanding
+        var pass_incremental_minutes = pass_incremental.map(v => v * 60)
+        var fail_incremental_minutes = fail_incremental.map(v => v * 60)
+        var purg_incremental_minutes = purg_incremental.map(v => v * 60)
 
         // Summary - use final cumulative values and run counts
         var total_pass = cumulative_pass;
@@ -276,7 +279,7 @@
                 datasets: [
                     {
                         label: 'Passed',
-                        data: pass_incremental,
+                        data: pass_incremental_minutes,
                         backgroundColor: 'rgba(54, 162, 235, 0.5)',
                         borderColor: 'rgb(54, 162, 235)',
                         borderWidth: 1,
@@ -286,7 +289,7 @@
                     },
                     {
                         label: 'Failed',
-                        data: fail_incremental,
+                        data: fail_incremental_minutes,
                         backgroundColor: 'rgba(255, 99, 132, 0.5)',
                         borderColor: 'rgb(255, 99, 132)',
                         borderWidth: 1,
@@ -296,7 +299,7 @@
                     },
                     {
                         label: 'Purgatory',
-                        data: purg_incremental,
+                        data: purg_incremental_minutes,
                         backgroundColor: 'rgba(255, 206, 86, 0.5)',
                         borderColor: 'rgb(255, 206, 86)',
                         borderWidth: 1,
@@ -326,7 +329,7 @@
                         intersect: false,
                         callbacks: {
                             label: function(ctx) {
-                                return ctx.dataset.label + ': ' + Number(ctx.parsed.y).toFixed(3) + ' hours';
+                                return ctx.dataset.label + ': ' + Number(ctx.parsed.y).toFixed(3) + ' minutes';
                             }
                         }
                     }
@@ -340,7 +343,7 @@
                     y: { 
                         stacked: true,
                         beginAtZero: true,
-                        max: 1.0,
+                        max: 60.0,
                         title: { display: true, text: 'Incremental Datahours', font: { size: 14 } }, 
                         ticks: { 
                             font: { size: 12 }, 
